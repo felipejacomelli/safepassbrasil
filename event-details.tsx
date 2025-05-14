@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -14,8 +16,10 @@ import {
   Twitter,
   InstagramIcon as TiktokIcon,
 } from "lucide-react"
+import { useParams } from "next/navigation"
 
 export default function EventDetails() {
+  const params = useParams()
   return (
     <div className="min-h-screen bg-black">
       {/* Navigation */}
@@ -104,9 +108,57 @@ export default function EventDetails() {
                   <option>Cadeira Inferior</option>
                   <option>Cadeira Superior</option>
                 </select>
-                <p className="text-gray-300 mb-2">Acesso ao evento</p>
-                <p className="text-primary font-bold text-xl mb-2">R$ 750,00</p>
-                <Button className="w-full bg-primary hover:bg-blue-600 text-black">Comprar</Button>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-gray-300">Acesso ao evento</p>
+                  <div className="bg-blue-500 bg-opacity-20 px-2 py-1 rounded text-blue-400 text-sm flex items-center">
+                    <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M22 10V6C22 4.89543 21.1046 4 20 4H4C2.89543 4 2 4.89543 2 6V10M22 10V18C22 19.1046 21.1046 20 20 20H4C2.89543 20 2 19.1046 2 18V10M22 10H2M9 14H15"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    12 ingressos disponíveis
+                  </div>
+                </div>
+                <p className="text-primary font-bold text-xl mb-4">R$ 750,00</p>
+                <div className="flex gap-2">
+                  <Button
+                    className="w-full bg-primary hover:bg-blue-600 text-black flex items-center justify-center"
+                    onClick={() => (window.location.href = "/cart")}
+                  >
+                    <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="M3 3H5L5.4 5M5.4 5H21L17 13H7M5.4 5L7 13M7 13L4.707 15.293C4.077 15.923 4.523 17 5.414 17H17M17 17C16.4696 17 15.9609 17.2107 15.5858 17.5858C15.2107 17.9609 15 18.4696 15 19C15 19.5304 15.2107 20.0391 15.5858 20.4142C15.9609 20.7893 16.4696 21 17 21C17.5304 21 18.0391 20.7893 18.4142 20.4142C18.7893 20.0391 19 19.5304 19 19C19 18.4696 18.7893 17.9609 18.4142 17.5858C18.0391 17.2107 17.5304 17 17 17Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    Adicionar ao Carrinho
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="bg-transparent border-primary text-primary hover:bg-primary hover:text-black"
+                    onClick={() => (window.location.href = "/checkout")}
+                  >
+                    Comprar Agora
+                  </Button>
+                </div>
+              </div>
+
+              <div className="bg-black p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-white mb-2">Tem ingressos para vender?</h3>
+                <Button
+                  variant="outline"
+                  className="w-full bg-transparent border-green-500 text-green-500 hover:bg-green-500 hover:text-black"
+                  onClick={() => (window.location.href = `/event/${params.slug}/sell`)}
+                >
+                  Vender Ingressos
+                </Button>
               </div>
             </div>
           </div>
@@ -257,4 +309,3 @@ export default function EventDetails() {
     </div>
   )
 }
-
