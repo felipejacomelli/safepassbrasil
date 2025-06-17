@@ -1,8 +1,11 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useMediaQuery } from "@/hooks/use-media-query"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function SellTicketPage({ params }: { params: { slug: string } }) {
   const isDesktop = useMediaQuery("(min-width: 640px)")
@@ -32,6 +35,62 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+
+  const { user, isAuthenticated, login } = useAuth()
+  const [authMode, setAuthMode] = useState<"login" | "register">("login")
+  const [authEmail, setAuthEmail] = useState("")
+  const [authPassword, setAuthPassword] = useState("")
+  const [authName, setAuthName] = useState("")
+  const [authPhone, setAuthPhone] = useState("")
+  const [authConfirmPassword, setAuthConfirmPassword] = useState("")
+  const [authErrors, setAuthErrors] = useState<Record<string, string>>({})
+  const [isAuthLoading, setIsAuthLoading] = useState(false)
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setAuthErrors({})
+
+    if (authMode === "login") {
+      if (!authEmail || !authPassword) {
+        setAuthErrors({ general: "Por favor, preencha todos os campos" })
+        return
+      }
+
+      setIsAuthLoading(true)
+      try {
+        const result = await login(authEmail, authPassword)
+        if (result.success) {
+        } else {
+          setAuthErrors({ general: "Email ou senha inválidos" })
+        }
+      } catch (err) {
+        setAuthErrors({ general: "Erro ao fazer login" })
+      } finally {
+        setIsAuthLoading(false)
+      }
+    } else {
+      // Register validation
+      const newErrors: Record<string, string> = {}
+
+      if (!authName.trim()) newErrors.name = "Nome é obrigatório"
+      if (!authEmail.trim()) newErrors.email = "Email é obrigatório"
+      else if (!/\S+@\S+\.\S+/.test(authEmail)) newErrors.email = "Email inválido"
+      if (!authPassword) newErrors.password = "Senha é obrigatória"
+      else if (authPassword.length < 6) newErrors.password = "A senha deve ter pelo menos 6 caracteres"
+      if (authPassword !== authConfirmPassword) newErrors.confirmPassword = "As senhas não coincidem"
+
+      if (Object.keys(newErrors).length > 0) {
+        setAuthErrors(newErrors)
+        return
+      }
+
+      // Simulate registration
+      setIsAuthLoading(true)
+      setTimeout(() => {
+        setIsAuthLoading(false)
+      }, 1500)
+    }
+  }
 
   // Handle form submission
   const handleSubmit = (e) => {
@@ -426,8 +485,285 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                   Voltar para o evento
                 </a>
               </div>
+            ) : !isAuthenticated ? (
+              <div
+                style={{
+                  backgroundColor: "#18181B",
+                  borderRadius: "12px",
+                  padding: "24px",
+                  marginBottom: "24px",
+                }}
+              >
+                <h2
+                  style={{
+                    fontSize: "20px",
+                    fontWeight: "bold",
+                    marginBottom: "24px",
+                  }}
+                >
+                  Entre ou Crie sua Conta para Vender
+                </h2>
+
+                {/* Auth Mode Toggle */}
+                <div
+                  style={{
+                    display: "flex",
+                    backgroundColor: "#27272A",
+                    borderRadius: "8px",
+                    padding: "4px",
+                    marginBottom: "24px",
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode("login")}
+                    style={{
+                      flex: 1,
+                      padding: "8px 16px",
+                      borderRadius: "4px",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      border: "none",
+                      cursor: "pointer",
+                      backgroundColor: authMode === "login" ? "#3B82F6" : "transparent",
+                      color: authMode === "login" ? "black" : "#D4D4D8",
+                    }}
+                  >
+                    Entrar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode("register")}
+                    style={{
+                      flex: 1,
+                      padding: "8px 16px",
+                      borderRadius: "4px",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      border: "none",
+                      cursor: "pointer",
+                      backgroundColor: authMode === "register" ? "#3B82F6" : "transparent",
+                      color: authMode === "register" ? "black" : "#D4D4D8",
+                    }}
+                  >
+                    Criar Conta
+                  </button>
+                </div>
+
+                {/* Auth Form */}
+                <form onSubmit={handleAuth}>
+                  {authMode === "register" && (
+                    <div style={{ marginBottom: "16px" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          marginBottom: "8px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        Nome Completo
+                      </label>
+                      <input
+                        type="text"
+                        value={authName}
+                        onChange={(e) => setAuthName(e.target.value)}
+                        style={{
+                          width: "100%",
+                          backgroundColor: "#27272A",
+                          color: "white",
+                          padding: "12px",
+                          borderRadius: "8px",
+                          border: authErrors.name ? "1px solid #EF4444" : "1px solid #3F3F46",
+                          fontSize: "16px",
+                        }}
+                      />
+                      {authErrors.name && (
+                        <p style={{ color: "#EF4444", fontSize: "14px", marginTop: "4px" }}>{authErrors.name}</p>
+                      )}
+                    </div>
+                  )}
+
+                  <div style={{ marginBottom: "16px" }}>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: "8px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      style={{
+                        width: "100%",
+                        backgroundColor: "#27272A",
+                        color: "white",
+                        padding: "12px",
+                        borderRadius: "8px",
+                        border: authErrors.email ? "1px solid #EF4444" : "1px solid #3F3F46",
+                        fontSize: "16px",
+                      }}
+                    />
+                    {authErrors.email && (
+                      <p style={{ color: "#EF4444", fontSize: "14px", marginTop: "4px" }}>{authErrors.email}</p>
+                    )}
+                  </div>
+
+                  {authMode === "register" && (
+                    <div style={{ marginBottom: "16px" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          marginBottom: "8px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        Telefone (opcional)
+                      </label>
+                      <input
+                        type="tel"
+                        value={authPhone}
+                        onChange={(e) => setAuthPhone(e.target.value)}
+                        placeholder="(00) 00000-0000"
+                        style={{
+                          width: "100%",
+                          backgroundColor: "#27272A",
+                          color: "white",
+                          padding: "12px",
+                          borderRadius: "8px",
+                          border: "1px solid #3F3F46",
+                          fontSize: "16px",
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  <div style={{ marginBottom: "16px" }}>
+                    <label
+                      style={{
+                        display: "block",
+                        marginBottom: "8px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      Senha
+                    </label>
+                    <input
+                      type="password"
+                      value={authPassword}
+                      onChange={(e) => setAuthPassword(e.target.value)}
+                      style={{
+                        width: "100%",
+                        backgroundColor: "#27272A",
+                        color: "white",
+                        padding: "12px",
+                        borderRadius: "8px",
+                        border: authErrors.password ? "1px solid #EF4444" : "1px solid #3F3F46",
+                        fontSize: "16px",
+                      }}
+                    />
+                    {authErrors.password && (
+                      <p style={{ color: "#EF4444", fontSize: "14px", marginTop: "4px" }}>{authErrors.password}</p>
+                    )}
+                  </div>
+
+                  {authMode === "register" && (
+                    <div style={{ marginBottom: "16px" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          marginBottom: "8px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        Confirmar Senha
+                      </label>
+                      <input
+                        type="password"
+                        value={authConfirmPassword}
+                        onChange={(e) => setAuthConfirmPassword(e.target.value)}
+                        style={{
+                          width: "100%",
+                          backgroundColor: "#27272A",
+                          color: "white",
+                          padding: "12px",
+                          borderRadius: "8px",
+                          border: authErrors.confirmPassword ? "1px solid #EF4444" : "1px solid #3F3F46",
+                          fontSize: "16px",
+                        }}
+                      />
+                      {authErrors.confirmPassword && (
+                        <p style={{ color: "#EF4444", fontSize: "14px", marginTop: "4px" }}>
+                          {authErrors.confirmPassword}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {authErrors.general && (
+                    <div
+                      style={{
+                        backgroundColor: "rgba(220, 38, 38, 0.1)",
+                        color: "#EF4444",
+                        padding: "12px",
+                        borderRadius: "8px",
+                        marginBottom: "16px",
+                        border: "1px solid rgba(220, 38, 38, 0.3)",
+                      }}
+                    >
+                      {authErrors.general}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isAuthLoading}
+                    style={{
+                      backgroundColor: "#3B82F6",
+                      color: "black",
+                      border: "none",
+                      borderRadius: "8px",
+                      padding: "16px",
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                      cursor: isAuthLoading ? "not-allowed" : "pointer",
+                      width: "100%",
+                      opacity: isAuthLoading ? 0.7 : 1,
+                      marginBottom: "16px",
+                    }}
+                  >
+                    {isAuthLoading
+                      ? authMode === "login"
+                        ? "Entrando..."
+                        : "Criando conta..."
+                      : authMode === "login"
+                        ? "Entrar"
+                        : "Criar Conta"}
+                  </button>
+                </form>
+              </div>
             ) : (
               <form onSubmit={handleSubmit}>
+                {isAuthenticated && (
+                  <div
+                    style={{
+                      backgroundColor: "rgba(16, 185, 129, 0.1)",
+                      borderRadius: "12px",
+                      padding: "16px",
+                      marginBottom: "24px",
+                      border: "1px solid rgba(16, 185, 129, 0.3)",
+                    }}
+                  >
+                    <p style={{ color: "#10B981", fontSize: "14px" }}>
+                      ✓ Logado como {user?.name} ({user?.email})
+                    </p>
+                  </div>
+                )}
+
+                {/* Rest of the existing form content remains the same */}
                 <div
                   style={{
                     backgroundColor: "#18181B",
@@ -446,6 +782,7 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                     Detalhes do Ingresso
                   </h2>
 
+                  {/* Keep all the existing form fields exactly as they are */}
                   {/* Ticket Type */}
                   <div
                     style={{
@@ -606,6 +943,7 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                   </div>
                 </div>
 
+                {/* Keep all other existing sections (Upload, Terms, etc.) */}
                 {/* Upload Section */}
                 <div
                   style={{
