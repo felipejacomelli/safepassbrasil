@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useMediaQuery } from "@/hooks/use-media-query"
-import { useAuth } from "@/contexts/auth-context"
 
 export default function CartPage() {
   const isDesktop = useMediaQuery("(min-width: 640px)")
@@ -51,18 +50,6 @@ export default function CartPage() {
     ]
   })
 
-  const { user, isAuthenticated, login } = useAuth()
-  const [showAuthForm, setShowAuthForm] = useState(!isAuthenticated)
-  const [authMode, setAuthMode] = useState<"login" | "register">("login")
-  const [authFormData, setAuthFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  })
-  const [authErrors, setAuthErrors] = useState({})
-  const [isAuthSubmitting, setIsAuthSubmitting] = useState(false)
-
   // Checkout state
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [formData, setFormData] = useState({
@@ -78,67 +65,6 @@ export default function CartPage() {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
-
-  // Handle auth form input change
-  const handleAuthInputChange = (e) => {
-    const { name, value } = e.target
-    setAuthFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
-  // Handle auth form submission
-  const handleAuthSubmit = async (e) => {
-    e.preventDefault()
-    setIsAuthSubmitting(true)
-
-    // Validate form
-    const newErrors = {}
-    if (!authFormData.email.trim()) newErrors.email = "Email é obrigatório"
-    if (!authFormData.password.trim()) newErrors.password = "Senha é obrigatória"
-    
-    if (authMode === "register") {
-      if (!authFormData.name.trim()) newErrors.name = "Nome é obrigatório"
-      if (authFormData.password !== authFormData.confirmPassword) {
-        newErrors.confirmPassword = "Senhas não coincidem"
-      }
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setAuthErrors(newErrors)
-      setIsAuthSubmitting(false)
-      return
-    }
-
-    try {
-      if (authMode === "register") {
-        // Mock registration - in real app, this would be an API call
-        const result = await login(authFormData.email, authFormData.password)
-        if (result.success) {
-          setShowAuthForm(false)
-        } else {
-          setAuthErrors({ general: "Erro ao criar conta" })
-        }
-      } else {
-        const result = await login(authFormData.email, authFormData.password)
-        if (result.success) {
-          if (result.requires2FA) {
-            // Handle 2FA if needed
-            setAuthErrors({ general: "2FA não implementado neste demo" })
-          } else {
-            setShowAuthForm(false)
-          }
-        } else {
-          setAuthErrors({ general: "Email ou senha incorretos" })
-        }
-      }
-    } catch (error) {
-      setAuthErrors({ general: "Erro interno. Tente novamente." })
-    }
-
-    setIsAuthSubmitting(false)
-  }
 
   // Calculate total
   const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
@@ -212,10 +138,6 @@ export default function CartPage() {
       }
     }, 2000)
   }
-
-  useEffect(() => {
-    setShowAuthForm(!isAuthenticated)
-  }, [isAuthenticated])
 
   return (
     <div
@@ -366,237 +288,94 @@ export default function CartPage() {
           flex: 1,
         }}
       >
-        {!isAuthenticated || showAuthForm ? (
+        {orderComplete ? (
           <div
             style={{
               backgroundColor: "#18181B",
               borderRadius: "12px",
               padding: "32px 24px",
-              maxWidth: "500px",
+              textAlign: "center",
+              maxWidth: "600px",
               margin: "0 auto",
             }}
           >
-            <h1
+            <div
               style={{
-                fontSize: "28px",
-                fontWeight: "bold",
-                marginBottom: "8px",
-                textAlign: "center",
+                width: "64px",
+                height: "64px",
+                backgroundColor: "rgba(16, 185, 129, 0.1)",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 24px auto",
               }}
             >
-              {authMode === "login" ? "Faça login para continuar" : "Crie sua conta"}
-            </h1>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M5 13L9 17L19 7"
+                  stroke="#10B981"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <h2
+              style={{
+                fontSize: "24px",
+                fontWeight: "bold",
+                marginBottom: "16px",
+              }}
+            >
+              Pedido realizado com sucesso!
+            </h2>
             <p
               style={{
                 color: "#A1A1AA",
-                textAlign: "center",
-                marginBottom: "32px",
+                marginBottom: "24px",
               }}
             >
-              {authMode === "login" 
-                ? "Você precisa estar logado para finalizar sua compra" 
-                : "Crie uma conta para comprar ingressos"}
+              Seus ingressos foram enviados para seu email. Você também pode acessá-los na sua conta.
             </p>
-
-            <form onSubmit={handleAuthSubmit}>
-              {authMode === "register" && (
-                <div style={{ marginBottom: "16px" }}>
-                  <label
-                    htmlFor="auth-name"
-                    style={{
-                      display: "block",
-                      marginBottom: "8px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    Nome Completo
-                  </label>
-                  <input
-                    id="auth-name"
-                    name="name"
-                    type="text"
-                    value={authFormData.name}
-                    onChange={handleAuthInputChange}
-                    style={{
-                      width: "100%",
-                      backgroundColor: "#27272A",
-                      color: "white",
-                      padding: "12px",
-                      borderRadius: "8px",
-                      border: authErrors.name ? "1px solid #EF4444" : "1px solid #3F3F46",
-                      fontSize: "16px",
-                    }}
-                  />
-                  {authErrors.name && (
-                    <p style={{ color: "#EF4444", fontSize: "14px", marginTop: "4px" }}>
-                      {authErrors.name}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <div style={{ marginBottom: "16px" }}>
-                <label
-                  htmlFor="auth-email"
-                  style={{
-                    display: "block",
-                    marginBottom: "8px",
-                    fontWeight: "500",
-                  }}
-                >
-                  Email
-                </label>
-                <input
-                  id="auth-email"
-                  name="email"
-                  type="email"
-                  value={authFormData.email}
-                  onChange={handleAuthInputChange}
-                  style={{
-                    width: "100%",
-                    backgroundColor: "#27272A",
-                    color: "white",
-                    padding: "12px",
-                    borderRadius: "8px",
-                    border: authErrors.email ? "1px solid #EF4444" : "1px solid #3F3F46",
-                    fontSize: "16px",
-                  }}
-                />
-                {authErrors.email && (
-                  <p style={{ color: "#EF4444", fontSize: "14px", marginTop: "4px" }}>
-                    {authErrors.email}
-                  </p>
-                )}
-              </div>
-
-              <div style={{ marginBottom: "16px" }}>
-                <label
-                  htmlFor="auth-password"
-                  style={{
-                    display: "block",
-                    marginBottom: "8px",
-                    fontWeight: "500",
-                  }}
-                >
-                  Senha
-                </label>
-                <input
-                  id="auth-password"
-                  name="password"
-                  type="password"
-                  value={authFormData.password}
-                  onChange={handleAuthInputChange}
-                  style={{
-                    width: "100%",
-                    backgroundColor: "#27272A",
-                    color: "white",
-                    padding: "12px",
-                    borderRadius: "8px",
-                    border: authErrors.password ? "1px solid #EF4444" : "1px solid #3F3F46",
-                    fontSize: "16px",
-                  }}
-                />
-                {authErrors.password && (
-                  <p style={{ color: "#EF4444", fontSize: "14px", marginTop: "4px" }}>
-                    {authErrors.password}
-                  </p>
-                )}
-              </div>
-
-              {authMode === "register" && (
-                <div style={{ marginBottom: "16px" }}>
-                  <label
-                    htmlFor="auth-confirm-password"
-                    style={{
-                      display: "block",
-                      marginBottom: "8px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    Confirmar Senha
-                  </label>
-                  <input
-                    id="auth-confirm-password"
-                    name="confirmPassword"
-                    type="password"
-                    value={authFormData.confirmPassword}
-                    onChange={handleAuthInputChange}
-                    style={{
-                      width: "100%",
-                      backgroundColor: "#27272A",
-                      color: "white",
-                      padding: "12px",
-                      borderRadius: "8px",
-                      border: authErrors.confirmPassword ? "1px solid #EF4444" : "1px solid #3F3F46",
-                      fontSize: "16px",
-                    }}
-                  />
-                  {authErrors.confirmPassword && (
-                    <p style={{ color: "#EF4444", fontSize: "14px", marginTop: "4px" }}>
-                      {authErrors.confirmPassword}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {authErrors.general && (
-                <p
-                  style={{
-                    color: "#EF4444",
-                    fontSize: "14px",
-                    marginBottom: "16px",
-                    textAlign: "center",
-                  }}
-                >
-                  {authErrors.general}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={isAuthSubmitting}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: isDesktop ? "row" : "column",
+                gap: "12px",
+                justifyContent: "center",
+              }}
+            >
+              <a
+                href="/"
                 style={{
+                  display: "inline-block",
                   backgroundColor: "#3B82F6",
                   color: "black",
-                  border: "none",
+                  padding: "12px 24px",
                   borderRadius: "8px",
-                  padding: "16px",
-                  fontSize: "16px",
                   fontWeight: "bold",
-                  cursor: isAuthSubmitting ? "not-allowed" : "pointer",
-                  width: "100%",
-                  marginBottom: "16px",
-                  opacity: isAuthSubmitting ? 0.7 : 1,
+                  textDecoration: "none",
                 }}
               >
-                {isAuthSubmitting 
-                  ? "Processando..." 
-                  : authMode === "login" 
-                    ? "Entrar" 
-                    : "Criar Conta"}
-              </button>
-
-              <div style={{ textAlign: "center" }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode(authMode === "login" ? "register" : "login")
-                    setAuthErrors({})
-                  }}
-                  style={{
-                    backgroundColor: "transparent",
-                    border: "none",
-                    color: "#3B82F6",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                  }}
-                >
-                  {authMode === "login" 
-                    ? "Não tem conta? Criar conta" 
-                    : "Já tem conta? Fazer login"}
-                </button>
-              </div>
-            </form>
+                Voltar para a página inicial
+              </a>
+              <a
+                href="/account"
+                style={{
+                  display: "inline-block",
+                  backgroundColor: "transparent",
+                  border: "1px solid #3B82F6",
+                  color: "white",
+                  padding: "12px 24px",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  textDecoration: "none",
+                }}
+              >
+                Ver meus ingressos
+              </a>
+            </div>
           </div>
         ) : (
           <>
@@ -1034,4 +813,688 @@ export default function CartPage() {
                               strokeLinejoin="round"
                             />
                             <path
-                              d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391\
+                              d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z"
+                              stroke="#EF4444"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          Remover
+                        </button>
+
+                        <a
+                          href={`/event/${item.eventId}`}
+                          style={{
+                            color: "#3B82F6",
+                            textDecoration: "none",
+                            fontSize: "14px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                          }}
+                        >
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M18 13V19C18 19.5304 17.7893 20.0391 17.4142 20.4142C17.0391 20.7893 16.5304 21 16 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V8C3 7.46957 3.21071 6.96086 3.58579 6.58579C3.96086 6.21071 4.46957 6 5 6H11"
+                              stroke="#3B82F6"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M15 3H21V9"
+                              stroke="#3B82F6"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M10 14L21 3"
+                              stroke="#3B82F6"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          Ver detalhes do evento
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {isCheckingOut && (
+                  <div
+                    style={{
+                      backgroundColor: "#18181B",
+                      borderRadius: "12px",
+                      padding: "24px",
+                    }}
+                  >
+                    <h2
+                      style={{
+                        fontSize: "20px",
+                        fontWeight: "bold",
+                        marginBottom: "24px",
+                      }}
+                    >
+                      Informações de Pagamento
+                    </h2>
+
+                    <form onSubmit={handleCheckout}>
+                      {/* Personal Information */}
+                      <div
+                        style={{
+                          marginBottom: "24px",
+                        }}
+                      >
+                        <h3
+                          style={{
+                            fontSize: "16px",
+                            fontWeight: "bold",
+                            marginBottom: "16px",
+                          }}
+                        >
+                          Informações Pessoais
+                        </h3>
+
+                        <div
+                          style={{
+                            marginBottom: "16px",
+                          }}
+                        >
+                          <label
+                            htmlFor="name"
+                            style={{
+                              display: "block",
+                              marginBottom: "8px",
+                              fontWeight: "500",
+                            }}
+                          >
+                            Nome Completo
+                          </label>
+                          <input
+                            id="name"
+                            name="name"
+                            type="text"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            style={{
+                              width: "100%",
+                              backgroundColor: "#27272A",
+                              color: "white",
+                              padding: "12px",
+                              borderRadius: "8px",
+                              border: errors.name ? "1px solid #EF4444" : "1px solid #3F3F46",
+                              fontSize: "16px",
+                            }}
+                          />
+                          {errors.name && (
+                            <p
+                              style={{
+                                color: "#EF4444",
+                                fontSize: "14px",
+                                marginTop: "4px",
+                              }}
+                            >
+                              {errors.name}
+                            </p>
+                          )}
+                        </div>
+
+                        <div
+                          style={{
+                            marginBottom: "16px",
+                          }}
+                        >
+                          <label
+                            htmlFor="email"
+                            style={{
+                              display: "block",
+                              marginBottom: "8px",
+                              fontWeight: "500",
+                            }}
+                          >
+                            Email
+                          </label>
+                          <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            style={{
+                              width: "100%",
+                              backgroundColor: "#27272A",
+                              color: "white",
+                              padding: "12px",
+                              borderRadius: "8px",
+                              border: errors.email ? "1px solid #EF4444" : "1px solid #3F3F46",
+                              fontSize: "16px",
+                            }}
+                          />
+                          {errors.email && (
+                            <p
+                              style={{
+                                color: "#EF4444",
+                                fontSize: "14px",
+                                marginTop: "4px",
+                              }}
+                            >
+                              {errors.email}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Payment Information */}
+                      <div
+                        style={{
+                          marginBottom: "24px",
+                        }}
+                      >
+                        <h3
+                          style={{
+                            fontSize: "16px",
+                            fontWeight: "bold",
+                            marginBottom: "16px",
+                          }}
+                        >
+                          Informações de Pagamento
+                        </h3>
+
+                        <div
+                          style={{
+                            marginBottom: "16px",
+                          }}
+                        >
+                          <label
+                            htmlFor="cardNumber"
+                            style={{
+                              display: "block",
+                              marginBottom: "8px",
+                              fontWeight: "500",
+                            }}
+                          >
+                            Número do Cartão
+                          </label>
+                          <input
+                            id="cardNumber"
+                            name="cardNumber"
+                            type="text"
+                            value={formData.cardNumber}
+                            onChange={handleInputChange}
+                            placeholder="0000 0000 0000 0000"
+                            style={{
+                              width: "100%",
+                              backgroundColor: "#27272A",
+                              color: "white",
+                              padding: "12px",
+                              borderRadius: "8px",
+                              border: errors.cardNumber ? "1px solid #EF4444" : "1px solid #3F3F46",
+                              fontSize: "16px",
+                            }}
+                          />
+                          {errors.cardNumber && (
+                            <p
+                              style={{
+                                color: "#EF4444",
+                                fontSize: "14px",
+                                marginTop: "4px",
+                              }}
+                            >
+                              {errors.cardNumber}
+                            </p>
+                          )}
+                        </div>
+
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "16px",
+                            marginBottom: "16px",
+                          }}
+                        >
+                          <div>
+                            <label
+                              htmlFor="expiryDate"
+                              style={{
+                                display: "block",
+                                marginBottom: "8px",
+                                fontWeight: "500",
+                              }}
+                            >
+                              Data de Validade
+                            </label>
+                            <input
+                              id="expiryDate"
+                              name="expiryDate"
+                              type="text"
+                              value={formData.expiryDate}
+                              onChange={handleInputChange}
+                              placeholder="MM/AA"
+                              style={{
+                                width: "100%",
+                                backgroundColor: "#27272A",
+                                color: "white",
+                                padding: "12px",
+                                borderRadius: "8px",
+                                border: errors.expiryDate ? "1px solid #EF4444" : "1px solid #3F3F46",
+                                fontSize: "16px",
+                              }}
+                            />
+                            {errors.expiryDate && (
+                              <p
+                                style={{
+                                  color: "#EF4444",
+                                  fontSize: "14px",
+                                  marginTop: "4px",
+                                }}
+                              >
+                                {errors.expiryDate}
+                              </p>
+                            )}
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="cvv"
+                              style={{
+                                display: "block",
+                                marginBottom: "8px",
+                                fontWeight: "500",
+                              }}
+                            >
+                              CVV
+                            </label>
+                            <input
+                              id="cvv"
+                              name="cvv"
+                              type="text"
+                              value={formData.cvv}
+                              onChange={handleInputChange}
+                              placeholder="123"
+                              style={{
+                                width: "100%",
+                                backgroundColor: "#27272A",
+                                color: "white",
+                                padding: "12px",
+                                borderRadius: "8px",
+                                border: errors.cvv ? "1px solid #EF4444" : "1px solid #3F3F46",
+                                fontSize: "16px",
+                              }}
+                            />
+                            {errors.cvv && (
+                              <p
+                                style={{
+                                  color: "#EF4444",
+                                  fontSize: "14px",
+                                  marginTop: "4px",
+                                }}
+                              >
+                                {errors.cvv}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Billing Address */}
+                      <div
+                        style={{
+                          marginBottom: "24px",
+                        }}
+                      >
+                        <h3
+                          style={{
+                            fontSize: "16px",
+                            fontWeight: "bold",
+                            marginBottom: "16px",
+                          }}
+                        >
+                          Endereço de Cobrança
+                        </h3>
+
+                        <div
+                          style={{
+                            marginBottom: "16px",
+                          }}
+                        >
+                          <label
+                            htmlFor="address"
+                            style={{
+                              display: "block",
+                              marginBottom: "8px",
+                              fontWeight: "500",
+                            }}
+                          >
+                            Endereço
+                          </label>
+                          <input
+                            id="address"
+                            name="address"
+                            type="text"
+                            value={formData.address}
+                            onChange={handleInputChange}
+                            style={{
+                              width: "100%",
+                              backgroundColor: "#27272A",
+                              color: "white",
+                              padding: "12px",
+                              borderRadius: "8px",
+                              border: errors.address ? "1px solid #EF4444" : "1px solid #3F3F46",
+                              fontSize: "16px",
+                            }}
+                          />
+                          {errors.address && (
+                            <p
+                              style={{
+                                color: "#EF4444",
+                                fontSize: "14px",
+                                marginTop: "4px",
+                              }}
+                            >
+                              {errors.address}
+                            </p>
+                          )}
+                        </div>
+
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "16px",
+                          }}
+                        >
+                          <div>
+                            <label
+                              htmlFor="city"
+                              style={{
+                                display: "block",
+                                marginBottom: "8px",
+                                fontWeight: "500",
+                              }}
+                            >
+                              Cidade
+                            </label>
+                            <input
+                              id="city"
+                              name="city"
+                              type="text"
+                              value={formData.city}
+                              onChange={handleInputChange}
+                              style={{
+                                width: "100%",
+                                backgroundColor: "#27272A",
+                                color: "white",
+                                padding: "12px",
+                                borderRadius: "8px",
+                                border: errors.city ? "1px solid #EF4444" : "1px solid #3F3F46",
+                                fontSize: "16px",
+                              }}
+                            />
+                            {errors.city && (
+                              <p
+                                style={{
+                                  color: "#EF4444",
+                                  fontSize: "14px",
+                                  marginTop: "4px",
+                                }}
+                              >
+                                {errors.city}
+                              </p>
+                            )}
+                          </div>
+
+                          <div>
+                            <label
+                              htmlFor="zipCode"
+                              style={{
+                                display: "block",
+                                marginBottom: "8px",
+                                fontWeight: "500",
+                              }}
+                            >
+                              CEP
+                            </label>
+                            <input
+                              id="zipCode"
+                              name="zipCode"
+                              type="text"
+                              value={formData.zipCode}
+                              onChange={handleInputChange}
+                              style={{
+                                width: "100%",
+                                backgroundColor: "#27272A",
+                                color: "white",
+                                padding: "12px",
+                                borderRadius: "8px",
+                                border: errors.zipCode ? "1px solid #EF4444" : "1px solid #3F3F46",
+                                fontSize: "16px",
+                              }}
+                            />
+                            {errors.zipCode && (
+                              <p
+                                style={{
+                                  color: "#EF4444",
+                                  fontSize: "14px",
+                                  marginTop: "4px",
+                                }}
+                              >
+                                {errors.zipCode}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Submit Button */}
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        style={{
+                          backgroundColor: "#3B82F6",
+                          color: "black",
+                          border: "none",
+                          borderRadius: "8px",
+                          padding: "16px",
+                          fontSize: "16px",
+                          fontWeight: "bold",
+                          cursor: isSubmitting ? "not-allowed" : "pointer",
+                          width: "100%",
+                          opacity: isSubmitting ? 0.7 : 1,
+                        }}
+                      >
+                        {isSubmitting ? "Processando..." : "Finalizar Compra"}
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                {/* Order Summary */}
+                <div>
+                  <div
+                    style={{
+                      backgroundColor: "#18181B",
+                      borderRadius: "12px",
+                      padding: "24px",
+                      position: isDesktop ? "sticky" : "static",
+                      top: "100px",
+                    }}
+                  >
+                    <h2
+                      style={{
+                        fontSize: "20px",
+                        fontWeight: "bold",
+                        marginBottom: "16px",
+                      }}
+                    >
+                      Resumo do Pedido
+                    </h2>
+
+                    <div
+                      style={{
+                        marginBottom: "16px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        <span style={{ color: "#A1A1AA" }}>Subtotal</span>
+                        <span>R$ {subtotal.toFixed(2).replace(".", ",")}</span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        <span style={{ color: "#A1A1AA" }}>Taxa de serviço</span>
+                        <span>R$ {serviceFee.toFixed(2).replace(".", ",")}</span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginTop: "16px",
+                          paddingTop: "16px",
+                          borderTop: "1px solid #333",
+                          fontWeight: "bold",
+                          fontSize: "18px",
+                        }}
+                      >
+                        <span>Total</span>
+                        <span style={{ color: "#3B82F6" }}>R$ {total.toFixed(2).replace(".", ",")}</span>
+                      </div>
+                    </div>
+
+                    {!isCheckingOut ? (
+                      <button
+                        onClick={() => setIsCheckingOut(true)}
+                        style={{
+                          backgroundColor: "#3B82F6",
+                          color: "black",
+                          border: "none",
+                          borderRadius: "8px",
+                          padding: "16px",
+                          fontSize: "16px",
+                          fontWeight: "bold",
+                          cursor: "pointer",
+                          width: "100%",
+                          marginBottom: "12px",
+                        }}
+                      >
+                        Finalizar Compra
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setIsCheckingOut(false)}
+                        style={{
+                          backgroundColor: "transparent",
+                          border: "1px solid #3B82F6",
+                          color: "white",
+                          borderRadius: "8px",
+                          padding: "16px",
+                          fontSize: "16px",
+                          fontWeight: "bold",
+                          cursor: "pointer",
+                          width: "100%",
+                          marginBottom: "12px",
+                        }}
+                      >
+                        Voltar ao Carrinho
+                      </button>
+                    )}
+
+                    <a
+                      href="/"
+                      style={{
+                        display: "block",
+                        textAlign: "center",
+                        color: "#3B82F6",
+                        textDecoration: "none",
+                        fontSize: "14px",
+                      }}
+                    >
+                      Continuar comprando
+                    </a>
+
+                    <div
+                      style={{
+                        marginTop: "24px",
+                        padding: "16px",
+                        backgroundColor: "rgba(59, 130, 246, 0.1)",
+                        borderRadius: "8px",
+                        border: "1px solid rgba(59, 130, 246, 0.3)",
+                      }}
+                    >
+                      <h3
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: "bold",
+                          marginBottom: "8px",
+                          color: "#3B82F6",
+                        }}
+                      >
+                        Garantia ReTicket
+                      </h3>
+                      <p
+                        style={{
+                          color: "#A1A1AA",
+                          fontSize: "14px",
+                          lineHeight: "1.6",
+                        }}
+                      >
+                        Todos os ingressos são verificados e garantidos. Se você não conseguir entrar no evento com o
+                        ingresso comprado, você receberá um reembolso total.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </main>
+
+      <footer
+        style={{
+          backgroundColor: "#18181B",
+          borderTop: "1px solid #27272A",
+          padding: "32px 16px",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1200px",
+            margin: "0 auto",
+            width: "100%",
+          }}
+        >
+          <p
+            style={{
+              color: "#71717A",
+              fontSize: "12px",
+              textAlign: "center",
+            }}
+          >
+            © 2023 ReTicket. Todos os direitos reservados.
+          </p>
+        </div>
+      </footer>
+    </div>
+  )
+}

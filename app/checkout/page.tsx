@@ -2,12 +2,11 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { Button } from "@/components/ui/button"
 import { CreditCard, Landmark, Banknote, QrCode, ShieldCheck, ChevronRight, AlertCircle } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
 
 export default function CheckoutPage() {
   const isDesktop = useMediaQuery("(min-width: 640px)")
@@ -29,16 +28,6 @@ export default function CheckoutPage() {
   const [buyerCpf, setBuyerCpf] = useState("")
   const [buyerPhone, setBuyerPhone] = useState("")
   const [termsAccepted, setTermsAccepted] = useState(false)
-
-  const { user, isAuthenticated, login } = useAuth()
-  const [authMode, setAuthMode] = useState<"login" | "register">("login")
-  const [authEmail, setAuthEmail] = useState("")
-  const [authPassword, setAuthPassword] = useState("")
-  const [authName, setAuthName] = useState("")
-  const [authPhone, setAuthPhone] = useState("")
-  const [authConfirmPassword, setAuthConfirmPassword] = useState("")
-  const [authErrors, setAuthErrors] = useState<Record<string, string>>({})
-  const [isAuthLoading, setIsAuthLoading] = useState(false)
 
   // Get cart items from localStorage (or use sample data if empty)
   const [cartItems, setCartItems] = useState(() => {
@@ -118,59 +107,6 @@ export default function CheckoutPage() {
     return digitsOnly.length >= 10 && digitsOnly.length <= 11
   }
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setAuthErrors({})
-
-    if (authMode === "login") {
-      if (!authEmail || !authPassword) {
-        setAuthErrors({ general: "Por favor, preencha todos os campos" })
-        return
-      }
-
-      setIsAuthLoading(true)
-      try {
-        const result = await login(authEmail, authPassword)
-        if (result.success) {
-          // Pre-fill buyer information if user is logged in
-          if (user) {
-            setBuyerName(user.name)
-            setBuyerEmail(user.email)
-          }
-        } else {
-          setAuthErrors({ general: "Email ou senha inválidos" })
-        }
-      } catch (err) {
-        setAuthErrors({ general: "Erro ao fazer login" })
-      } finally {
-        setIsAuthLoading(false)
-      }
-    } else {
-      // Register validation
-      const newErrors: Record<string, string> = {}
-
-      if (!authName.trim()) newErrors.name = "Nome é obrigatório"
-      if (!authEmail.trim()) newErrors.email = "Email é obrigatório"
-      else if (!/\S+@\S+\.\S+/.test(authEmail)) newErrors.email = "Email inválido"
-      if (!authPassword) newErrors.password = "Senha é obrigatória"
-      else if (authPassword.length < 6) newErrors.password = "A senha deve ter pelo menos 6 caracteres"
-      if (authPassword !== authConfirmPassword) newErrors.confirmPassword = "As senhas não coincidem"
-
-      if (Object.keys(newErrors).length > 0) {
-        setAuthErrors(newErrors)
-        return
-      }
-
-      // Simulate registration
-      setIsAuthLoading(true)
-      setTimeout(() => {
-        setIsAuthLoading(false)
-        setBuyerName(authName)
-        setBuyerEmail(authEmail)
-      }, 1500)
-    }
-  }
-
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -235,19 +171,53 @@ export default function CheckoutPage() {
       return
     }
 
-    // Process payment - Always succeed for demo
+    // Process payment
     setIsProcessing(true)
 
-    // Simulate API call
+    // Simulate API call with test cards
     setTimeout(() => {
       setIsProcessing(false)
 
-      // Clear cart
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("cart")
+      // Test card logic
+      if (paymentMethod === "credit-card") {
+        // All zeros card succeeds
+        if (cardNumber.replace(/\s+/g, "") === "0000000000000000") {
+          // Clear cart
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("cart")
+          }
+          // Redirect to success page
+          router.push("/checkout/success")
+        }
+        // All ones card fails
+        else if (cardNumber.replace(/\s+/g, "") === "1111111111111111") {
+          // Redirect to error page
+          router.push("/checkout/error?reason=payment_declined")
+        }
+        // Other cards have 50/50 chance
+        else {
+          const randomSuccess = Math.random() > 0.5
+          if (randomSuccess) {
+            // Clear cart
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("cart")
+            }
+            // Redirect to success page
+            router.push("/checkout/success")
+          } else {
+            // Redirect to error page
+            router.push("/checkout/error?reason=payment_failed")
+          }
+        }
+      } else {
+        // Non-credit card payments always succeed for demo
+        // Clear cart
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("cart")
+        }
+        // Redirect to success page
+        router.push("/checkout/success")
       }
-      // Always redirect to success page
-      router.push("/checkout/success")
     }, 2000)
   }
 
@@ -331,22 +301,6 @@ export default function CheckoutPage() {
 
     setBuyerPhone(formatted)
   }
-
-  // Pre-fill buyer information if user is logged in
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      setBuyerName(user.name)
-      setBuyerEmail(user.email)
-    }
-  }, [isAuthenticated, user])
-
-  // Pre-fill credit card with mock data for testing
-  useEffect(() => {
-    setCardNumber("4532 1234 5678 9012")
-    setCardName("João Silva")
-    setCardExpiry("12/28")
-    setCvv("123")
-  }, [])
 
   return (
     <div className="min-h-screen bg-black">
@@ -469,7 +423,7 @@ export default function CheckoutPage() {
                         )}
                       </div>
                       <p className="text-xs text-gray-400 mt-1">
-                        Cartão pré-preenchido para teste - todas as compras serão aprovadas
+                        Para teste: Use 0000 0000 0000 0000 para sucesso ou 1111 1111 1111 1111 para falha
                       </p>
                     </div>
 
@@ -632,234 +586,103 @@ export default function CheckoutPage() {
                 )}
               </div>
 
-              {/* Authentication / Buyer Information */}
+              {/* Buyer Information */}
               <div className="bg-zinc-900 rounded-lg p-6 mb-6">
-                <h2 className="text-xl font-bold text-white mb-4">
-                  {!isAuthenticated ? "Entre ou Crie sua Conta para Comprar" : "Informações do Comprador"}
-                </h2>
+                <h2 className="text-xl font-bold text-white mb-4">Informações do Comprador</h2>
 
-                {!isAuthenticated ? (
-                  <div>
-                    {/* Auth Mode Toggle */}
-                    <div className="flex bg-zinc-800 rounded-lg p-1 mb-6">
-                      <button
-                        type="button"
-                        onClick={() => setAuthMode("login")}
-                        className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition ${
-                          authMode === "login" ? "bg-primary text-black" : "text-gray-300 hover:text-white"
-                        }`}
-                      >
-                        Entrar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setAuthMode("register")}
-                        className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition ${
-                          authMode === "register" ? "bg-primary text-black" : "text-gray-300 hover:text-white"
-                        }`}
-                      >
-                        Criar Conta
-                      </button>
-                    </div>
-
-                    {/* Auth Form */}
-                    <form onSubmit={handleAuth} className="space-y-4">
-                      {authMode === "register" && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Nome Completo</label>
-                          <input
-                            type="text"
-                            value={authName}
-                            onChange={(e) => setAuthName(e.target.value)}
-                            className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${
-                              authErrors.name ? "border-red-500" : "border-zinc-700"
-                            }`}
-                          />
-                          {authErrors.name && <p className="text-red-500 text-sm mt-1">{authErrors.name}</p>}
-                        </div>
-                      )}
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
+                        Nome Completo
+                      </label>
+                      <div className="relative">
                         <input
-                          type="email"
-                          value={authEmail}
-                          onChange={(e) => setAuthEmail(e.target.value)}
-                          className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${
-                            authErrors.email ? "border-red-500" : "border-zinc-700"
-                          }`}
+                          id="name"
+                          type="text"
+                          value={buyerName}
+                          onChange={(e) => setBuyerName(e.target.value)}
+                          className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.buyerName ? "border-red-500" : "border-zinc-700"}`}
                         />
-                        {authErrors.email && <p className="text-red-500 text-sm mt-1">{authErrors.email}</p>}
-                      </div>
-
-                      {authMode === "register" && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Telefone (opcional)</label>
-                          <input
-                            type="tel"
-                            value={authPhone}
-                            onChange={(e) => setAuthPhone(e.target.value)}
-                            placeholder="(00) 00000-0000"
-                            className="w-full bg-zinc-800 text-white p-3 rounded-md border border-zinc-700"
-                          />
-                        </div>
-                      )}
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-1">Senha</label>
-                        <input
-                          type="password"
-                          value={authPassword}
-                          onChange={(e) => setAuthPassword(e.target.value)}
-                          className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${
-                            authErrors.password ? "border-red-500" : "border-zinc-700"
-                          }`}
-                        />
-                        {authErrors.password && <p className="text-red-500 text-sm mt-1">{authErrors.password}</p>}
-                      </div>
-
-                      {authMode === "register" && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Confirmar Senha</label>
-                          <input
-                            type="password"
-                            value={authConfirmPassword}
-                            onChange={(e) => setAuthConfirmPassword(e.target.value)}
-                            className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${
-                              authErrors.confirmPassword ? "border-red-500" : "border-zinc-700"
-                            }`}
-                          />
-                          {authErrors.confirmPassword && (
-                            <p className="text-red-500 text-sm mt-1">{authErrors.confirmPassword}</p>
-                          )}
-                        </div>
-                      )}
-
-                      {authErrors.general && (
-                        <div className="bg-red-900 bg-opacity-20 border border-red-500 rounded-lg p-3">
-                          <p className="text-red-400 text-sm">{authErrors.general}</p>
-                        </div>
-                      )}
-
-                      <Button
-                        type="submit"
-                        className="w-full bg-primary hover:bg-blue-600 text-black"
-                        disabled={isAuthLoading}
-                      >
-                        {isAuthLoading ? (
-                          <div className="flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>
-                            {authMode === "login" ? "Entrando..." : "Criando conta..."}
+                        {errors.buyerName && (
+                          <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
+                            <AlertCircle size={12} className="mr-1" />
+                            {errors.buyerName}
                           </div>
-                        ) : authMode === "login" ? (
-                          "Entrar"
-                        ) : (
-                          "Criar Conta"
                         )}
-                      </Button>
-                    </form>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="bg-green-900 bg-opacity-20 border border-green-500 rounded-lg p-3 mb-4">
-                      <p className="text-green-400 text-sm">
-                        ✓ Logado como {user?.name} ({user?.email})
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
-                          Nome Completo
-                        </label>
-                        <div className="relative">
-                          <input
-                            id="name"
-                            type="text"
-                            value={buyerName}
-                            onChange={(e) => setBuyerName(e.target.value)}
-                            className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.buyerName ? "border-red-500" : "border-zinc-700"}`}
-                          />
-                          {errors.buyerName && (
-                            <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
-                              <AlertCircle size={12} className="mr-1" />
-                              {errors.buyerName}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
-                          Email
-                        </label>
-                        <div className="relative">
-                          <input
-                            id="email"
-                            type="email"
-                            value={buyerEmail}
-                            onChange={(e) => setBuyerEmail(e.target.value)}
-                            className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.buyerEmail ? "border-red-500" : "border-zinc-700"}`}
-                          />
-                          {errors.buyerEmail && (
-                            <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
-                              <AlertCircle size={12} className="mr-1" />
-                              {errors.buyerEmail}
-                            </div>
-                          )}
-                        </div>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="cpf" className="block text-sm font-medium text-gray-300 mb-1">
-                          CPF
-                        </label>
-                        <div className="relative">
-                          <input
-                            id="cpf"
-                            type="text"
-                            value={buyerCpf}
-                            onChange={handleCpfChange}
-                            placeholder="000.000.000-00"
-                            maxLength={14}
-                            className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.buyerCpf ? "border-red-500" : "border-zinc-700"}`}
-                          />
-                          {errors.buyerCpf && (
-                            <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
-                              <AlertCircle size={12} className="mr-1" />
-                              {errors.buyerCpf}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-1">
-                          Telefone
-                        </label>
-                        <div className="relative">
-                          <input
-                            id="phone"
-                            type="tel"
-                            value={buyerPhone}
-                            onChange={handlePhoneChange}
-                            placeholder="(00) 00000-0000"
-                            maxLength={15}
-                            className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.buyerPhone ? "border-red-500" : "border-zinc-700"}`}
-                          />
-                          {errors.buyerPhone && (
-                            <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
-                              <AlertCircle size={12} className="mr-1" />
-                              {errors.buyerPhone}
-                            </div>
-                          )}
-                        </div>
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+                        Email
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="email"
+                          type="email"
+                          value={buyerEmail}
+                          onChange={(e) => setBuyerEmail(e.target.value)}
+                          className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.buyerEmail ? "border-red-500" : "border-zinc-700"}`}
+                        />
+                        {errors.buyerEmail && (
+                          <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
+                            <AlertCircle size={12} className="mr-1" />
+                            {errors.buyerEmail}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
-                )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="cpf" className="block text-sm font-medium text-gray-300 mb-1">
+                        CPF
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="cpf"
+                          type="text"
+                          value={buyerCpf}
+                          onChange={handleCpfChange}
+                          placeholder="000.000.000-00"
+                          maxLength={14}
+                          className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.buyerCpf ? "border-red-500" : "border-zinc-700"}`}
+                        />
+                        {errors.buyerCpf && (
+                          <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
+                            <AlertCircle size={12} className="mr-1" />
+                            {errors.buyerCpf}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-1">
+                        Telefone
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="phone"
+                          type="tel"
+                          value={buyerPhone}
+                          onChange={handlePhoneChange}
+                          placeholder="(00) 00000-0000"
+                          maxLength={15}
+                          className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.buyerPhone ? "border-red-500" : "border-zinc-700"}`}
+                        />
+                        {errors.buyerPhone && (
+                          <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
+                            <AlertCircle size={12} className="mr-1" />
+                            {errors.buyerPhone}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Terms and Conditions */}
