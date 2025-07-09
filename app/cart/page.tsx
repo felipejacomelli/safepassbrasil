@@ -4,8 +4,10 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useAuth } from "@/contexts/auth-context"
+import { User, ShoppingCart } from "lucide-react"
 
 export default function CartPage() {
+  const [isClient, setIsClient] = useState(false)
   const isDesktop = useMediaQuery("(min-width: 640px)")
   const router = useRouter()
   const { user, isAuthenticated, logout } = useAuth()
@@ -24,7 +26,7 @@ export default function CartPage() {
       }
     }
 
-    // Default cart with one item
+    // Default cart with sample items
     return [
       {
         id: "1",
@@ -32,22 +34,21 @@ export default function CartPage() {
         eventName: "Rock in Rio 2025",
         ticketType: "Pista Premium",
         price: 750,
-        quantity: 1,
+        quantity: 2,
         date: "19-28 de Setembro, 2025",
         location: "Cidade do Rock, Rio de Janeiro",
         image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60",
-        description: [
-          "O Rock in Rio é um dos maiores festivais de música do mundo, reunindo artistas nacionais e internacionais em performances inesquecíveis.",
-          "Durante os dias de festival, a Cidade do Rock se transforma em um verdadeiro parque de diversões para os amantes da música, com várias atrações além dos shows principais.",
-        ],
-        time: "14:00 - 00:00",
-        attendance: "100.000+ pessoas",
-        gallery: [
-          "https://images.unsplash.com/photo-1519682337058-a94d519337bc?w=300&auto=format&fit=crop&q=60",
-          "https://images.unsplash.com/photo-1504295016394-f96591c60c5a?w=300&auto=format&fit=crop&q=60",
-          "https://images.unsplash.com/photo-1531206715517-5c019193961a?w=300&auto=format&fit=crop&q=60",
-          "https://images.unsplash.com/photo-1516935548944-08fb90dd99aa?w=300&auto=format&fit=crop&q=60",
-        ],
+      },
+      {
+        id: "2",
+        eventId: "lollapalooza-brasil-2025",
+        eventName: "Lollapalooza Brasil 2025",
+        ticketType: "VIP",
+        price: 1200,
+        quantity: 1,
+        date: "28-30 de Março, 2025",
+        location: "Autódromo de Interlagos, São Paulo",
+        image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
       },
     ]
   })
@@ -68,6 +69,11 @@ export default function CartPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
+
+  // Ensure client-side rendering to avoid hydration mismatch
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Pre-fill form with user data when user is logged in
   useEffect(() => {
@@ -157,6 +163,32 @@ export default function CartPage() {
     router.push("/")
   }
 
+  const handleUserClick = () => {
+    router.push("/login")
+  }
+
+  const handleCartClick = () => {
+    router.push("/cart")
+  }
+
+  // Show loading state until client-side hydration is complete
+  if (!isClient) {
+    return (
+      <div
+        style={{
+          backgroundColor: "black",
+          color: "white",
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <p>Carregando...</p>
+      </div>
+    )
+  }
+
   return (
     <div
       style={{
@@ -167,14 +199,14 @@ export default function CartPage() {
         flexDirection: "column",
       }}
     >
-      {/* Header/Navigation */}
+      {/* Header/Navigation - Same as home page */}
       <header
         style={{
           padding: "16px",
           borderBottom: "1px solid #333",
           position: "sticky",
           top: 0,
-          backgroundColor: "rgba(0,0,0,0.9)",
+          backgroundColor: "black",
           zIndex: 10,
         }}
       >
@@ -279,26 +311,18 @@ export default function CartPage() {
                     gap: "8px",
                   }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <circle
-                      cx="12"
-                      cy="7"
-                      r="4"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <User size={16} />
                   {user.name.split(" ")[0]}
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style={{
+                      transform: showUserMenu ? "rotate(180deg)" : "rotate(0deg)",
+                    }}
+                  >
                     <path
                       d="M6 9L12 15L18 9"
                       stroke="currentColor"
@@ -429,38 +453,42 @@ export default function CartPage() {
                 )}
               </div>
             ) : (
-              <>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 <button
                   style={{
                     backgroundColor: "transparent",
                     border: "1px solid #3B82F6",
                     color: "white",
-                    padding: "8px 16px",
+                    padding: "8px",
                     borderRadius: "4px",
                     cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                  onClick={() => router.push("/register")}
+                  onClick={handleUserClick}
+                  title="Login"
                 >
-                  Cadastrar
+                  <User size={20} />
                 </button>
                 <button
                   style={{
                     backgroundColor: "transparent",
                     border: "1px solid #3B82F6",
                     color: "white",
-                    padding: "8px 16px",
+                    padding: "8px",
                     borderRadius: "4px",
                     cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                  onClick={() => router.push("/login")}
+                  onClick={handleCartClick}
+                  title="Carrinho"
                 >
-                  Acessar
+                  <ShoppingCart size={20} />
                 </button>
-              </>
+              </div>
             )}
           </nav>
         </div>
@@ -470,7 +498,7 @@ export default function CartPage() {
       <main
         style={{
           padding: "24px 16px",
-          maxWidth: "1200px",
+          maxWidth: "800px",
           margin: "0 auto",
           width: "100%",
           flex: 1,
@@ -610,97 +638,70 @@ export default function CartPage() {
                 </a>
               </div>
             ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: isDesktop ? "2fr 1fr" : "1fr",
-                  gap: "24px",
-                }}
-              >
-                {/* Cart Items */}
-                <div>
-                  {cartItems.map((item) => (
-                    <div
-                      key={item.id}
-                      style={{
-                        backgroundColor: "#18181B",
-                        borderRadius: "12px",
-                        padding: "24px",
-                        marginBottom: "24px",
-                      }}
-                    >
-                      <h2
-                        style={{
-                          fontSize: "20px",
-                          fontWeight: "bold",
-                          marginBottom: "16px",
-                        }}
-                      >
-                        Detalhes do Ingresso
-                      </h2>
+              <>
+                {/* Checkout Button at Top */}
+                <button
+                  onClick={() => setIsCheckingOut(true)}
+                  style={{
+                    width: "100%",
+                    backgroundColor: "#3B82F6",
+                    color: "black",
+                    border: "none",
+                    padding: "16px",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    fontSize: "16px",
+                    cursor: "pointer",
+                    marginBottom: "24px",
+                  }}
+                >
+                  Finalizar Compra
+                </button>
 
-                      {/* Ticket Badge */}
+                {/* Cart Items List */}
+                <div
+                  style={{
+                    backgroundColor: "#18181B",
+                    borderRadius: "12px",
+                    padding: "20px",
+                    marginBottom: "24px",
+                  }}
+                >
+                  <h2
+                    style={{
+                      fontSize: "18px",
+                      fontWeight: "bold",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    Ingressos no Carrinho
+                  </h2>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "16px",
+                    }}
+                  >
+                    {cartItems.map((item) => (
                       <div
+                        key={item.id}
                         style={{
                           display: "flex",
-                          justifyContent: "space-between",
                           alignItems: "center",
-                          marginBottom: "20px",
+                          gap: "12px",
+                          padding: "12px",
+                          backgroundColor: "#27272A",
+                          borderRadius: "8px",
                         }}
                       >
+                        {/* Event Image - Smaller */}
                         <div
                           style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          <svg
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M22 10V6C22 4.89543 21.1046 4 20 4H4C2.89543 4 2 4.89543 2 6V10M22 10V18C22 19.1046 21.1046 20 20 20H4C2.89543 20 2 19.1046 2 18V10M22 10H2M9 14H15"
-                              stroke="#3B82F6"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          <span style={{ fontWeight: "600" }}>Ingresso</span>
-                        </div>
-                        <div
-                          style={{
-                            backgroundColor: "rgba(16, 185, 129, 0.1)",
-                            color: "#10B981",
-                            padding: "4px 8px",
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            fontWeight: "600",
-                          }}
-                        >
-                          Garantido
-                        </div>
-                      </div>
-
-                      {/* Event Header */}
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: isDesktop ? "row" : "column",
-                          gap: "20px",
-                          marginBottom: "24px",
-                        }}
-                      >
-                        {/* Event Image */}
-                        <div
-                          style={{
-                            width: isDesktop ? "280px" : "100%",
-                            height: isDesktop ? "160px" : "200px",
-                            borderRadius: "8px",
+                            width: "60px",
+                            height: "45px",
+                            borderRadius: "6px",
                             overflow: "hidden",
                             flexShrink: 0,
                           }}
@@ -716,317 +717,136 @@ export default function CartPage() {
                           />
                         </div>
 
-                        {/* Event Basic Info */}
+                        {/* Event Info - Compact */}
                         <div
                           style={{
                             flex: 1,
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "space-between",
+                            minWidth: 0,
                           }}
                         >
-                          <div>
-                            <h3
-                              style={{
-                                fontSize: "22px",
-                                fontWeight: "bold",
-                                marginBottom: "8px",
-                              }}
-                            >
-                              {item.eventName}
-                            </h3>
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                marginBottom: "8px",
-                                color: "#D4D4D8",
-                              }}
-                            >
-                              <span style={{ marginRight: "8px" }}>📅</span>
-                              <span>{item.date}</span>
-                            </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                marginBottom: "8px",
-                                color: "#D4D4D8",
-                              }}
-                            >
-                              <span style={{ marginRight: "8px" }}>📍</span>
-                              <span>{item.location}</span>
-                            </div>
-                          </div>
-
-                          <div
+                          <h3
                             style={{
-                              display: "inline-block",
-                              backgroundColor: "rgba(59, 130, 246, 0.15)",
-                              borderRadius: "6px",
-                              padding: "6px 12px",
-                              color: "#3B82F6",
-                              fontWeight: "600",
                               fontSize: "14px",
-                              marginTop: "8px",
+                              fontWeight: "600",
+                              marginBottom: "2px",
+                              color: "white",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {item.eventName}
+                          </h3>
+                          <p
+                            style={{
+                              fontSize: "12px",
+                              color: "#3B82F6",
+                              fontWeight: "500",
+                              marginBottom: "2px",
                             }}
                           >
                             {item.ticketType}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Ticket Details */}
-                      <div
-                        style={{
-                          backgroundColor: "#27272A",
-                          borderRadius: "8px",
-                          padding: "16px",
-                          marginBottom: "20px",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "12px",
-                          }}
-                        >
-                          <span style={{ color: "#D4D4D8" }}>Tipo de Ingresso</span>
-                          <span style={{ fontWeight: "500" }}>{item.ticketType}</span>
-                        </div>
-
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "12px",
-                          }}
-                        >
-                          <span style={{ color: "#D4D4D8" }}>Preço Unitário</span>
-                          <span style={{ fontWeight: "500" }}>R$ {item.price.toFixed(2).replace(".", ",")}</span>
-                        </div>
-
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "12px",
-                          }}
-                        >
-                          <span style={{ color: "#D4D4D8" }}>Quantidade</span>
-                          <div
+                          </p>
+                          <p
                             style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
+                              fontSize: "12px",
+                              color: "#A1A1AA",
                             }}
                           >
-                            <button
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              style={{
-                                backgroundColor: "#3F3F46",
-                                border: "none",
-                                color: "white",
-                                width: "28px",
-                                height: "28px",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontSize: "16px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              -
-                            </button>
-                            <span>{item.quantity}</span>
-                            <button
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              style={{
-                                backgroundColor: "#3F3F46",
-                                border: "none",
-                                color: "white",
-                                width: "28px",
-                                height: "28px",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontSize: "16px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              +
-                            </button>
-                          </div>
+                            R$ {item.price.toFixed(2).replace(".", ",")} cada
+                          </p>
                         </div>
 
+                        {/* Quantity Controls - Smaller */}
                         <div
                           style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            borderTop: "1px solid #3F3F46",
-                            paddingTop: "12px",
-                            marginTop: "12px",
-                          }}
-                        >
-                          <span style={{ fontWeight: "600" }}>Subtotal</span>
-                          <span style={{ color: "#3B82F6", fontWeight: "bold", fontSize: "18px" }}>
-                            R$ {(item.price * item.quantity).toFixed(2).replace(".", ",")}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Event Additional Info */}
-                      <div
-                        style={{
-                          marginBottom: "20px",
-                        }}
-                      >
-                        <h4
-                          style={{
-                            fontSize: "16px",
-                            fontWeight: "600",
-                            marginBottom: "12px",
-                          }}
-                        >
-                          Informações do Evento
-                        </h4>
-                        {item.description &&
-                          item.description.map((paragraph, index) => (
-                            <p
-                              key={index}
-                              style={{
-                                color: "#D4D4D8",
-                                fontSize: "14px",
-                                lineHeight: "1.6",
-                                marginBottom: index < item.description.length - 1 ? "12px" : 0,
-                              }}
-                            >
-                              {paragraph}
-                            </p>
-                          ))}
-                      </div>
-
-                      {/* Event Gallery */}
-                      {item.gallery && item.gallery.length > 0 && (
-                        <div
-                          style={{
-                            marginBottom: "20px",
-                          }}
-                        >
-                          <h4
-                            style={{
-                              fontSize: "16px",
-                              fontWeight: "600",
-                              marginBottom: "12px",
-                            }}
-                          >
-                            Galeria de Imagens
-                          </h4>
-                          <div
-                            style={{
-                              display: "grid",
-                              gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
-                              gap: "8px",
-                            }}
-                          >
-                            {(item.gallery || []).slice(0, 4).map((image, index) => (
-                              <div
-                                key={index}
-                                style={{
-                                  position: "relative",
-                                  paddingTop: "100%", // 1:1 aspect ratio
-                                  backgroundColor: "#27272A",
-                                  borderRadius: "6px",
-                                  overflow: "hidden",
-                                }}
-                              >
-                                <img
-                                  src={image || "/placeholder.svg"}
-                                  alt={`${item.eventName} ${index + 1}`}
-                                  style={{
-                                    position: "absolute",
-                                    top: 0,
-                                    left: 0,
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                  }}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Action Buttons */}
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <button
-                          onClick={() => removeItem(item.id)}
-                          style={{
-                            backgroundColor: "transparent",
-                            border: "none",
-                            color: "#EF4444",
-                            cursor: "pointer",
-                            fontSize: "14px",
                             display: "flex",
                             alignItems: "center",
                             gap: "6px",
                           }}
                         >
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            style={{
+                              backgroundColor: "#3F3F46",
+                              border: "none",
+                              color: "white",
+                              width: "24px",
+                              height: "24px",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "12px",
+                            }}
                           >
-                            <path
-                              d="M3 6H5H21"
-                              stroke="#EF4444"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6"
-                              stroke="#EF4444"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M10 11V17"
-                              stroke="#EF4444"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M14 11V17"
-                              stroke="#EF4444"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          Remover
-                        </button>
+                            -
+                          </button>
+                          <span
+                            style={{
+                              minWidth: "20px",
+                              textAlign: "center",
+                              fontWeight: "600",
+                              fontSize: "14px",
+                            }}
+                          >
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            style={{
+                              backgroundColor: "#3F3F46",
+                              border: "none",
+                              color: "white",
+                              width: "24px",
+                              height: "24px",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "12px",
+                            }}
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        {/* Item Total and Remove - Compact */}
+                        <div
+                          style={{
+                            textAlign: "right",
+                            minWidth: "70px",
+                          }}
+                        >
+                          <p
+                            style={{
+                              fontSize: "14px",
+                              fontWeight: "bold",
+                              color: "#3B82F6",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            R$ {(item.price * item.quantity).toFixed(2).replace(".", ",")}
+                          </p>
+                          <button
+                            onClick={() => removeItem(item.id)}
+                            style={{
+                              backgroundColor: "transparent",
+                              border: "none",
+                              color: "#EF4444",
+                              cursor: "pointer",
+                              fontSize: "10px",
+                              padding: "2px 4px",
+                            }}
+                          >
+                            Remover
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
 
                 {/* Order Summary */}
@@ -1034,17 +854,15 @@ export default function CartPage() {
                   style={{
                     backgroundColor: "#18181B",
                     borderRadius: "12px",
-                    padding: "24px",
-                    height: "fit-content",
-                    position: "sticky",
-                    top: "100px",
+                    padding: "20px",
+                    marginBottom: "24px",
                   }}
                 >
                   <h3
                     style={{
                       fontSize: "18px",
                       fontWeight: "bold",
-                      marginBottom: "20px",
+                      marginBottom: "16px",
                     }}
                   >
                     Resumo do Pedido
@@ -1052,48 +870,51 @@ export default function CartPage() {
 
                   <div
                     style={{
-                      marginBottom: "16px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: "8px",
                     }}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      <span style={{ color: "#D4D4D8" }}>Subtotal</span>
-                      <span>R$ {subtotal.toFixed(2).replace(".", ",")}</span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      <span style={{ color: "#D4D4D8" }}>Taxa de serviço</span>
-                      <span>R$ {serviceFee.toFixed(2).replace(".", ",")}</span>
-                    </div>
-                    <div
-                      style={{
-                        borderTop: "1px solid #3F3F46",
-                        paddingTop: "8px",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontWeight: "bold",
-                        fontSize: "18px",
-                      }}
-                    >
-                      <span>Total</span>
-                      <span style={{ color: "#3B82F6" }}>R$ {total.toFixed(2).replace(".", ",")}</span>
-                    </div>
+                    <span style={{ color: "#D4D4D8" }}>Subtotal</span>
+                    <span>R$ {subtotal.toFixed(2).replace(".", ",")}</span>
                   </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    <span style={{ color: "#D4D4D8" }}>Taxa de serviço</span>
+                    <span>R$ {serviceFee.toFixed(2).replace(".", ",")}</span>
+                  </div>
+                  <div
+                    style={{
+                      borderTop: "1px solid #3F3F46",
+                      paddingTop: "8px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontWeight: "bold",
+                      fontSize: "18px",
+                    }}
+                  >
+                    <span>Total</span>
+                    <span style={{ color: "#3B82F6" }}>R$ {total.toFixed(2).replace(".", ",")}</span>
+                  </div>
+                </div>
 
+                {/* Action Buttons */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: isDesktop ? "row" : "column",
+                    gap: "12px",
+                  }}
+                >
                   <button
                     onClick={() => setIsCheckingOut(true)}
                     style={{
-                      width: "100%",
+                      flex: "1",
                       backgroundColor: "#3B82F6",
                       color: "black",
                       border: "none",
@@ -1102,23 +923,32 @@ export default function CartPage() {
                       fontWeight: "bold",
                       fontSize: "16px",
                       cursor: "pointer",
-                      marginBottom: "12px",
                     }}
                   >
                     Finalizar Compra
                   </button>
 
-                  <p
+                  <a
+                    href="/"
                     style={{
-                      fontSize: "12px",
-                      color: "#A1A1AA",
-                      textAlign: "center",
+                      flex: "1",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "transparent",
+                      border: "1px solid #3B82F6",
+                      color: "#3B82F6",
+                      padding: "16px",
+                      borderRadius: "8px",
+                      fontWeight: "bold",
+                      fontSize: "16px",
+                      textDecoration: "none",
                     }}
                   >
-                    Pagamento seguro e protegido
-                  </p>
+                    Continuar Comprando
+                  </a>
                 </div>
-              </div>
+              </>
             )}
 
             {/* Checkout Modal */}

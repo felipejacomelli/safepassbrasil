@@ -3,17 +3,25 @@
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
+import { Calendar, Clock, MapPin, Users, Ticket, User, ShoppingCart, Info, Camera, Plus, Minus } from "lucide-react"
 
 // Mock event data
 const eventsData = [
   {
     slug: "festival-de-verao",
     title: "Festival de Verão",
-    date: "15 de Dezembro, 2023",
-    time: "16:00 - 02:00",
-    location: "Praia de Copacabana, Rio de Janeiro",
-    attendance: "50.000+ pessoas",
+    date: "15 Dez, 2023",
+    time: "16:00",
+    location: "Copacabana, RJ",
+    attendance: "50k+ pessoas",
     price: "A partir de R$ 150",
+    startingPrice: 150,
+    availableTickets: 45,
+    ticketTypes: [
+      { id: "pista", name: "Pista", price: 150, available: 45 },
+      { id: "premium", name: "Pista Premium", price: 250, available: 23 },
+      { id: "vip", name: "VIP", price: 450, available: 8 },
+    ],
     image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&auto=format&fit=crop&q=60",
     description: [
       "O Festival de Verão é um dos eventos mais aguardados da temporada, reunindo grandes nomes da música brasileira e internacional em um cenário paradisíaco.",
@@ -30,11 +38,19 @@ const eventsData = [
   {
     slug: "rock-in-rio-2023",
     title: "Rock in Rio 2023",
-    date: "2-10 de Setembro, 2023",
-    time: "14:00 - 00:00",
-    location: "Cidade do Rock, Rio de Janeiro",
-    attendance: "100.000+ pessoas",
+    date: "2-10 Set, 2023",
+    time: "14:00",
+    location: "Cidade do Rock, RJ",
+    attendance: "100k+ pessoas",
     price: "A partir de R$ 250",
+    startingPrice: 250,
+    availableTickets: 128,
+    ticketTypes: [
+      { id: "pista", name: "Pista", price: 250, available: 128 },
+      { id: "premium", name: "Pista Premium", price: 380, available: 67 },
+      { id: "vip", name: "VIP", price: 650, available: 15 },
+      { id: "camarote", name: "Camarote", price: 1200, available: 3 },
+    ],
     image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&auto=format&fit=crop&q=60",
     description: [
       "O Rock in Rio é um dos maiores festivais de música do mundo, reunindo artistas nacionais e internacionais em performances inesquecíveis. Em 2023, o evento promete ser ainda mais grandioso, com uma lineup diversificada e cheia de estrelas.",
@@ -51,11 +67,18 @@ const eventsData = [
   {
     slug: "lollapalooza-brasil-2024",
     title: "Lollapalooza Brasil 2024",
-    date: "24-26 de Março, 2024",
-    time: "11:00 - 23:00",
-    location: "Autódromo de Interlagos, São Paulo",
-    attendance: "80.000+ pessoas",
+    date: "24-26 Mar, 2024",
+    time: "11:00",
+    location: "Interlagos, SP",
+    attendance: "80k+ pessoas",
     price: "A partir de R$ 200",
+    startingPrice: 200,
+    availableTickets: 67,
+    ticketTypes: [
+      { id: "pista", name: "Pista", price: 200, available: 67 },
+      { id: "premium", name: "Pista Premium", price: 320, available: 34 },
+      { id: "vip", name: "VIP", price: 580, available: 12 },
+    ],
     image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
     description: [
       "O Lollapalooza Brasil retorna em 2024 para sua décima edição no país, trazendo o melhor da música alternativa, rock, hip-hop, música eletrônica e muito mais.",
@@ -72,11 +95,19 @@ const eventsData = [
   {
     slug: "rock-in-rio-2025",
     title: "Rock in Rio 2025",
-    date: "19-28 de Setembro, 2025",
-    time: "14:00 - 00:00",
-    location: "Cidade do Rock, Rio de Janeiro",
-    attendance: "100.000+ pessoas",
+    date: "19-28 Set, 2025",
+    time: "14:00",
+    location: "Cidade do Rock, RJ",
+    attendance: "100k+ pessoas",
     price: "A partir de R$ 650",
+    startingPrice: 650,
+    availableTickets: 234,
+    ticketTypes: [
+      { id: "pista", name: "Pista", price: 650, available: 234 },
+      { id: "premium", name: "Pista Premium", price: 850, available: 156 },
+      { id: "vip", name: "VIP", price: 1200, available: 45 },
+      { id: "camarote", name: "Camarote", price: 2200, available: 8 },
+    ],
     image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60",
     description: [
       "O Rock in Rio retorna em 2025 para sua edição comemorativa de 40 anos, prometendo ser o maior festival da história do evento.",
@@ -94,11 +125,18 @@ const eventsData = [
   {
     slug: "lollapalooza-brasil-2025",
     title: "Lollapalooza Brasil 2025",
-    date: "28-30 de Março, 2025",
-    time: "11:00 - 23:00",
-    location: "Autódromo de Interlagos, São Paulo",
-    attendance: "90.000+ pessoas",
+    date: "28-30 Mar, 2025",
+    time: "11:00",
+    location: "Interlagos, SP",
+    attendance: "90k+ pessoas",
     price: "A partir de R$ 750",
+    startingPrice: 750,
+    availableTickets: 156,
+    ticketTypes: [
+      { id: "pista", name: "Pista", price: 750, available: 156 },
+      { id: "premium", name: "Pista Premium", price: 950, available: 89 },
+      { id: "vip", name: "VIP", price: 1400, available: 23 },
+    ],
     image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
     description: [
       "O Lollapalooza Brasil 2025 promete ser a maior edição já realizada no país, com uma lineup internacional de peso e novidades exclusivas.",
@@ -116,11 +154,18 @@ const eventsData = [
   {
     slug: "tomorrowland-brasil-2025",
     title: "Tomorrowland Brasil 2025",
-    date: "10-12 de Outubro, 2025",
-    time: "12:00 - 02:00",
-    location: "Parque Maeda, Itu, São Paulo",
-    attendance: "180.000+ pessoas",
+    date: "10-12 Out, 2025",
+    time: "12:00",
+    location: "Parque Maeda, SP",
+    attendance: "180k+ pessoas",
     price: "A partir de R$ 1200",
+    startingPrice: 1200,
+    availableTickets: 89,
+    ticketTypes: [
+      { id: "pista", name: "Pista", price: 1200, available: 89 },
+      { id: "premium", name: "Pista Premium", price: 1600, available: 34 },
+      { id: "vip", name: "VIP", price: 2400, available: 12 },
+    ],
     image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop&q=60",
     description: [
       "O Tomorrowland retorna ao Brasil em 2025 com sua maior edição já realizada no país, trazendo o melhor da música eletrônica mundial.",
@@ -142,6 +187,7 @@ export default function EventPage({ params }: { params: { slug: string } }) {
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [ticketQuantities, setTicketQuantities] = useState({})
 
   const { user, isAuthenticated, logout } = useAuth()
   const [showUserMenu, setShowUserMenu] = useState(false)
@@ -153,6 +199,12 @@ export default function EventPage({ params }: { params: { slug: string } }) {
     if (foundEvent) {
       setEvent(foundEvent)
       setNotFound(false)
+      // Initialize ticket quantities
+      const initialQuantities = {}
+      foundEvent.ticketTypes.forEach((ticket) => {
+        initialQuantities[ticket.id] = 1
+      })
+      setTicketQuantities(initialQuantities)
     } else {
       setNotFound(true)
     }
@@ -164,6 +216,62 @@ export default function EventPage({ params }: { params: { slug: string } }) {
     logout()
     setShowUserMenu(false)
     window.location.href = "/"
+  }
+
+  const handleUserClick = () => {
+    window.location.href = "/login"
+  }
+
+  const handleCartClick = () => {
+    window.location.href = "/cart"
+  }
+
+  const updateTicketQuantity = (ticketId, newQuantity) => {
+    if (newQuantity < 1) return
+    setTicketQuantities((prev) => ({
+      ...prev,
+      [ticketId]: newQuantity,
+    }))
+  }
+
+  const addToCart = (ticketType) => {
+    const quantity = ticketQuantities[ticketType.id] || 1
+
+    const ticket = {
+      id: Math.random().toString(36).substr(2, 9),
+      eventId: event.slug,
+      eventName: event.title,
+      ticketType: ticketType.name,
+      price: ticketType.price,
+      quantity: quantity,
+      date: event.date,
+      location: event.location,
+      image: event.image,
+      description: event.description,
+      time: event.time,
+      attendance: event.attendance,
+      gallery: event.gallery || [],
+    }
+
+    // Get existing cart or create new one
+    let cart = []
+    try {
+      const savedCart = localStorage.getItem("cart")
+      if (savedCart) {
+        cart = JSON.parse(savedCart)
+      }
+    } catch (e) {
+      console.error("Failed to parse cart from localStorage", e)
+    }
+
+    // Add ticket to cart
+    cart.push(ticket)
+
+    // Save cart
+    localStorage.setItem("cart", JSON.stringify(cart))
+
+    // Navigate to cart page
+    window.location.href = "/cart"
   }
 
   if (loading) {
@@ -234,9 +342,7 @@ export default function EventPage({ params }: { params: { slug: string } }) {
           borderBottom: "1px solid #333",
           position: "sticky",
           top: 0,
-          backgroundColor: "rgba(0,0,0,0.9)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
+          backgroundColor: "black",
           zIndex: 10,
         }}
       >
@@ -341,24 +447,7 @@ export default function EventPage({ params }: { params: { slug: string } }) {
                     gap: "8px",
                   }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <circle
-                      cx="12"
-                      cy="7"
-                      r="4"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <User size={16} />
                   {user.name.split(" ")[0]}
                   <svg
                     width="12"
@@ -368,7 +457,6 @@ export default function EventPage({ params }: { params: { slug: string } }) {
                     xmlns="http://www.w3.org/2000/svg"
                     style={{
                       transform: showUserMenu ? "rotate(180deg)" : "rotate(0deg)",
-                      transition: "transform 0.2s",
                     }}
                   >
                     <path
@@ -416,7 +504,6 @@ export default function EventPage({ params }: { params: { slug: string } }) {
                         color: "white",
                         textDecoration: "none",
                         fontSize: "14px",
-                        transition: "background-color 0.2s",
                       }}
                       onMouseEnter={(e) => {
                         e.target.style.backgroundColor = "#27272A"
@@ -436,7 +523,6 @@ export default function EventPage({ params }: { params: { slug: string } }) {
                         color: "white",
                         textDecoration: "none",
                         fontSize: "14px",
-                        transition: "background-color 0.2s",
                       }}
                       onMouseEnter={(e) => {
                         e.target.style.backgroundColor = "#27272A"
@@ -457,7 +543,6 @@ export default function EventPage({ params }: { params: { slug: string } }) {
                           color: "#3B82F6",
                           textDecoration: "none",
                           fontSize: "14px",
-                          transition: "background-color 0.2s",
                         }}
                         onMouseEnter={(e) => {
                           e.target.style.backgroundColor = "#27272A"
@@ -489,7 +574,6 @@ export default function EventPage({ params }: { params: { slug: string } }) {
                           textAlign: "left",
                           fontSize: "14px",
                           cursor: "pointer",
-                          transition: "background-color 0.2s",
                         }}
                         onMouseEnter={(e) => {
                           e.target.style.backgroundColor = "#27272A"
@@ -505,38 +589,42 @@ export default function EventPage({ params }: { params: { slug: string } }) {
                 )}
               </div>
             ) : (
-              <>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 <button
                   style={{
                     backgroundColor: "transparent",
                     border: "1px solid #3B82F6",
                     color: "white",
-                    padding: "8px 16px",
+                    padding: "8px",
                     borderRadius: "4px",
                     cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                  onClick={() => (window.location.href = "/register")}
+                  onClick={handleUserClick}
+                  title="Login"
                 >
-                  Cadastrar
+                  <User size={20} />
                 </button>
                 <button
                   style={{
                     backgroundColor: "transparent",
                     border: "1px solid #3B82F6",
                     color: "white",
-                    padding: "8px 16px",
+                    padding: "8px",
                     borderRadius: "4px",
                     cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                  onClick={() => (window.location.href = "/login")}
+                  onClick={handleCartClick}
+                  title="Carrinho"
                 >
-                  Acessar
+                  <ShoppingCart size={20} />
                 </button>
-              </>
+              </div>
             )}
           </nav>
         </div>
@@ -551,46 +639,25 @@ export default function EventPage({ params }: { params: { slug: string } }) {
           width: "100%",
         }}
       >
-        {/* Event Header with Title and Badge */}
-        <div
+        {/* Event Header */}
+        <h1
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
+            fontSize: isDesktop ? "32px" : "24px",
+            fontWeight: "bold",
             marginBottom: "20px",
           }}
         >
-          <h1
-            style={{
-              fontSize: isDesktop ? "36px" : "24px",
-              fontWeight: "bold",
-            }}
-          >
-            {event.title}
-          </h1>
+          {event.title}
+        </h1>
 
-          <div
-            style={{
-              backgroundColor: "rgba(59, 130, 246, 0.2)",
-              color: "#3B82F6",
-              padding: "6px 12px",
-              borderRadius: "20px",
-              fontSize: "14px",
-              fontWeight: "bold",
-            }}
-          >
-            {event.price}
-          </div>
-        </div>
-
-        {/* Event Image */}
+        {/* Compact Event Image */}
         <div
           style={{
             position: "relative",
-            paddingTop: "56.25%", // 16:9 aspect ratio
+            height: isDesktop ? "300px" : "200px",
             backgroundColor: "#27272A",
             borderRadius: "12px",
-            marginBottom: "24px",
+            marginBottom: "20px",
             overflow: "hidden",
           }}
         >
@@ -608,73 +675,192 @@ export default function EventPage({ params }: { params: { slug: string } }) {
           />
         </div>
 
-        {/* Event Info Cards */}
+        {/* Compact Event Info */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : "repeat(2, 1fr)",
-            gap: "16px",
-            marginBottom: "32px",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "12px",
+            marginBottom: "24px",
+            fontSize: "14px",
+            color: "#D4D4D8",
           }}
         >
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <Calendar size={16} />
+            <span>{event.date}</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <Clock size={16} />
+            <span>{event.time}</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <MapPin size={16} />
+            <span>{event.location}</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <Users size={16} />
+            <span>{event.attendance}</span>
+          </div>
+        </div>
+
+        {/* Price and Ticket Types */}
+        <div
+          style={{
+            backgroundColor: "#27272A",
+            borderRadius: "12px",
+            padding: "20px",
+            marginBottom: "24px",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "18px",
+              fontWeight: "bold",
+              color: "#3B82F6",
+              marginBottom: "20px",
+            }}
+          >
+            A partir de R$ {event.startingPrice}
+          </p>
+
+          {/* Ticket Types List */}
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              backgroundColor: "#27272A",
-              padding: "16px",
-              borderRadius: "8px",
-              gap: "8px",
+              gap: "16px",
             }}
           >
-            <span style={{ fontSize: "20px" }}>📅</span>
-            <span style={{ fontSize: "14px", color: "#A1A1AA" }}>Data</span>
-            <span style={{ fontWeight: "500" }}>{event.date}</span>
+            {event.ticketTypes.map((ticketType) => (
+              <div
+                key={ticketType.id}
+                style={{
+                  backgroundColor: "#18181B",
+                  borderRadius: "8px",
+                  padding: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: "12px",
+                }}
+              >
+                {/* Ticket Info */}
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: "1", minWidth: "200px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#3B82F6" }}>
+                    <Ticket size={16} />
+                    <span style={{ fontSize: "14px", fontWeight: "600" }}>{ticketType.available}</span>
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "4px" }}>{ticketType.name}</h4>
+                    <p style={{ fontSize: "18px", fontWeight: "bold", color: "#3B82F6" }}>
+                      R$ {ticketType.price.toFixed(2).replace(".", ",")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Quantity and Add to Cart */}
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  {/* Quantity Controls */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <button
+                      onClick={() => updateTicketQuantity(ticketType.id, (ticketQuantities[ticketType.id] || 1) - 1)}
+                      style={{
+                        backgroundColor: "#3F3F46",
+                        border: "none",
+                        color: "white",
+                        width: "32px",
+                        height: "32px",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <span
+                      style={{
+                        minWidth: "24px",
+                        textAlign: "center",
+                        fontWeight: "600",
+                      }}
+                    >
+                      {ticketQuantities[ticketType.id] || 1}
+                    </span>
+                    <button
+                      onClick={() => updateTicketQuantity(ticketType.id, (ticketQuantities[ticketType.id] || 1) + 1)}
+                      style={{
+                        backgroundColor: "#3F3F46",
+                        border: "none",
+                        color: "white",
+                        width: "32px",
+                        height: "32px",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+
+                  {/* Add to Cart Button */}
+                  <button
+                    onClick={() => addToCart(ticketType)}
+                    disabled={ticketType.available === 0}
+                    style={{
+                      backgroundColor: ticketType.available === 0 ? "#6B7280" : "#3B82F6",
+                      color: "black",
+                      border: "none",
+                      borderRadius: "6px",
+                      padding: "10px 16px",
+                      fontSize: "14px",
+                      fontWeight: "bold",
+                      cursor: ticketType.available === 0 ? "not-allowed" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <ShoppingCart size={16} />
+                    {ticketType.available === 0 ? "Esgotado" : "Adicionar"}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              backgroundColor: "#27272A",
-              padding: "16px",
-              borderRadius: "8px",
-              gap: "8px",
-            }}
-          >
-            <span style={{ fontSize: "20px" }}>📍</span>
-            <span style={{ fontSize: "14px", color: "#A1A1AA" }}>Local</span>
-            <span style={{ fontWeight: "500" }}>{event.location}</span>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              backgroundColor: "#27272A",
-              padding: "16px",
-              borderRadius: "8px",
-              gap: "8px",
-            }}
-          >
-            <span style={{ fontSize: "20px" }}>⏰</span>
-            <span style={{ fontSize: "14px", color: "#A1A1AA" }}>Horário</span>
-            <span style={{ fontWeight: "500" }}>{event.time || "19:00 - 23:00"}</span>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              backgroundColor: "#27272A",
-              padding: "16px",
-              borderRadius: "8px",
-              gap: "8px",
-            }}
-          >
-            <span style={{ fontSize: "20px" }}>👥</span>
-            <span style={{ fontSize: "14px", color: "#A1A1AA" }}>Público</span>
-            <span style={{ fontWeight: "500" }}>{event.attendance || "10.000+ pessoas"}</span>
+          {/* Sell Ticket Button */}
+          <div style={{ marginTop: "20px", paddingTop: "20px", borderTop: "1px solid #3F3F46" }}>
+            <button
+              style={{
+                backgroundColor: "black",
+                border: "1px solid #3B82F6",
+                color: "#3B82F6",
+                borderRadius: "8px",
+                padding: "14px 20px",
+                fontSize: "16px",
+                fontWeight: "bold",
+                cursor: "pointer",
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "8px",
+              }}
+              onClick={() => {
+                window.location.href = `/event/${event.slug}/sell`
+              }}
+            >
+              <Ticket size={20} />
+              Vender Ingresso
+            </button>
           </div>
         </div>
 
@@ -697,7 +883,7 @@ export default function EventPage({ params }: { params: { slug: string } }) {
               gap: "8px",
             }}
           >
-            <span style={{ fontSize: "24px" }}>ℹ️</span> Sobre o Evento
+            <Info size={24} /> Sobre o Evento
           </h2>
 
           <div
@@ -725,349 +911,6 @@ export default function EventPage({ params }: { params: { slug: string } }) {
           </div>
         </div>
 
-        {/* Ticket Selection */}
-        <div
-          style={{
-            backgroundColor: "#27272A",
-            borderRadius: "12px",
-            padding: "24px",
-            marginBottom: "32px",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "20px",
-              fontWeight: "bold",
-              marginBottom: "16px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <span style={{ fontSize: "24px" }}>🎟️</span> Ingressos Disponíveis
-          </h2>
-
-          <div
-            style={{
-              backgroundColor: "#18181B",
-              borderRadius: "8px",
-              padding: "20px",
-              marginBottom: "16px",
-              border: "1px solid #3F3F46",
-            }}
-          >
-            <h3
-              style={{
-                fontSize: "16px",
-                fontWeight: "600",
-                marginBottom: "16px",
-                color: "#E4E4E7",
-              }}
-            >
-              Selecione o tipo de ingresso
-            </h3>
-
-            <select
-              style={{
-                width: "100%",
-                backgroundColor: "#3F3F46",
-                color: "white",
-                padding: "12px",
-                borderRadius: "4px",
-                border: "none",
-                marginBottom: "20px",
-                fontSize: "16px",
-                cursor: "pointer",
-              }}
-            >
-              <option>Pista Premium</option>
-              <option>Pista</option>
-              <option>Cadeira Inferior</option>
-              <option>Cadeira Superior</option>
-            </select>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "16px",
-                padding: "12px",
-                backgroundColor: "#27272A",
-                borderRadius: "6px",
-              }}
-            >
-              <div>
-                <p
-                  style={{
-                    color: "#E4E4E7",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    marginBottom: "4px",
-                  }}
-                >
-                  Acesso ao evento
-                </p>
-                <p
-                  style={{
-                    color: "#A1A1AA",
-                    fontSize: "12px",
-                  }}
-                >
-                  Entrada garantida
-                </p>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  color: "#3B82F6",
-                  fontSize: "14px",
-                  backgroundColor: "rgba(59, 130, 246, 0.1)",
-                  padding: "6px 10px",
-                  borderRadius: "4px",
-                  fontWeight: "500",
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M22 10V6C22 4.89543 21.1046 4 20 4H4C2.89543 4 2 4.89543 2 6V10M22 10V18C22 19.1046 21.1046 20 20 20H4C2.89543 20 2 19.1046 2 18V10M22 10H2M9 14H15"
-                    stroke="#3B82F6"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span>12 ingressos disponíveis</span>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "20px",
-                padding: "12px 16px",
-                backgroundColor: "rgba(59, 130, 246, 0.1)",
-                borderRadius: "6px",
-              }}
-            >
-              <p
-                style={{
-                  fontSize: "16px",
-                  fontWeight: "500",
-                  color: "#E4E4E7",
-                }}
-              >
-                Valor do ingresso
-              </p>
-              <p
-                style={{
-                  color: "#3B82F6",
-                  fontWeight: "bold",
-                  fontSize: "24px",
-                }}
-              >
-                R$ 750,00
-              </p>
-            </div>
-
-            <button
-              style={{
-                backgroundColor: "#3B82F6",
-                color: "black",
-                border: "none",
-                borderRadius: "8px",
-                padding: "16px",
-                fontSize: "16px",
-                fontWeight: "bold",
-                cursor: "pointer",
-                width: "100%",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "8px",
-              }}
-              onClick={() => {
-                // Add the selected ticket to cart
-                const ticket = {
-                  id: Math.random().toString(36).substr(2, 9),
-                  eventId: event.slug,
-                  eventName: event.title,
-                  ticketType: document.querySelector("select").value,
-                  price: 750,
-                  quantity: 1,
-                  date: event.date,
-                  location: event.location,
-                  image: event.image,
-                  description: event.description || [
-                    `O ${event.title} é um dos eventos mais aguardados do ano, reunindo grandes nomes da música brasileira e internacional em um cenário incrível.`,
-                    "Com uma programação diversificada, o festival promete agradar a todos os gostos musicais, além de oferecer uma experiência completa com áreas de alimentação e diversas atividades.",
-                  ],
-                  time: event.time || "19:00 - 23:00",
-                  attendance: event.attendance || "10.000+ pessoas",
-                  gallery: event.gallery || [],
-                }
-
-                // Get existing cart or create new one
-                let cart = []
-                try {
-                  const savedCart = localStorage.getItem("cart")
-                  if (savedCart) {
-                    cart = JSON.parse(savedCart)
-                  }
-                } catch (e) {
-                  console.error("Failed to parse cart from localStorage", e)
-                }
-
-                // Add ticket to cart
-                cart.push(ticket)
-
-                // Save cart
-                localStorage.setItem("cart", JSON.stringify(cart))
-
-                // Navigate to cart page
-                window.location.href = "/cart"
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M3 3H5L5.4 5M5.4 5H21L17 13H7M5.4 5L7 13M7 13L4.707 15.293C4.077 15.923 4.523 17 5.414 17H17M17 17C16.4696 17 15.9609 17.2107 15.5858 17.5858C15.2107 17.9609 15 18.4696 15 19C15 19.5304 15.2107 20.0391 15.5858 20.4142C15.9609 20.7893 16.4696 21 17 21C17.5304 21 18.0391 20.7893 18.4142 20.4142C18.7893 20.0391 19 19.5304 19 19C19 18.4696 18.7893 17.9609 18.4142 17.5858C18.0391 17.2107 17.5304 17 17 17ZM9 19C9 19.5304 8.78929 20.0391 8.41421 20.4142C8.03914 20.7893 7.53043 21 7 21C6.46957 21 5.96086 20.7893 5.58579 20.4142C5.21071 20.0391 5 19.5304 5 19C5 18.4696 5.21071 17.9609 5.58579 17.5858C5.96086 17.2107 6.46957 17 7 17C7.53043 17 8.03914 17.2107 8.41421 17.5858C8.78929 17.9609 9 18.4696 9 19Z"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Comprar
-            </button>
-          </div>
-
-          <div
-            style={{
-              backgroundColor: "#18181B",
-              borderRadius: "8px",
-              padding: "16px",
-            }}
-          >
-            <h3
-              style={{
-                fontSize: "16px",
-                fontWeight: "600",
-                marginBottom: "16px",
-                textAlign: "center",
-              }}
-            >
-              Tem ingressos para vender?
-            </h3>
-
-            {/* Ticket Type Selection */}
-            <div style={{ marginBottom: "12px" }}>
-              <label
-                htmlFor="sell-ticket-type"
-                style={{
-                  display: "block",
-                  marginBottom: "6px",
-                  fontSize: "14px",
-                  color: "#D4D4D8",
-                }}
-              >
-                Tipo de Ingresso
-              </label>
-              <select
-                id="sell-ticket-type"
-                style={{
-                  width: "100%",
-                  backgroundColor: "#27272A",
-                  color: "white",
-                  padding: "10px",
-                  borderRadius: "6px",
-                  border: "1px solid #3F3F46",
-                  fontSize: "14px",
-                  marginBottom: "12px",
-                }}
-              >
-                <option value="pista-premium">Pista Premium</option>
-                <option value="pista">Pista</option>
-                <option value="cadeira-inferior">Cadeira Inferior</option>
-                <option value="cadeira-superior">Cadeira Superior</option>
-                <option value="camarote">Camarote</option>
-              </select>
-            </div>
-
-            {/* Price Input */}
-            <div style={{ marginBottom: "16px" }}>
-              <label
-                htmlFor="sell-price"
-                style={{
-                  display: "block",
-                  marginBottom: "6px",
-                  fontSize: "14px",
-                  color: "#D4D4D8",
-                }}
-              >
-                Valor (R$)
-              </label>
-              <div style={{ position: "relative" }}>
-                <input
-                  id="sell-price"
-                  type="text"
-                  placeholder="0,00"
-                  style={{
-                    width: "100%",
-                    backgroundColor: "#27272A",
-                    color: "white",
-                    padding: "10px 10px 10px 36px",
-                    borderRadius: "6px",
-                    border: "1px solid #3F3F46",
-                    fontSize: "14px",
-                  }}
-                />
-                <span
-                  style={{
-                    position: "absolute",
-                    left: "12px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    color: "#A1A1AA",
-                    fontSize: "14px",
-                  }}
-                >
-                  R$
-                </span>
-              </div>
-            </div>
-
-            <button
-              style={{
-                backgroundColor: "transparent",
-                border: "1px solid #10B981",
-                color: "#10B981",
-                borderRadius: "8px",
-                padding: "12px",
-                fontSize: "15px",
-                fontWeight: "bold",
-                cursor: "pointer",
-                width: "100%",
-                marginTop: "4px",
-              }}
-              onClick={() => {
-                const ticketType = document.getElementById("sell-ticket-type").value
-                const price = document.getElementById("sell-price").value
-                if (!price || isNaN(Number(price.replace(",", "."))) || Number(price.replace(",", ".")) <= 0) {
-                  alert("Por favor, insira um valor válido")
-                  return
-                }
-                window.location.href = `/event/${event.slug}/sell?type=${ticketType}&price=${price}`
-              }}
-            >
-              Vender Ingressos
-            </button>
-          </div>
-        </div>
-
         {/* Image Gallery */}
         <div
           style={{
@@ -1087,7 +930,7 @@ export default function EventPage({ params }: { params: { slug: string } }) {
               gap: "8px",
             }}
           >
-            <span style={{ fontSize: "24px" }}>📷</span> Galeria de Imagens
+            <Camera size={24} /> Galeria de Imagens
           </h2>
 
           <div
@@ -1114,7 +957,6 @@ export default function EventPage({ params }: { params: { slug: string } }) {
                   borderRadius: "8px",
                   overflow: "hidden",
                   cursor: "pointer",
-                  transition: "transform 0.2s ease-in-out",
                 }}
                 onClick={() => {
                   // Could implement a lightbox here in the future

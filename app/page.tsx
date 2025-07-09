@@ -1,7 +1,7 @@
 "use client"
 
 import { useMediaQuery } from "@/hooks/use-media-query"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { MapPin, User, ShoppingCart, Plus } from "lucide-react"
@@ -15,6 +15,7 @@ const events = [
     location: "Cidade do Rock, Rio de Janeiro",
     price: "A partir de R$ 650",
     slug: "rock-in-rio-2025",
+    ticketCount: 23, // Fixed ticket count to avoid hydration mismatch
   },
   {
     image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
@@ -23,6 +24,7 @@ const events = [
     location: "Autódromo de Interlagos, São Paulo",
     price: "A partir de R$ 750",
     slug: "lollapalooza-brasil-2025",
+    ticketCount: 18,
   },
   {
     image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop&q=60",
@@ -31,6 +33,7 @@ const events = [
     location: "Parque Maeda, Itu, São Paulo",
     price: "A partir de R$ 1200",
     slug: "tomorrowland-brasil-2025",
+    ticketCount: 12,
   },
 ]
 
@@ -82,12 +85,18 @@ const locations = [
 
 // Update the Page component to include search functionality
 export default function Page() {
+  const [isClient, setIsClient] = useState(false)
   const isDesktop = useMediaQuery("(min-width: 640px)")
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
 
   const { user, isAuthenticated, logout } = useAuth()
   const [showUserMenu, setShowUserMenu] = useState(false)
+
+  // Ensure client-side rendering to avoid hydration mismatch
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Add search function
   const handleSearch = (e) => {
@@ -114,6 +123,24 @@ export default function Page() {
 
   const handleSellTickets = () => {
     router.push("/sell")
+  }
+
+  // Show loading state until client-side hydration is complete
+  if (!isClient) {
+    return (
+      <div
+        style={{
+          backgroundColor: "black",
+          color: "white",
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <p>Carregando...</p>
+      </div>
+    )
   }
 
   return (
@@ -1331,10 +1358,7 @@ export default function Page() {
   )
 }
 
-function EventCard({ image, title, date, location, price, slug }) {
-  // Generate a random number of tickets between 5 and 24
-  const ticketCount = Math.floor(Math.random() * 20) + 5
-
+function EventCard({ image, title, date, location, price, slug, ticketCount }) {
   // Function to format date for calendar display
   const formatDateForCalendar = (dateString) => {
     // Extract the first date from ranges like "19-28 de Setembro, 2025"
