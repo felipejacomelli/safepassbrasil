@@ -2,6 +2,7 @@
 
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useEffect, useState } from "react"
+import { useAuth } from "@/contexts/auth-context"
 
 // Mock event data
 const eventsData = [
@@ -142,6 +143,9 @@ export default function EventPage({ params }: { params: { slug: string } }) {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
+  const { user, isAuthenticated, logout } = useAuth()
+  const [showUserMenu, setShowUserMenu] = useState(false)
+
   useEffect(() => {
     // Find the event data based on the slug
     const foundEvent = eventsData.find((e) => e.slug === params.slug)
@@ -155,6 +159,12 @@ export default function EventPage({ params }: { params: { slug: string } }) {
 
     setLoading(false)
   }, [params.slug])
+
+  const handleLogout = () => {
+    logout()
+    setShowUserMenu(false)
+    window.location.href = "/"
+  }
 
   if (loading) {
     return (
@@ -312,36 +322,222 @@ export default function EventPage({ params }: { params: { slug: string } }) {
                 </a>
               </>
             )}
-            <button
-              style={{
-                backgroundColor: "transparent",
-                border: "1px solid #3B82F6",
-                color: "white",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "bold",
-              }}
-              onClick={() => (window.location.href = "/register")}
-            >
-              Cadastrar
-            </button>
-            <button
-              style={{
-                backgroundColor: "transparent",
-                border: "1px solid #3B82F6",
-                color: "white",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "bold",
-              }}
-              onClick={() => (window.location.href = "/login")}
-            >
-              Acessar
-            </button>
+
+            {isAuthenticated && user ? (
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "1px solid #3B82F6",
+                    color: "white",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle
+                      cx="12"
+                      cy="7"
+                      r="4"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  {user.name.split(" ")[0]}
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style={{
+                      transform: showUserMenu ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.2s",
+                    }}
+                  >
+                    <path
+                      d="M6 9L12 15L18 9"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+
+                {showUserMenu && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      right: 0,
+                      marginTop: "8px",
+                      backgroundColor: "#18181B",
+                      border: "1px solid #3F3F46",
+                      borderRadius: "8px",
+                      padding: "8px 0",
+                      minWidth: "200px",
+                      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
+                      zIndex: 50,
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: "12px 16px",
+                        borderBottom: "1px solid #3F3F46",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <p style={{ fontWeight: "600", marginBottom: "4px" }}>{user.name}</p>
+                      <p style={{ fontSize: "14px", color: "#A1A1AA" }}>{user.email}</p>
+                    </div>
+
+                    <a
+                      href="/account"
+                      style={{
+                        display: "block",
+                        padding: "12px 16px",
+                        color: "white",
+                        textDecoration: "none",
+                        fontSize: "14px",
+                        transition: "background-color 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "#27272A"
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "transparent"
+                      }}
+                    >
+                      Minha Conta
+                    </a>
+
+                    <a
+                      href="/account/orders"
+                      style={{
+                        display: "block",
+                        padding: "12px 16px",
+                        color: "white",
+                        textDecoration: "none",
+                        fontSize: "14px",
+                        transition: "background-color 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "#27272A"
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "transparent"
+                      }}
+                    >
+                      Meus Pedidos
+                    </a>
+
+                    {user.isAdmin && (
+                      <a
+                        href="/admin"
+                        style={{
+                          display: "block",
+                          padding: "12px 16px",
+                          color: "#3B82F6",
+                          textDecoration: "none",
+                          fontSize: "14px",
+                          transition: "background-color 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = "#27272A"
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = "transparent"
+                        }}
+                      >
+                        Painel Admin
+                      </a>
+                    )}
+
+                    <div
+                      style={{
+                        borderTop: "1px solid #3F3F46",
+                        marginTop: "8px",
+                        paddingTop: "8px",
+                      }}
+                    >
+                      <button
+                        onClick={handleLogout}
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          padding: "12px 16px",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          color: "#EF4444",
+                          textAlign: "left",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                          transition: "background-color 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = "#27272A"
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = "transparent"
+                        }}
+                      >
+                        Sair
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <button
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "1px solid #3B82F6",
+                    color: "white",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                  }}
+                  onClick={() => (window.location.href = "/register")}
+                >
+                  Cadastrar
+                </button>
+                <button
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "1px solid #3B82F6",
+                    color: "white",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                  }}
+                  onClick={() => (window.location.href = "/login")}
+                >
+                  Acessar
+                </button>
+              </>
+            )}
           </nav>
         </div>
       </header>

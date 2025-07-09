@@ -3,6 +3,8 @@
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
+import { MapPin, User, ShoppingCart, Plus } from "lucide-react"
 
 // Updated events with real events likely to happen in Brazil in 2025
 const events = [
@@ -84,6 +86,9 @@ export default function Page() {
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
 
+  const { user, isAuthenticated, logout } = useAuth()
+  const [showUserMenu, setShowUserMenu] = useState(false)
+
   // Add search function
   const handleSearch = (e) => {
     e.preventDefault()
@@ -91,6 +96,24 @@ export default function Page() {
 
     // Navigate to search page with query
     router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
+  }
+
+  const handleLogout = () => {
+    logout()
+    setShowUserMenu(false)
+    router.push("/")
+  }
+
+  const handleUserClick = () => {
+    router.push("/login")
+  }
+
+  const handleCartClick = () => {
+    router.push("/cart")
+  }
+
+  const handleSellTickets = () => {
+    router.push("/sell")
   }
 
   return (
@@ -110,9 +133,7 @@ export default function Page() {
           borderBottom: "1px solid #333",
           position: "sticky",
           top: 0,
-          backgroundColor: "rgba(0,0,0,0.9)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
+          backgroundColor: "black",
           zIndex: 10,
         }}
       >
@@ -198,36 +219,221 @@ export default function Page() {
                 </a>
               </>
             )}
-            <button
-              style={{
-                backgroundColor: "transparent",
-                border: "1px solid #3B82F6",
-                color: "white",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "bold",
-              }}
-              onClick={() => router.push("/register")}
-            >
-              Cadastrar
-            </button>
-            <button
-              style={{
-                backgroundColor: "transparent",
-                border: "1px solid #3B82F6",
-                color: "white",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "bold",
-              }}
-              onClick={() => router.push("/login")}
-            >
-              Acessar
-            </button>
+
+            {isAuthenticated && user ? (
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "1px solid #3B82F6",
+                    color: "white",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle
+                      cx="12"
+                      cy="7"
+                      r="4"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  {user.name.split(" ")[0]}
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    style={{
+                      transform: showUserMenu ? "rotate(180deg)" : "rotate(0deg)",
+                    }}
+                  >
+                    <path
+                      d="M6 9L12 15L18 9"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+
+                {showUserMenu && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      right: 0,
+                      marginTop: "8px",
+                      backgroundColor: "#18181B",
+                      border: "1px solid #3F3F46",
+                      borderRadius: "8px",
+                      padding: "8px 0",
+                      minWidth: "200px",
+                      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
+                      zIndex: 50,
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: "12px 16px",
+                        borderBottom: "1px solid #3F3F46",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <p style={{ fontWeight: "600", marginBottom: "4px" }}>{user.name}</p>
+                      <p style={{ fontSize: "14px", color: "#A1A1AA" }}>{user.email}</p>
+                    </div>
+
+                    <a
+                      href="/account"
+                      style={{
+                        display: "block",
+                        padding: "12px 16px",
+                        color: "white",
+                        textDecoration: "none",
+                        fontSize: "14px",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "#27272A"
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "transparent"
+                      }}
+                    >
+                      Minha Conta
+                    </a>
+
+                    <a
+                      href="/account/orders"
+                      style={{
+                        display: "block",
+                        padding: "12px 16px",
+                        color: "white",
+                        textDecoration: "none",
+                        fontSize: "14px",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "#27272A"
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "transparent"
+                      }}
+                    >
+                      Meus Pedidos
+                    </a>
+
+                    {user.isAdmin && (
+                      <a
+                        href="/admin"
+                        style={{
+                          display: "block",
+                          padding: "12px 16px",
+                          color: "#3B82F6",
+                          textDecoration: "none",
+                          fontSize: "14px",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = "#27272A"
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = "transparent"
+                        }}
+                      >
+                        Painel Admin
+                      </a>
+                    )}
+
+                    <div
+                      style={{
+                        borderTop: "1px solid #3F3F46",
+                        marginTop: "8px",
+                        paddingTop: "8px",
+                      }}
+                    >
+                      <button
+                        onClick={handleLogout}
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          padding: "12px 16px",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          color: "#EF4444",
+                          textAlign: "left",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = "#27272A"
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = "transparent"
+                        }}
+                      >
+                        Sair
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <button
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "1px solid #3B82F6",
+                    color: "white",
+                    padding: "8px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onClick={handleUserClick}
+                  title="Login"
+                >
+                  <User size={20} />
+                </button>
+                <button
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "1px solid #3B82F6",
+                    color: "white",
+                    padding: "8px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onClick={handleCartClick}
+                  title="Carrinho"
+                >
+                  <ShoppingCart size={20} />
+                </button>
+              </div>
+            )}
           </nav>
         </div>
       </header>
@@ -254,7 +460,7 @@ export default function Page() {
             margin: "0 0 16px 0",
           }}
         >
-          Ingressos diretamente de outro fã
+          COMPRA E VENDA DE INGRESSOS COM SEGURANÇA
         </h1>
         <p
           style={{
@@ -264,7 +470,7 @@ export default function Page() {
             margin: "0 0 32px 0",
           }}
         >
-          Seguro, confiável e muito Simples.
+          Compre e revenda com proteção total sem estresse e sem golpe.
         </p>
 
         {/* Search Bar */}
@@ -306,23 +512,67 @@ export default function Page() {
           </span>
         </form>
 
-        <button
-          onClick={handleSearch}
+        {/* Action Buttons */}
+        <div
           style={{
-            backgroundColor: "#3B82F6",
-            color: "black",
-            border: "none",
-            borderRadius: "8px",
-            padding: "16px 32px",
-            fontSize: "18px",
-            fontWeight: "bold",
-            cursor: "pointer",
+            display: "flex",
+            gap: "16px",
             width: "100%",
-            maxWidth: "400px",
+            maxWidth: "600px",
+            flexDirection: isDesktop ? "row" : "column",
           }}
         >
-          Buscar Eventos
-        </button>
+          <button
+            onClick={handleSearch}
+            style={{
+              backgroundColor: "#3B82F6",
+              color: "black",
+              border: "none",
+              borderRadius: "8px",
+              padding: "16px 32px",
+              fontSize: "18px",
+              fontWeight: "bold",
+              cursor: "pointer",
+              flex: "1",
+            }}
+          >
+            Buscar Eventos
+          </button>
+
+          <button
+            onClick={handleSellTickets}
+            style={{
+              backgroundColor: "transparent",
+              color: "#3B82F6",
+              border: "2px solid #3B82F6",
+              borderRadius: "8px",
+              padding: "16px 32px",
+              fontSize: "18px",
+              fontWeight: "bold",
+              cursor: "pointer",
+              flex: "1",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+            }}
+          >
+            <Plus size={20} />
+            Vender Ingressos
+          </button>
+        </div>
+
+        <p
+          style={{
+            color: "#A1A1AA",
+            fontSize: "14px",
+            textAlign: "center",
+            marginTop: "16px",
+            maxWidth: "500px",
+          }}
+        >
+          Seu ingresso é entregue com segurança. Seu pagamento também. A gente cuida dos dois lados.
+        </p>
       </section>
 
       {/* Events Section */}
@@ -1085,6 +1335,40 @@ function EventCard({ image, title, date, location, price, slug }) {
   // Generate a random number of tickets between 5 and 24
   const ticketCount = Math.floor(Math.random() * 20) + 5
 
+  // Function to format date for calendar display
+  const formatDateForCalendar = (dateString) => {
+    // Extract the first date from ranges like "19-28 de Setembro, 2025"
+    const dateMatch = dateString.match(/(\d{1,2})\s*(?:-\d{1,2})?\s*de\s*(\w+)/)
+    if (dateMatch) {
+      const day = dateMatch[1].padStart(2, "0")
+      const monthName = dateMatch[2]
+
+      // Map Portuguese month names to abbreviations
+      const monthMap = {
+        Janeiro: "JAN",
+        Fevereiro: "FEV",
+        Março: "MAR",
+        Abril: "ABR",
+        Maio: "MAI",
+        Junho: "JUN",
+        Julho: "JUL",
+        Agosto: "AGO",
+        Setembro: "SET",
+        Outubro: "OUT",
+        Novembro: "NOV",
+        Dezembro: "DEZ",
+      }
+
+      const monthAbbr = monthMap[monthName] || monthName.substring(0, 3).toUpperCase()
+      return { day, month: monthAbbr }
+    }
+
+    // Fallback
+    return { day: "15", month: "JUN" }
+  }
+
+  const { day, month } = formatDateForCalendar(date)
+
   return (
     <div
       style={{
@@ -1120,6 +1404,43 @@ function EventCard({ image, title, date, location, price, slug }) {
               objectFit: "cover",
             }}
           />
+
+          {/* Calendar Date Badge */}
+          <div
+            style={{
+              position: "absolute",
+              top: "12px",
+              right: "12px",
+              backgroundColor: "rgba(255, 255, 255, 0.95)",
+              borderRadius: "8px",
+              padding: "8px",
+              minWidth: "50px",
+              textAlign: "center",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "18px",
+                fontWeight: "bold",
+                color: "#1F2937",
+                lineHeight: "1",
+                marginBottom: "2px",
+              }}
+            >
+              {day}
+            </div>
+            <div
+              style={{
+                fontSize: "12px",
+                fontWeight: "600",
+                color: "#3B82F6",
+                lineHeight: "1",
+              }}
+            >
+              {month}
+            </div>
+          </div>
         </div>
       </a>
 
@@ -1143,25 +1464,12 @@ function EventCard({ image, title, date, location, price, slug }) {
           style={{
             display: "flex",
             alignItems: "center",
-            marginBottom: "8px",
-            color: "#A1A1AA",
-            fontSize: "14px",
-          }}
-        >
-          <span style={{ marginRight: "8px" }}>📅</span>
-          <span>{date}</span>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
             marginBottom: "16px",
             color: "#A1A1AA",
             fontSize: "14px",
           }}
         >
-          <span style={{ marginRight: "8px" }}>📍</span>
+          <MapPin size={16} style={{ marginRight: "8px" }} />
           <span>{location}</span>
         </div>
 
@@ -1233,8 +1541,8 @@ function EventCard({ image, title, date, location, price, slug }) {
           >
             <button
               style={{
-                backgroundColor: "transparent",
-                border: "1px solid #3B82F6",
+                backgroundColor: "#3B82F6",
+                border: "none",
                 color: "white",
                 padding: "8px 16px",
                 borderRadius: "4px",
@@ -1257,9 +1565,9 @@ function EventCard({ image, title, date, location, price, slug }) {
           >
             <button
               style={{
-                backgroundColor: "transparent",
-                border: "1px solid #10B981",
-                color: "#10B981",
+                backgroundColor: "black",
+                border: "1px solid #3B82F6",
+                color: "#3B82F6",
                 padding: "8px 16px",
                 borderRadius: "4px",
                 cursor: "pointer",

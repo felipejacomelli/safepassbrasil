@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useMediaQuery } from "@/hooks/use-media-query"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function CartPage() {
   const isDesktop = useMediaQuery("(min-width: 640px)")
   const router = useRouter()
+  const { user, isAuthenticated, logout } = useAuth()
 
   // Cart state
   const [cartItems, setCartItems] = useState(() => {
@@ -65,6 +67,18 @@ export default function CartPage() {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
+
+  // Pre-fill form with user data when user is logged in
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      setFormData((prev) => ({
+        ...prev,
+        name: user.name || "",
+        email: user.email || "",
+      }))
+    }
+  }, [isAuthenticated, user])
 
   // Calculate total
   const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
@@ -112,8 +126,6 @@ export default function CartPage() {
     // Validate form
     const newErrors = {}
 
-    if (!formData.name.trim()) newErrors.name = "Nome é obrigatório"
-    if (!formData.email.trim()) newErrors.email = "Email é obrigatório"
     if (!formData.cardNumber.trim()) newErrors.cardNumber = "Número do cartão é obrigatório"
     if (!formData.expiryDate.trim()) newErrors.expiryDate = "Data de validade é obrigatória"
     if (!formData.cvv.trim()) newErrors.cvv = "CVV é obrigatório"
@@ -139,6 +151,12 @@ export default function CartPage() {
     }, 2000)
   }
 
+  const handleLogout = () => {
+    logout()
+    setShowUserMenu(false)
+    router.push("/")
+  }
+
   return (
     <div
       style={{
@@ -157,8 +175,6 @@ export default function CartPage() {
           position: "sticky",
           top: 0,
           backgroundColor: "rgba(0,0,0,0.9)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
           zIndex: 10,
         }}
       >
@@ -244,36 +260,208 @@ export default function CartPage() {
                 </a>
               </>
             )}
-            <button
-              style={{
-                backgroundColor: "transparent",
-                border: "1px solid #3B82F6",
-                color: "white",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "bold",
-              }}
-              onClick={() => router.push("/register")}
-            >
-              Cadastrar
-            </button>
-            <button
-              style={{
-                backgroundColor: "transparent",
-                border: "1px solid #3B82F6",
-                color: "white",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "bold",
-              }}
-              onClick={() => router.push("/login")}
-            >
-              Acessar
-            </button>
+
+            {isAuthenticated && user ? (
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "1px solid #3B82F6",
+                    color: "white",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle
+                      cx="12"
+                      cy="7"
+                      r="4"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  {user.name.split(" ")[0]}
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M6 9L12 15L18 9"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+
+                {showUserMenu && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      right: 0,
+                      marginTop: "8px",
+                      backgroundColor: "#18181B",
+                      border: "1px solid #3F3F46",
+                      borderRadius: "8px",
+                      padding: "8px 0",
+                      minWidth: "200px",
+                      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
+                      zIndex: 50,
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: "12px 16px",
+                        borderBottom: "1px solid #3F3F46",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <p style={{ fontWeight: "600", marginBottom: "4px" }}>{user.name}</p>
+                      <p style={{ fontSize: "14px", color: "#A1A1AA" }}>{user.email}</p>
+                    </div>
+
+                    <a
+                      href="/account"
+                      style={{
+                        display: "block",
+                        padding: "12px 16px",
+                        color: "white",
+                        textDecoration: "none",
+                        fontSize: "14px",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "#27272A"
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "transparent"
+                      }}
+                    >
+                      Minha Conta
+                    </a>
+
+                    <a
+                      href="/account/orders"
+                      style={{
+                        display: "block",
+                        padding: "12px 16px",
+                        color: "white",
+                        textDecoration: "none",
+                        fontSize: "14px",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "#27272A"
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "transparent"
+                      }}
+                    >
+                      Meus Pedidos
+                    </a>
+
+                    {user.isAdmin && (
+                      <a
+                        href="/admin"
+                        style={{
+                          display: "block",
+                          padding: "12px 16px",
+                          color: "#3B82F6",
+                          textDecoration: "none",
+                          fontSize: "14px",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = "#27272A"
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = "transparent"
+                        }}
+                      >
+                        Painel Admin
+                      </a>
+                    )}
+
+                    <div
+                      style={{
+                        borderTop: "1px solid #3F3F46",
+                        marginTop: "8px",
+                        paddingTop: "8px",
+                      }}
+                    >
+                      <button
+                        onClick={handleLogout}
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          padding: "12px 16px",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          color: "#EF4444",
+                          textAlign: "left",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = "#27272A"
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = "transparent"
+                        }}
+                      >
+                        Sair
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <button
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "1px solid #3B82F6",
+                    color: "white",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                  }}
+                  onClick={() => router.push("/register")}
+                >
+                  Cadastrar
+                </button>
+                <button
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "1px solid #3B82F6",
+                    color: "white",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                  }}
+                  onClick={() => router.push("/login")}
+                >
+                  Acessar
+                </button>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -813,7 +1001,21 @@ export default function CartPage() {
                               strokeLinejoin="round"
                             />
                             <path
-                              d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z"
+                              d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6"
+                              stroke="#EF4444"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M10 11V17"
+                              stroke="#EF4444"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M14 11V17"
                               stroke="#EF4444"
                               strokeWidth="2"
                               strokeLinecap="round"
@@ -822,529 +1024,336 @@ export default function CartPage() {
                           </svg>
                           Remover
                         </button>
-
-                        <a
-                          href={`/event/${item.eventId}`}
-                          style={{
-                            color: "#3B82F6",
-                            textDecoration: "none",
-                            fontSize: "14px",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "6px",
-                          }}
-                        >
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M18 13V19C18 19.5304 17.7893 20.0391 17.4142 20.4142C17.0391 20.7893 16.5304 21 16 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V8C3 7.46957 3.21071 6.96086 3.58579 6.58579C3.96086 6.21071 4.46957 6 5 6H11"
-                              stroke="#3B82F6"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M15 3H21V9"
-                              stroke="#3B82F6"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M10 14L21 3"
-                              stroke="#3B82F6"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          Ver detalhes do evento
-                        </a>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {isCheckingOut && (
-                  <div
-                    style={{
-                      backgroundColor: "#18181B",
-                      borderRadius: "12px",
-                      padding: "24px",
-                    }}
-                  >
-                    <h2
-                      style={{
-                        fontSize: "20px",
-                        fontWeight: "bold",
-                        marginBottom: "24px",
-                      }}
-                    >
-                      Informações de Pagamento
-                    </h2>
-
-                    <form onSubmit={handleCheckout}>
-                      {/* Personal Information */}
-                      <div
-                        style={{
-                          marginBottom: "24px",
-                        }}
-                      >
-                        <h3
-                          style={{
-                            fontSize: "16px",
-                            fontWeight: "bold",
-                            marginBottom: "16px",
-                          }}
-                        >
-                          Informações Pessoais
-                        </h3>
-
-                        <div
-                          style={{
-                            marginBottom: "16px",
-                          }}
-                        >
-                          <label
-                            htmlFor="name"
-                            style={{
-                              display: "block",
-                              marginBottom: "8px",
-                              fontWeight: "500",
-                            }}
-                          >
-                            Nome Completo
-                          </label>
-                          <input
-                            id="name"
-                            name="name"
-                            type="text"
-                            value={formData.name}
-                            onChange={handleInputChange}
-                            style={{
-                              width: "100%",
-                              backgroundColor: "#27272A",
-                              color: "white",
-                              padding: "12px",
-                              borderRadius: "8px",
-                              border: errors.name ? "1px solid #EF4444" : "1px solid #3F3F46",
-                              fontSize: "16px",
-                            }}
-                          />
-                          {errors.name && (
-                            <p
-                              style={{
-                                color: "#EF4444",
-                                fontSize: "14px",
-                                marginTop: "4px",
-                              }}
-                            >
-                              {errors.name}
-                            </p>
-                          )}
-                        </div>
-
-                        <div
-                          style={{
-                            marginBottom: "16px",
-                          }}
-                        >
-                          <label
-                            htmlFor="email"
-                            style={{
-                              display: "block",
-                              marginBottom: "8px",
-                              fontWeight: "500",
-                            }}
-                          >
-                            Email
-                          </label>
-                          <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            style={{
-                              width: "100%",
-                              backgroundColor: "#27272A",
-                              color: "white",
-                              padding: "12px",
-                              borderRadius: "8px",
-                              border: errors.email ? "1px solid #EF4444" : "1px solid #3F3F46",
-                              fontSize: "16px",
-                            }}
-                          />
-                          {errors.email && (
-                            <p
-                              style={{
-                                color: "#EF4444",
-                                fontSize: "14px",
-                                marginTop: "4px",
-                              }}
-                            >
-                              {errors.email}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Payment Information */}
-                      <div
-                        style={{
-                          marginBottom: "24px",
-                        }}
-                      >
-                        <h3
-                          style={{
-                            fontSize: "16px",
-                            fontWeight: "bold",
-                            marginBottom: "16px",
-                          }}
-                        >
-                          Informações de Pagamento
-                        </h3>
-
-                        <div
-                          style={{
-                            marginBottom: "16px",
-                          }}
-                        >
-                          <label
-                            htmlFor="cardNumber"
-                            style={{
-                              display: "block",
-                              marginBottom: "8px",
-                              fontWeight: "500",
-                            }}
-                          >
-                            Número do Cartão
-                          </label>
-                          <input
-                            id="cardNumber"
-                            name="cardNumber"
-                            type="text"
-                            value={formData.cardNumber}
-                            onChange={handleInputChange}
-                            placeholder="0000 0000 0000 0000"
-                            style={{
-                              width: "100%",
-                              backgroundColor: "#27272A",
-                              color: "white",
-                              padding: "12px",
-                              borderRadius: "8px",
-                              border: errors.cardNumber ? "1px solid #EF4444" : "1px solid #3F3F46",
-                              fontSize: "16px",
-                            }}
-                          />
-                          {errors.cardNumber && (
-                            <p
-                              style={{
-                                color: "#EF4444",
-                                fontSize: "14px",
-                                marginTop: "4px",
-                              }}
-                            >
-                              {errors.cardNumber}
-                            </p>
-                          )}
-                        </div>
-
-                        <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: "16px",
-                            marginBottom: "16px",
-                          }}
-                        >
-                          <div>
-                            <label
-                              htmlFor="expiryDate"
-                              style={{
-                                display: "block",
-                                marginBottom: "8px",
-                                fontWeight: "500",
-                              }}
-                            >
-                              Data de Validade
-                            </label>
-                            <input
-                              id="expiryDate"
-                              name="expiryDate"
-                              type="text"
-                              value={formData.expiryDate}
-                              onChange={handleInputChange}
-                              placeholder="MM/AA"
-                              style={{
-                                width: "100%",
-                                backgroundColor: "#27272A",
-                                color: "white",
-                                padding: "12px",
-                                borderRadius: "8px",
-                                border: errors.expiryDate ? "1px solid #EF4444" : "1px solid #3F3F46",
-                                fontSize: "16px",
-                              }}
-                            />
-                            {errors.expiryDate && (
-                              <p
-                                style={{
-                                  color: "#EF4444",
-                                  fontSize: "14px",
-                                  marginTop: "4px",
-                                }}
-                              >
-                                {errors.expiryDate}
-                              </p>
-                            )}
-                          </div>
-
-                          <div>
-                            <label
-                              htmlFor="cvv"
-                              style={{
-                                display: "block",
-                                marginBottom: "8px",
-                                fontWeight: "500",
-                              }}
-                            >
-                              CVV
-                            </label>
-                            <input
-                              id="cvv"
-                              name="cvv"
-                              type="text"
-                              value={formData.cvv}
-                              onChange={handleInputChange}
-                              placeholder="123"
-                              style={{
-                                width: "100%",
-                                backgroundColor: "#27272A",
-                                color: "white",
-                                padding: "12px",
-                                borderRadius: "8px",
-                                border: errors.cvv ? "1px solid #EF4444" : "1px solid #3F3F46",
-                                fontSize: "16px",
-                              }}
-                            />
-                            {errors.cvv && (
-                              <p
-                                style={{
-                                  color: "#EF4444",
-                                  fontSize: "14px",
-                                  marginTop: "4px",
-                                }}
-                              >
-                                {errors.cvv}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Billing Address */}
-                      <div
-                        style={{
-                          marginBottom: "24px",
-                        }}
-                      >
-                        <h3
-                          style={{
-                            fontSize: "16px",
-                            fontWeight: "bold",
-                            marginBottom: "16px",
-                          }}
-                        >
-                          Endereço de Cobrança
-                        </h3>
-
-                        <div
-                          style={{
-                            marginBottom: "16px",
-                          }}
-                        >
-                          <label
-                            htmlFor="address"
-                            style={{
-                              display: "block",
-                              marginBottom: "8px",
-                              fontWeight: "500",
-                            }}
-                          >
-                            Endereço
-                          </label>
-                          <input
-                            id="address"
-                            name="address"
-                            type="text"
-                            value={formData.address}
-                            onChange={handleInputChange}
-                            style={{
-                              width: "100%",
-                              backgroundColor: "#27272A",
-                              color: "white",
-                              padding: "12px",
-                              borderRadius: "8px",
-                              border: errors.address ? "1px solid #EF4444" : "1px solid #3F3F46",
-                              fontSize: "16px",
-                            }}
-                          />
-                          {errors.address && (
-                            <p
-                              style={{
-                                color: "#EF4444",
-                                fontSize: "14px",
-                                marginTop: "4px",
-                              }}
-                            >
-                              {errors.address}
-                            </p>
-                          )}
-                        </div>
-
-                        <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            gap: "16px",
-                          }}
-                        >
-                          <div>
-                            <label
-                              htmlFor="city"
-                              style={{
-                                display: "block",
-                                marginBottom: "8px",
-                                fontWeight: "500",
-                              }}
-                            >
-                              Cidade
-                            </label>
-                            <input
-                              id="city"
-                              name="city"
-                              type="text"
-                              value={formData.city}
-                              onChange={handleInputChange}
-                              style={{
-                                width: "100%",
-                                backgroundColor: "#27272A",
-                                color: "white",
-                                padding: "12px",
-                                borderRadius: "8px",
-                                border: errors.city ? "1px solid #EF4444" : "1px solid #3F3F46",
-                                fontSize: "16px",
-                              }}
-                            />
-                            {errors.city && (
-                              <p
-                                style={{
-                                  color: "#EF4444",
-                                  fontSize: "14px",
-                                  marginTop: "4px",
-                                }}
-                              >
-                                {errors.city}
-                              </p>
-                            )}
-                          </div>
-
-                          <div>
-                            <label
-                              htmlFor="zipCode"
-                              style={{
-                                display: "block",
-                                marginBottom: "8px",
-                                fontWeight: "500",
-                              }}
-                            >
-                              CEP
-                            </label>
-                            <input
-                              id="zipCode"
-                              name="zipCode"
-                              type="text"
-                              value={formData.zipCode}
-                              onChange={handleInputChange}
-                              style={{
-                                width: "100%",
-                                backgroundColor: "#27272A",
-                                color: "white",
-                                padding: "12px",
-                                borderRadius: "8px",
-                                border: errors.zipCode ? "1px solid #EF4444" : "1px solid #3F3F46",
-                                fontSize: "16px",
-                              }}
-                            />
-                            {errors.zipCode && (
-                              <p
-                                style={{
-                                  color: "#EF4444",
-                                  fontSize: "14px",
-                                  marginTop: "4px",
-                                }}
-                              >
-                                {errors.zipCode}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Submit Button */}
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        style={{
-                          backgroundColor: "#3B82F6",
-                          color: "black",
-                          border: "none",
-                          borderRadius: "8px",
-                          padding: "16px",
-                          fontSize: "16px",
-                          fontWeight: "bold",
-                          cursor: isSubmitting ? "not-allowed" : "pointer",
-                          width: "100%",
-                          opacity: isSubmitting ? 0.7 : 1,
-                        }}
-                      >
-                        {isSubmitting ? "Processando..." : "Finalizar Compra"}
-                      </button>
-                    </form>
-                  </div>
-                )}
-
                 {/* Order Summary */}
-                <div>
+                <div
+                  style={{
+                    backgroundColor: "#18181B",
+                    borderRadius: "12px",
+                    padding: "24px",
+                    height: "fit-content",
+                    position: "sticky",
+                    top: "100px",
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontSize: "18px",
+                      fontWeight: "bold",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    Resumo do Pedido
+                  </h3>
+
                   <div
                     style={{
-                      backgroundColor: "#18181B",
-                      borderRadius: "12px",
-                      padding: "24px",
-                      position: isDesktop ? "sticky" : "static",
-                      top: "100px",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <span style={{ color: "#D4D4D8" }}>Subtotal</span>
+                      <span>R$ {subtotal.toFixed(2).replace(".", ",")}</span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <span style={{ color: "#D4D4D8" }}>Taxa de serviço</span>
+                      <span>R$ {serviceFee.toFixed(2).replace(".", ",")}</span>
+                    </div>
+                    <div
+                      style={{
+                        borderTop: "1px solid #3F3F46",
+                        paddingTop: "8px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontWeight: "bold",
+                        fontSize: "18px",
+                      }}
+                    >
+                      <span>Total</span>
+                      <span style={{ color: "#3B82F6" }}>R$ {total.toFixed(2).replace(".", ",")}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setIsCheckingOut(true)}
+                    style={{
+                      width: "100%",
+                      backgroundColor: "#3B82F6",
+                      color: "black",
+                      border: "none",
+                      padding: "16px",
+                      borderRadius: "8px",
+                      fontWeight: "bold",
+                      fontSize: "16px",
+                      cursor: "pointer",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    Finalizar Compra
+                  </button>
+
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      color: "#A1A1AA",
+                      textAlign: "center",
+                    }}
+                  >
+                    Pagamento seguro e protegido
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Checkout Modal */}
+            {isCheckingOut && (
+              <div
+                style={{
+                  position: "fixed",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: "rgba(0, 0, 0, 0.8)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 1000,
+                  padding: "16px",
+                }}
+              >
+                <div
+                  style={{
+                    backgroundColor: "#18181B",
+                    borderRadius: "12px",
+                    padding: "32px",
+                    maxWidth: "500px",
+                    width: "100%",
+                    maxHeight: "90vh",
+                    overflowY: "auto",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "24px",
                     }}
                   >
                     <h2
                       style={{
-                        fontSize: "20px",
+                        fontSize: "24px",
                         fontWeight: "bold",
-                        marginBottom: "16px",
                       }}
                     >
-                      Resumo do Pedido
+                      Finalizar Compra
                     </h2>
+                    <button
+                      onClick={() => setIsCheckingOut(false)}
+                      style={{
+                        backgroundColor: "transparent",
+                        border: "none",
+                        color: "white",
+                        cursor: "pointer",
+                        fontSize: "24px",
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleCheckout}>
+                    <div style={{ marginBottom: "20px" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          marginBottom: "8px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        Nome Completo
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                        style={{
+                          width: "100%",
+                          padding: "12px",
+                          backgroundColor: "#27272A",
+                          border: "1px solid #3F3F46",
+                          borderRadius: "8px",
+                          color: "white",
+                          fontSize: "16px",
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ marginBottom: "20px" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          marginBottom: "8px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                        style={{
+                          width: "100%",
+                          padding: "12px",
+                          backgroundColor: "#27272A",
+                          border: "1px solid #3F3F46",
+                          borderRadius: "8px",
+                          color: "white",
+                          fontSize: "16px",
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ marginBottom: "20px" }}>
+                      <label
+                        style={{
+                          display: "block",
+                          marginBottom: "8px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        Número do Cartão
+                      </label>
+                      <input
+                        type="text"
+                        name="cardNumber"
+                        value={formData.cardNumber}
+                        onChange={handleInputChange}
+                        placeholder="1234 5678 9012 3456"
+                        style={{
+                          width: "100%",
+                          padding: "12px",
+                          backgroundColor: "#27272A",
+                          border: errors.cardNumber ? "1px solid #EF4444" : "1px solid #3F3F46",
+                          borderRadius: "8px",
+                          color: "white",
+                          fontSize: "16px",
+                        }}
+                      />
+                      {errors.cardNumber && (
+                        <p style={{ color: "#EF4444", fontSize: "14px", marginTop: "4px" }}>{errors.cardNumber}</p>
+                      )}
+                    </div>
 
                     <div
                       style={{
-                        marginBottom: "16px",
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "16px",
+                        marginBottom: "20px",
                       }}
                     >
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            marginBottom: "8px",
+                            fontWeight: "500",
+                          }}
+                        >
+                          Validade
+                        </label>
+                        <input
+                          type="text"
+                          name="expiryDate"
+                          value={formData.expiryDate}
+                          onChange={handleInputChange}
+                          placeholder="MM/AA"
+                          style={{
+                            width: "100%",
+                            padding: "12px",
+                            backgroundColor: "#27272A",
+                            border: errors.expiryDate ? "1px solid #EF4444" : "1px solid #3F3F46",
+                            borderRadius: "8px",
+                            color: "white",
+                            fontSize: "16px",
+                          }}
+                        />
+                        {errors.expiryDate && (
+                          <p style={{ color: "#EF4444", fontSize: "14px", marginTop: "4px" }}>{errors.expiryDate}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label
+                          style={{
+                            display: "block",
+                            marginBottom: "8px",
+                            fontWeight: "500",
+                          }}
+                        >
+                          CVV
+                        </label>
+                        <input
+                          type="text"
+                          name="cvv"
+                          value={formData.cvv}
+                          onChange={handleInputChange}
+                          placeholder="123"
+                          style={{
+                            width: "100%",
+                            padding: "12px",
+                            backgroundColor: "#27272A",
+                            border: errors.cvv ? "1px solid #EF4444" : "1px solid #3F3F46",
+                            borderRadius: "8px",
+                            color: "white",
+                            fontSize: "16px",
+                          }}
+                        />
+                        {errors.cvv && (
+                          <p style={{ color: "#EF4444", fontSize: "14px", marginTop: "4px" }}>{errors.cvv}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        backgroundColor: "#27272A",
+                        borderRadius: "8px",
+                        padding: "16px",
+                        marginBottom: "24px",
+                      }}
+                    >
+                      <h4
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: "600",
+                          marginBottom: "12px",
+                        }}
+                      >
+                        Resumo do Pedido
+                      </h4>
                       <div
                         style={{
                           display: "flex",
@@ -1352,7 +1361,7 @@ export default function CartPage() {
                           marginBottom: "8px",
                         }}
                       >
-                        <span style={{ color: "#A1A1AA" }}>Subtotal</span>
+                        <span style={{ color: "#D4D4D8" }}>Subtotal</span>
                         <span>R$ {subtotal.toFixed(2).replace(".", ",")}</span>
                       </div>
                       <div
@@ -1362,16 +1371,15 @@ export default function CartPage() {
                           marginBottom: "8px",
                         }}
                       >
-                        <span style={{ color: "#A1A1AA" }}>Taxa de serviço</span>
+                        <span style={{ color: "#D4D4D8" }}>Taxa de serviço</span>
                         <span>R$ {serviceFee.toFixed(2).replace(".", ",")}</span>
                       </div>
                       <div
                         style={{
+                          borderTop: "1px solid #3F3F46",
+                          paddingTop: "8px",
                           display: "flex",
                           justifyContent: "space-between",
-                          marginTop: "16px",
-                          paddingTop: "16px",
-                          borderTop: "1px solid #333",
                           fontWeight: "bold",
                           fontSize: "18px",
                         }}
@@ -1381,120 +1389,30 @@ export default function CartPage() {
                       </div>
                     </div>
 
-                    {!isCheckingOut ? (
-                      <button
-                        onClick={() => setIsCheckingOut(true)}
-                        style={{
-                          backgroundColor: "#3B82F6",
-                          color: "black",
-                          border: "none",
-                          borderRadius: "8px",
-                          padding: "16px",
-                          fontSize: "16px",
-                          fontWeight: "bold",
-                          cursor: "pointer",
-                          width: "100%",
-                          marginBottom: "12px",
-                        }}
-                      >
-                        Finalizar Compra
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => setIsCheckingOut(false)}
-                        style={{
-                          backgroundColor: "transparent",
-                          border: "1px solid #3B82F6",
-                          color: "white",
-                          borderRadius: "8px",
-                          padding: "16px",
-                          fontSize: "16px",
-                          fontWeight: "bold",
-                          cursor: "pointer",
-                          width: "100%",
-                          marginBottom: "12px",
-                        }}
-                      >
-                        Voltar ao Carrinho
-                      </button>
-                    )}
-
-                    <a
-                      href="/"
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
                       style={{
-                        display: "block",
-                        textAlign: "center",
-                        color: "#3B82F6",
-                        textDecoration: "none",
-                        fontSize: "14px",
-                      }}
-                    >
-                      Continuar comprando
-                    </a>
-
-                    <div
-                      style={{
-                        marginTop: "24px",
+                        width: "100%",
+                        backgroundColor: isSubmitting ? "#6B7280" : "#3B82F6",
+                        color: "black",
+                        border: "none",
                         padding: "16px",
-                        backgroundColor: "rgba(59, 130, 246, 0.1)",
                         borderRadius: "8px",
-                        border: "1px solid rgba(59, 130, 246, 0.3)",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                        cursor: isSubmitting ? "not-allowed" : "pointer",
                       }}
                     >
-                      <h3
-                        style={{
-                          fontSize: "16px",
-                          fontWeight: "bold",
-                          marginBottom: "8px",
-                          color: "#3B82F6",
-                        }}
-                      >
-                        Garantia ReTicket
-                      </h3>
-                      <p
-                        style={{
-                          color: "#A1A1AA",
-                          fontSize: "14px",
-                          lineHeight: "1.6",
-                        }}
-                      >
-                        Todos os ingressos são verificados e garantidos. Se você não conseguir entrar no evento com o
-                        ingresso comprado, você receberá um reembolso total.
-                      </p>
-                    </div>
-                  </div>
+                      {isSubmitting ? "Processando..." : "Confirmar Pagamento"}
+                    </button>
+                  </form>
                 </div>
               </div>
             )}
           </>
         )}
       </main>
-
-      <footer
-        style={{
-          backgroundColor: "#18181B",
-          borderTop: "1px solid #27272A",
-          padding: "32px 16px",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            width: "100%",
-          }}
-        >
-          <p
-            style={{
-              color: "#71717A",
-              fontSize: "12px",
-              textAlign: "center",
-            }}
-          >
-            © 2023 ReTicket. Todos os direitos reservados.
-          </p>
-        </div>
-      </footer>
     </div>
   )
 }
