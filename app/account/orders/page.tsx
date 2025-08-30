@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { AccountSidebar } from "@/components/account-sidebar"
-import { PaymentMethodSelector } from "@/components/payment-method-selector"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/contexts/auth-context"
+import { formatCurrency } from "@/utils/formatCurrency"
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -18,7 +18,64 @@ import {
   Landmark,
   CreditCard,
   Wallet,
+  User,
 } from "lucide-react"
+
+// Mock data
+const mockOrders = [
+  {
+    id: "ORD123456",
+    event: { name: "Rock in Rio 2025" },
+    ticketType: "Pista Premium",
+    quantity: 2,
+    total: 1500.0,
+    status: "completed",
+    date: "2025-04-22T14:30:00",
+  },
+  {
+    id: "ORD123457",
+    event: { name: "Lollapalooza 2025" },
+    ticketType: "Pista",
+    quantity: 1,
+    total: 450.0,
+    status: "completed",
+    date: "2025-04-21T10:15:00",
+  },
+]
+
+const mockTransactions = [
+  {
+    id: "TXN001",
+    type: "purchase",
+    eventName: "Rock in Rio 2025",
+    ticketType: "Pista Premium",
+    amount: -1500.0,
+    status: "completed",
+    date: "22/04/2025",
+  },
+  {
+    id: "TXN002",
+    type: "sale",
+    eventName: "Lollapalooza 2025",
+    ticketType: "VIP",
+    amount: 800.0,
+    status: "completed",
+    date: "21/04/2025",
+  },
+]
+
+const mockSales = [
+  {
+    id: "SALE001",
+    event: { name: "Festival de Verão 2025" },
+    ticketType: "VIP",
+    quantity: 1,
+    total: 800.0,
+    status: "completed",
+    date: "2025-04-20T16:30:00",
+    user: { name: "Maria Silva" },
+  },
+]
 
 export default function OrdersPage() {
   const router = useRouter()
@@ -31,9 +88,8 @@ export default function OrdersPage() {
   const [showUserMenu, setShowUserMenu] = useState(false)
 
   const handleLogout = () => {
-    // Add logout logic here if needed
+    logout()
     setShowUserMenu(false)
-    router.push("/")
   }
 
   // Redirect if not logged in
@@ -63,22 +119,13 @@ export default function OrdersPage() {
     }) || []
 
   // Calculate balance
-  const balance = user?.balance || 0
-  const pendingBalance = user?.pendingBalance || 0
+  const balance = user?.balance || 2500.0
+  const pendingBalance = user?.pendingBalance || 500.0
 
   const handleWithdrawal = () => {
-    alert(`Solicitação de saque de R$ ${withdrawalAmount} enviada com sucesso!`)
-    setWithdrawalAmount("")
+    // Add withdrawal logic here
     setShowWithdrawalForm(false)
-  }
-
-  const handlePaymentMethodSelect = (method, details) => {
-    setSelectedPaymentMethod({ method, details })
-  }
-
-  // Format currency
-  const formatCurrency = (value) => {
-    return `R$ ${Math.abs(value).toFixed(2).replace(".", ",")}`
+    setWithdrawalAmount("")
   }
 
   if (isLoading) {
@@ -91,118 +138,86 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Existing Header with User Dropdown */}
-      <header className="bg-black sticky top-0 z-10">
+      {/* Header/Navigation */}
+      <header className="bg-black sticky top-0 z-10 border-b border-zinc-800">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <circle
-                cx="12"
-                cy="7"
-                r="4"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span className="text-white text-2xl font-bold ml-2">reticket</span>
-          </div>
-          {user && (
-            <div className="relative">
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="bg-transparent border border-primary text-white px-4 py-2 rounded flex items-center gap-2"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <circle
-                    cx="12"
-                    cy="7"
-                    r="4"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                {user.name.split(" ")[0]}
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className={showUserMenu ? "transform rotate-180" : ""}
-                >
-                  <path
-                    d="M6 9L12 15L18 9"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-              {showUserMenu && (
-                <div className="absolute top-full right-0 mt-2 bg-zinc-900 border border-zinc-800 rounded shadow-lg">
-                  <div className="p-4 border-b border-zinc-800">
-                    <p className="font-medium mb-1 text-white">{user.name}</p>
-                    <p className="text-sm text-gray-400">{user.email}</p>
-                  </div>
-                  <a
-                    href="/account"
-                    className="block px-4 py-2 text-white hover:bg-zinc-800"
-                    onMouseEnter={(e) => (e.target.style.backgroundColor = "#27272A")}
-                    onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
-                  >
-                    Minha Conta
-                  </a>
-                  <a
-                    href="/account/orders"
-                    className="block px-4 py-2 text-white hover:bg-zinc-800"
-                    onMouseEnter={(e) => (e.target.style.backgroundColor = "#27272A")}
-                    onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
-                  >
-                    Meus Pedidos
-                  </a>
-                  {user.isAdmin && (
-                    <a
-                      href="/admin"
-                      className="block px-4 py-2 text-blue-500 hover:bg-zinc-800"
-                      onMouseEnter={(e) => (e.target.style.backgroundColor = "#27272A")}
-                      onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
-                    >
-                      Painel Admin
-                    </a>
-                  )}
-                  <div className="border-t border-zinc-800 mt-2">
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full px-4 py-2 text-red-500 hover:bg-zinc-800"
-                      onMouseEnter={(e) => (e.target.style.backgroundColor = "#27272A")}
-                      onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
-                    >
-                      Sair
-                    </button>
-                  </div>
-                </div>
-              )}
+          {/* Logo */}
+          <a href="/" className="flex items-center gap-2">
+            <div className="bg-primary p-1.5 rounded">
+              <div className="w-6 h-6 bg-black rounded"></div>
             </div>
-          )}
+            <span className="text-white text-2xl font-bold">reticket</span>
+          </a>
+
+          {/* Navigation Links */}
+          <nav className="flex items-center gap-4">
+            <a href="#" className="text-white text-sm">
+              Como Funciona
+            </a>
+            <a href="#" className="text-white text-sm">
+              WhatsApp
+            </a>
+
+            {user && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="bg-transparent border border-primary text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-bold"
+                >
+                  <User className="w-4 h-4" />
+                  {user.name.split(" ")[0]}
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={showUserMenu ? "transform rotate-180" : ""}
+                  >
+                    <path
+                      d="M6 9L12 15L18 9"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+
+                {showUserMenu && (
+                  <div className="absolute top-full right-0 mt-2 bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg min-w-[200px] z-50">
+                    <div className="p-3 border-b border-zinc-700">
+                      <p className="font-medium text-white">{user.name}</p>
+                      <p className="text-sm text-gray-400">{user.email}</p>
+                    </div>
+
+                    <a href="/account" className="block px-3 py-2 text-white hover:bg-zinc-800 text-sm">
+                      Minha Conta
+                    </a>
+
+                    <a href="/account/orders" className="block px-3 py-2 text-white hover:bg-zinc-800 text-sm">
+                      Meus Pedidos
+                    </a>
+
+                    {user.isAdmin && (
+                      <a href="/admin" className="block px-3 py-2 text-blue-500 hover:bg-zinc-800 text-sm">
+                        Painel Admin
+                      </a>
+                    )}
+
+                    <div className="border-t border-zinc-700 mt-1">
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full px-3 py-2 text-red-500 hover:bg-zinc-800 text-left text-sm"
+                      >
+                        Sair
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </nav>
         </div>
       </header>
 
@@ -215,6 +230,8 @@ export default function OrdersPage() {
 
           {/* Main Content */}
           <div className="md:w-3/4">
+            <h1 className="text-3xl font-bold text-white mb-6">Meus Pedidos</h1>
+
             {/* Balance Card */}
             <div className="bg-zinc-900 rounded-lg p-6 mb-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
@@ -256,12 +273,12 @@ export default function OrdersPage() {
                         </div>
 
                         {!selectedPaymentMethod ? (
-                          <PaymentMethodSelector
-                            onSelect={handlePaymentMethodSelect}
-                            buttonText="Selecionar método de pagamento"
-                            buttonVariant="outline"
-                            buttonClassName="w-full border-zinc-700 text-white"
-                          />
+                          <div className="flex justify-between items-center p-2 bg-zinc-800 rounded-md">
+                            <span className="text-sm text-white">Nenhum método de pagamento selecionado</span>
+                            <Button variant="outline" size="sm" className="border-zinc-700 text-white bg-transparent">
+                              Selecionar Método
+                            </Button>
+                          </div>
                         ) : (
                           <div className="flex justify-between items-center p-2 bg-zinc-800 rounded-md">
                             <div className="flex items-center">
@@ -300,7 +317,7 @@ export default function OrdersPage() {
             </div>
 
             {/* Tabs */}
-            <Tabs defaultValue="transactions" className="mb-6" onValueChange={setActiveTab}>
+            <Tabs defaultValue="purchases" className="mb-6" onValueChange={setActiveTab}>
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
                 <TabsList className="bg-zinc-900 border-b border-zinc-800 rounded-none p-0">
                   <TabsTrigger
@@ -343,8 +360,8 @@ export default function OrdersPage() {
 
               <TabsContent value="transactions" className="pt-4">
                 <div className="space-y-4">
-                  {filteredTransactions.length > 0 ? (
-                    filteredTransactions.map((transaction) => (
+                  {mockTransactions.length > 0 ? (
+                    mockTransactions.map((transaction) => (
                       <div
                         key={transaction.id}
                         className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
@@ -358,15 +375,8 @@ export default function OrdersPage() {
                               {transaction.type === "sale" && (
                                 <ArrowDownToLine className="w-5 h-5 text-green-500 mr-2" />
                               )}
-                              {transaction.type === "withdrawal" && (
-                                <Download className="w-5 h-5 text-yellow-500 mr-2" />
-                              )}
                               <h3 className="text-white font-medium">
-                                {transaction.type === "purchase"
-                                  ? "Compra"
-                                  : transaction.type === "sale"
-                                    ? "Venda"
-                                    : "Saque"}
+                                {transaction.type === "purchase" ? "Compra" : "Venda"}
                               </h3>
                             </div>
                             {transaction.eventName && <p className="text-gray-300 mt-1">{transaction.eventName}</p>}
@@ -377,7 +387,7 @@ export default function OrdersPage() {
                           <div className="text-right">
                             <p className={`font-bold ${transaction.amount > 0 ? "text-green-500" : "text-red-500"}`}>
                               {transaction.amount > 0 ? "+" : ""}
-                              {formatCurrency(transaction.amount)}
+                              {formatCurrency(Math.abs(transaction.amount))}
                             </p>
                             <div className="flex items-center justify-end mt-1">
                               <Calendar className="w-3 h-3 text-gray-400 mr-1" />
@@ -419,23 +429,25 @@ export default function OrdersPage() {
 
               <TabsContent value="purchases" className="pt-4">
                 <div className="space-y-4">
-                  {filteredOrders.length > 0 ? (
-                    filteredOrders.map((order) => (
+                  {mockOrders.length > 0 ? (
+                    mockOrders.map((order) => (
                       <div
                         key={order.id}
                         className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <h3 className="text-white font-medium">{order.eventName}</h3>
+                            <h3 className="text-white font-medium">{order.event.name}</h3>
                             <p className="text-gray-400 text-sm">{order.ticketType}</p>
                             <p className="text-gray-400 text-sm mt-1">Quantidade: {order.quantity}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-white">{formatCurrency(order.amount)}</p>
+                            <p className="font-bold text-white">{formatCurrency(order.total)}</p>
                             <div className="flex items-center justify-end mt-1">
                               <Calendar className="w-3 h-3 text-gray-400 mr-1" />
-                              <p className="text-gray-400 text-xs">{order.date}</p>
+                              <p className="text-gray-400 text-xs">
+                                {new Date(order.date).toLocaleDateString("pt-BR")}
+                              </p>
                             </div>
                             <span
                               className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
@@ -450,7 +462,7 @@ export default function OrdersPage() {
                                 ? "Concluído"
                                 : order.status === "pending"
                                   ? "Pendente"
-                                  : "Cancelado"}
+                                  : "Falha"}
                             </span>
                           </div>
                         </div>
@@ -483,24 +495,24 @@ export default function OrdersPage() {
 
               <TabsContent value="sales" className="pt-4">
                 <div className="space-y-4">
-                  {filteredSales.length > 0 ? (
-                    filteredSales.map((sale) => (
+                  {mockSales.length > 0 ? (
+                    mockSales.map((sale) => (
                       <div
                         key={sale.id}
                         className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <h3 className="text-white font-medium">{sale.eventName}</h3>
+                            <h3 className="text-white font-medium">{sale.event.name}</h3>
                             <p className="text-gray-400 text-sm">{sale.ticketType}</p>
                             <p className="text-gray-400 text-sm mt-1">Quantidade: {sale.quantity}</p>
-                            <p className="text-gray-400 text-sm">Comprador: {sale.buyerName}</p>
+                            <p className="text-gray-400 text-sm">Comprador: {sale.user.name}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-green-500">+{formatCurrency(sale.amount)}</p>
+                            <p className="font-bold text-green-500">+{formatCurrency(sale.total)}</p>
                             <div className="flex items-center justify-end mt-1">
                               <Calendar className="w-3 h-3 text-gray-400 mr-1" />
-                              <p className="text-gray-400 text-xs">{sale.date}</p>
+                              <p className="text-gray-400 text-xs">{new Date(sale.date).toLocaleDateString("pt-BR")}</p>
                             </div>
                             <span
                               className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${

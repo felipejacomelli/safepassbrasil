@@ -1,22 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Download, CheckCircle, Calendar, User, Clock, Edit, Mail, Phone, MapPin, Shield } from "lucide-react"
+import { Download, Filter, ExternalLink, Calendar, UserIcon, Search, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useRouter } from "next/router"
+import { Input } from "@/components/ui/input"
 import { useAuth } from "@/hooks/useAuth"
-import { AccountSidebar } from "@/components/AccountSidebar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Wallet,
-  QrCode,
-  Landmark,
-  CreditCard,
-  Filter,
-  ExternalLink,
-  ArrowUpFromLine,
-  ArrowDownToLine,
-} from "lucide-react"
 import { formatCurrency } from "@/utils/formatCurrency"
 
 // Mock orders data
@@ -111,56 +99,20 @@ const mockOrders = [
     paymentMethod: "credit-card",
     date: "2025-04-20T11:20:00",
   },
-  {
-    id: "ORD123461",
-    user: {
-      id: "6",
-      name: "Juliana Almeida",
-      email: "juliana.almeida@example.com",
-    },
-    event: {
-      id: "rock-in-rio-2025",
-      name: "Rock in Rio 2025",
-    },
-    ticketType: "Pista",
-    quantity: 2,
-    total: 1000.0,
-    status: "pending",
-    paymentMethod: "boleto",
-    date: "2025-04-19T14:10:00",
-  },
 ]
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState(mockOrders)
+  const [orders] = useState(mockOrders)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [sortField, setSortField] = useState("date")
   const [sortDirection, setSortDirection] = useState("desc")
   const [showUserMenu, setShowUserMenu] = useState(false)
-  const router = useRouter()
-  const { user, isAuthenticated, logout } = useAuth()
-  const [activeTab, setActiveTab] = useState("transactions")
-  const [showWithdrawalForm, setShowWithdrawalForm] = useState(false)
-  const [withdrawalAmount, setWithdrawalAmount] = useState("")
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null)
-  const balance = 5000.0
-  const pendingBalance = 1000.0
-  const filteredTransactions = []
-  const filteredSales = []
+  const { user, logout } = useAuth()
 
   const handleLogout = () => {
-    // Add logout logic here if needed
+    logout()
     setShowUserMenu(false)
-    router.push("/")
-  }
-
-  const handleWithdrawal = () => {
-    // Add withdrawal logic here if needed
-  }
-
-  const handlePaymentMethodSelect = (method) => {
-    setSelectedPaymentMethod(method)
   }
 
   // Filter and sort orders
@@ -197,131 +149,32 @@ export default function AdminOrdersPage() {
   return (
     <div className="min-h-screen bg-black">
       {/* Header/Navigation */}
-      <header
-        style={{
-          padding: "16px",
-          borderBottom: "1px solid #333",
-          position: "sticky",
-          top: 0,
-          backgroundColor: "black",
-          zIndex: 10,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            maxWidth: "1200px",
-            margin: "0 auto",
-            width: "100%",
-          }}
-        >
+      <header className="bg-black sticky top-0 z-10 border-b border-zinc-800">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           {/* Logo */}
-          <a
-            href="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              textDecoration: "none",
-            }}
-          >
-            <div
-              style={{
-                backgroundColor: "#3B82F6",
-                padding: "6px",
-                borderRadius: "4px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <div
-                style={{
-                  width: "24px",
-                  height: "24px",
-                  backgroundColor: "black",
-                  borderRadius: "4px",
-                }}
-              />
+          <a href="/" className="flex items-center gap-2">
+            <div className="bg-primary p-1.5 rounded">
+              <div className="w-6 h-6 bg-black rounded"></div>
             </div>
-            <span
-              style={{
-                color: "white",
-                fontSize: "20px",
-                fontWeight: "bold",
-              }}
-            >
-              reticket
-            </span>
+            <span className="text-white text-2xl font-bold">reticket</span>
           </a>
 
           {/* Navigation Links */}
-          <nav
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-            }}
-          >
-            <a
-              href="#"
-              style={{
-                color: "white",
-                textDecoration: "none",
-                fontSize: "14px",
-              }}
-            >
+          <nav className="flex items-center gap-4">
+            <a href="#" className="text-white text-sm">
               Como Funciona
             </a>
-            <a
-              href="#"
-              style={{
-                color: "white",
-                textDecoration: "none",
-                fontSize: "14px",
-              }}
-            >
+            <a href="#" className="text-white text-sm">
               WhatsApp
             </a>
 
             {user && (
-              <div style={{ position: "relative" }}>
+              <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  style={{
-                    backgroundColor: "transparent",
-                    border: "1px solid #3B82F6",
-                    color: "white",
-                    padding: "8px 16px",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
+                  className="bg-transparent border border-primary text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-bold"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <circle
-                      cx="12"
-                      cy="7"
-                      r="4"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <UserIcon className="w-4 h-4" />
                   {user.name.split(" ")[0]}
                   <svg
                     width="12"
@@ -329,9 +182,7 @@ export default function AdminOrdersPage() {
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                    style={{
-                      transform: showUserMenu ? "rotate(180deg)" : "rotate(0deg)",
-                    }}
+                    className={showUserMenu ? "transform rotate-180" : ""}
                   >
                     <path
                       d="M6 9L12 15L18 9"
@@ -344,117 +195,30 @@ export default function AdminOrdersPage() {
                 </button>
 
                 {showUserMenu && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "100%",
-                      right: 0,
-                      marginTop: "8px",
-                      backgroundColor: "#18181B",
-                      border: "1px solid #3F3F46",
-                      borderRadius: "8px",
-                      padding: "8px 0",
-                      minWidth: "200px",
-                      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
-                      zIndex: 50,
-                    }}
-                  >
-                    <div
-                      style={{
-                        padding: "12px 16px",
-                        borderBottom: "1px solid #3F3F46",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      <p style={{ fontWeight: "600", marginBottom: "4px", color: "white" }}>{user.name}</p>
-                      <p style={{ fontSize: "14px", color: "#A1A1AA" }}>{user.email}</p>
+                  <div className="absolute top-full right-0 mt-2 bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg min-w-[200px] z-50">
+                    <div className="p-3 border-b border-zinc-700">
+                      <p className="font-medium text-white">{user.name}</p>
+                      <p className="text-sm text-gray-400">{user.email}</p>
                     </div>
 
-                    <a
-                      href="/account"
-                      style={{
-                        display: "block",
-                        padding: "12px 16px",
-                        color: "white",
-                        textDecoration: "none",
-                        fontSize: "14px",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = "#27272A"
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = "transparent"
-                      }}
-                    >
+                    <a href="/account" className="block px-3 py-2 text-white hover:bg-zinc-800 text-sm">
                       Minha Conta
                     </a>
 
-                    <a
-                      href="/account/orders"
-                      style={{
-                        display: "block",
-                        padding: "12px 16px",
-                        color: "white",
-                        textDecoration: "none",
-                        fontSize: "14px",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = "#27272A"
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = "transparent"
-                      }}
-                    >
+                    <a href="/account/orders" className="block px-3 py-2 text-white hover:bg-zinc-800 text-sm">
                       Meus Pedidos
                     </a>
 
                     {user.isAdmin && (
-                      <a
-                        href="/admin"
-                        style={{
-                          display: "block",
-                          padding: "12px 16px",
-                          color: "#3B82F6",
-                          textDecoration: "none",
-                          fontSize: "14px",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = "#27272A"
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = "transparent"
-                        }}
-                      >
+                      <a href="/admin" className="block px-3 py-2 text-blue-500 hover:bg-zinc-800 text-sm">
                         Painel Admin
                       </a>
                     )}
 
-                    <div
-                      style={{
-                        borderTop: "1px solid #3F3F46",
-                        marginTop: "8px",
-                        paddingTop: "8px",
-                      }}
-                    >
+                    <div className="border-t border-zinc-700 mt-1">
                       <button
                         onClick={handleLogout}
-                        style={{
-                          display: "block",
-                          width: "100%",
-                          padding: "12px 16px",
-                          backgroundColor: "transparent",
-                          border: "none",
-                          color: "#EF4444",
-                          textAlign: "left",
-                          fontSize: "14px",
-                          cursor: "pointer",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = "#27272A"
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = "transparent"
-                        }}
+                        className="block w-full px-3 py-2 text-red-500 hover:bg-zinc-800 text-left text-sm"
                       >
                         Sair
                       </button>
@@ -468,441 +232,230 @@ export default function AdminOrdersPage() {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Sidebar */}
-          <div className="md:w-1/4">
-            <AccountSidebar />
+        <div className="flex flex-col gap-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Gerenciar Pedidos</h1>
+            <p className="text-gray-400">Visualize e gerencie todos os pedidos da plataforma</p>
           </div>
 
-          {/* Main Content */}
-          <div className="md:w-3/4">
-            <h1 className="text-3xl font-bold text-white mb-6">Meu Perfil</h1>
-
-            <div className="bg-zinc-900 rounded-lg p-6 mb-6">
-              <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
-                <div className="w-24 h-24 bg-zinc-800 rounded-full overflow-hidden">
-                  <img
-                    src={
-                      user?.profileImage ||
-                      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" ||
-                      "/placeholder.svg" ||
-                      "/placeholder.svg"
-                    }
-                    alt="Profile"
-                    className="w-full h-full object-cover"
+          {/* Filters and Search */}
+          <div className="bg-zinc-900 rounded-lg p-6">
+            <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+              <div className="flex flex-col md:flex-row gap-4 flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    type="text"
+                    placeholder="Buscar por ID, cliente ou evento..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="bg-zinc-800 border-zinc-700 text-white pl-10 w-full md:w-80"
                   />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-bold text-white">{user?.name}</h2>
-                    {user?.verificationStatus === "verified" && (
-                      <div className="bg-green-900 bg-opacity-20 text-green-500 px-2 py-1 rounded-full text-xs flex items-center">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Verificado
-                      </div>
-                    )}
-                    {user?.verificationStatus === "pending" && (
-                      <div className="bg-yellow-900 bg-opacity-20 text-yellow-500 px-2 py-1 rounded-full text-xs flex items-center">
-                        <Clock className="w-3 h-3 mr-1" />
-                        Verificação Pendente
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-gray-400">Membro desde {user?.memberSince}</p>
-                  <Button variant="outline" size="sm" className="mt-2 border-zinc-700 text-white bg-transparent">
-                    <Edit className="w-4 h-4 mr-2" />
-                    Alterar foto
-                  </Button>
-                </div>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-white"
+                >
+                  <option value="all">Todos os Status</option>
+                  <option value="completed">Concluído</option>
+                  <option value="pending">Pendente</option>
+                  <option value="failed">Falha</option>
+                </select>
               </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded-md">
-                  <User className="w-5 h-5 text-primary" />
-                  <div>
-                    <p className="text-gray-400 text-sm">Nome Completo</p>
-                    <p className="text-white">{user?.name}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded-md">
-                  <Mail className="w-5 h-5 text-primary" />
-                  <div>
-                    <p className="text-gray-400 text-sm">Email</p>
-                    <p className="text-white">{user?.email}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded-md">
-                  <Phone className="w-5 h-5 text-primary" />
-                  <div>
-                    <p className="text-gray-400 text-sm">Telefone</p>
-                    <p className="text-white">{user?.phone}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded-md">
-                  <MapPin className="w-5 h-5 text-primary" />
-                  <div>
-                    <p className="text-gray-400 text-sm">Endereço</p>
-                    <p className="text-white">{user?.address}</p>
-                  </div>
-                </div>
-
-                {user?.verificationStatus !== "verified" && (
-                  <div className="flex items-center gap-3 p-3 bg-blue-900 bg-opacity-20 border border-blue-800 rounded-md">
-                    <Shield className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="text-white font-medium">Verificação de Vendedor</p>
-                      <p className="text-gray-300 text-sm">
-                        {user?.verificationStatus === "pending"
-                          ? "Sua verificação está em análise."
-                          : "Verifique sua identidade para se tornar um vendedor verificado."}
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="ml-auto border-primary text-primary hover:bg-blue-900 hover:bg-opacity-20 bg-transparent"
-                      onClick={() => router.push("/account/verification")}
-                    >
-                      {user?.verificationStatus === "pending" ? "Ver Status" : "Verificar"}
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-zinc-800">
+              <div className="flex gap-2">
+                <Button variant="outline" className="border-zinc-700 text-white bg-transparent hover:bg-zinc-800">
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filtros
+                </Button>
                 <Button className="bg-primary hover:bg-blue-600 text-black">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Editar Perfil
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar
                 </Button>
               </div>
             </div>
+          </div>
 
-            {/* Balance Card */}
-            <div className="bg-zinc-900 rounded-lg p-6 mb-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-                <div>
-                  <h2 className="text-xl font-bold text-white mb-1">Saldo Disponível</h2>
-                  <p className="text-3xl font-bold text-primary">{formatCurrency(balance)}</p>
-                  {pendingBalance > 0 && (
-                    <p className="text-gray-400 text-sm mt-1">+ {formatCurrency(pendingBalance)} pendente</p>
-                  )}
-                </div>
-
-                {balance > 0 && (
-                  <div className="mt-4 md:mt-0">
-                    {!showWithdrawalForm ? (
-                      <Button
-                        onClick={() => setShowWithdrawalForm(true)}
-                        className="bg-primary hover:bg-blue-600 text-black"
-                      >
-                        <Wallet className="w-4 h-4 mr-2" />
-                        Sacar Saldo
-                      </Button>
-                    ) : (
-                      <div className="space-y-3">
+          {/* Orders Table */}
+          <div className="bg-zinc-900 rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-zinc-800">
+                  <tr>
+                    <th
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                      onClick={() => handleSort("id")}
+                    >
+                      ID do Pedido
+                      {sortField === "id" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                    </th>
+                    <th
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                      onClick={() => handleSort("user")}
+                    >
+                      Cliente
+                    </th>
+                    <th
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                      onClick={() => handleSort("event")}
+                    >
+                      Evento
+                    </th>
+                    <th
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                      onClick={() => handleSort("total")}
+                    >
+                      Total
+                      {sortField === "total" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                    </th>
+                    <th
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                      onClick={() => handleSort("status")}
+                    >
+                      Status
+                    </th>
+                    <th
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                      onClick={() => handleSort("date")}
+                    >
+                      Data
+                      {sortField === "date" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Ações
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800">
+                  {filteredOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-zinc-800 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-white">{order.id}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 rounded-full bg-zinc-700 flex items-center justify-center mr-3">
+                            <UserIcon className="w-4 h-4 text-gray-400" />
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-white">{order.user.name}</div>
+                            <div className="text-sm text-gray-400">{order.user.email}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-white">{order.event.name}</div>
+                          <div className="text-sm text-gray-400">
+                            {order.ticketType} • Qtd: {order.quantity}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                        {formatCurrency(order.total)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            order.status === "completed"
+                              ? "bg-green-900 bg-opacity-20 text-green-500"
+                              : order.status === "pending"
+                                ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
+                                : "bg-red-900 bg-opacity-20 text-red-500"
+                          }`}
+                        >
+                          {order.status === "completed"
+                            ? "Concluído"
+                            : order.status === "pending"
+                              ? "Pendente"
+                              : "Falha"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center text-sm text-gray-400">
+                          <Calendar className="w-4 h-4 mr-1" />
+                          {new Date(order.date).toLocaleDateString("pt-BR")}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(order.date).toLocaleTimeString("pt-BR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={withdrawalAmount}
-                            onChange={(e) => setWithdrawalAmount(e.target.value)}
-                            placeholder="Valor do saque"
-                            className="bg-zinc-800 border border-zinc-700 rounded-md p-2 text-white"
-                          />
-                          <Button
-                            onClick={handleWithdrawal}
-                            className="bg-primary hover:bg-blue-600 text-black"
-                            disabled={!withdrawalAmount || !selectedPaymentMethod}
-                          >
-                            Sacar
+                          <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
+                            <ExternalLink className="w-4 h-4" />
                           </Button>
                         </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-                        {!selectedPaymentMethod ? (
-                          <div className="flex justify-between items-center p-2 bg-zinc-800 rounded-md">
-                            <span className="text-sm text-white">Nenhum método de pagamento selecionado</span>
-                            <Button variant="outline" size="sm" className="border-zinc-700 text-white bg-transparent">
-                              Selecionar Método
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex justify-between items-center p-2 bg-zinc-800 rounded-md">
-                            <div className="flex items-center">
-                              {selectedPaymentMethod.method === "pix" && (
-                                <QrCode className="w-4 h-4 mr-2 text-primary" />
-                              )}
-                              {selectedPaymentMethod.method === "bank" && (
-                                <Landmark className="w-4 h-4 mr-2 text-primary" />
-                              )}
-                              {selectedPaymentMethod.method === "card" && (
-                                <CreditCard className="w-4 h-4 mr-2 text-primary" />
-                              )}
-                              <span className="text-sm text-white">
-                                {selectedPaymentMethod.method === "pix"
-                                  ? `PIX: ${selectedPaymentMethod.details.pixKey}`
-                                  : selectedPaymentMethod.method === "bank"
-                                    ? `Banco: ${selectedPaymentMethod.details.bankName}`
-                                    : "Cartão de Crédito"}
-                              </span>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setSelectedPaymentMethod(null)}
-                              className="text-gray-400 hover:text-white"
-                            >
-                              Alterar
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
+            {filteredOrders.length === 0 && (
+              <div className="p-8 text-center">
+                <p className="text-gray-400">Nenhum pedido encontrado com os filtros aplicados.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Summary Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="bg-zinc-900 rounded-lg p-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-900 bg-opacity-20 rounded-lg">
+                  <UserIcon className="w-6 h-6 text-blue-500" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-400">Total de Pedidos</p>
+                  <p className="text-2xl font-bold text-white">{orders.length}</p>
+                </div>
               </div>
             </div>
 
-            {/* Tabs */}
-            <Tabs defaultValue="transactions" className="mb-6" onValueChange={setActiveTab}>
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                <TabsList className="bg-zinc-900 border-b border-zinc-800 rounded-none p-0">
-                  <TabsTrigger
-                    value="transactions"
-                    className={`rounded-none border-b-2 px-4 py-2 ${
-                      activeTab === "transactions" ? "border-primary text-primary" : "border-transparent text-gray-400"
-                    }`}
-                  >
-                    Transações
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="purchases"
-                    className={`rounded-none border-b-2 px-4 py-2 ${
-                      activeTab === "purchases" ? "border-primary text-primary" : "border-transparent text-gray-400"
-                    }`}
-                  >
-                    Compras
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="sales"
-                    className={`rounded-none border-b-2 px-4 py-2 ${
-                      activeTab === "sales" ? "border-primary text-primary" : "border-transparent text-gray-400"
-                    }`}
-                  >
-                    Vendas
-                  </TabsTrigger>
-                </TabsList>
-
-                <div className="mt-4 md:mt-0 flex items-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-zinc-700 text-white bg-transparent hover:bg-zinc-800"
-                  >
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filtrar
-                  </Button>
+            <div className="bg-zinc-900 rounded-lg p-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-green-900 bg-opacity-20 rounded-lg">
+                  <Calendar className="w-6 h-6 text-green-500" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-400">Concluídos</p>
+                  <p className="text-2xl font-bold text-white">
+                    {orders.filter((o) => o.status === "completed").length}
+                  </p>
                 </div>
               </div>
+            </div>
 
-              <TabsContent value="transactions" className="pt-4">
-                <div className="space-y-4">
-                  {filteredTransactions.length > 0 ? (
-                    filteredTransactions.map((transaction) => (
-                      <div
-                        key={transaction.id}
-                        className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="flex items-center">
-                              {transaction.type === "purchase" && (
-                                <ArrowUpFromLine className="w-5 h-5 text-red-500 mr-2" />
-                              )}
-                              {transaction.type === "sale" && (
-                                <ArrowDownToLine className="w-5 h-5 text-green-500 mr-2" />
-                              )}
-                              {transaction.type === "withdrawal" && (
-                                <Download className="w-5 h-5 text-yellow-500 mr-2" />
-                              )}
-                              <h3 className="text-white font-medium">
-                                {transaction.type === "purchase"
-                                  ? "Compra"
-                                  : transaction.type === "sale"
-                                    ? "Venda"
-                                    : "Saque"}
-                              </h3>
-                            </div>
-                            {transaction.eventName && <p className="text-gray-300 mt-1">{transaction.eventName}</p>}
-                            {transaction.ticketType && (
-                              <p className="text-gray-400 text-sm">{transaction.ticketType}</p>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <p className={`font-bold ${transaction.amount > 0 ? "text-green-500" : "text-red-500"}`}>
-                              {transaction.amount > 0 ? "+" : ""}
-                              {formatCurrency(transaction.amount)}
-                            </p>
-                            <div className="flex items-center justify-end mt-1">
-                              <Calendar className="w-3 h-3 text-gray-400 mr-1" />
-                              <p className="text-gray-400 text-xs">{transaction.date}</p>
-                            </div>
-                            <span
-                              className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
-                                transaction.status === "completed"
-                                  ? "bg-green-900 bg-opacity-20 text-green-500"
-                                  : transaction.status === "pending"
-                                    ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
-                                    : "bg-red-900 bg-opacity-20 text-red-500"
-                              }`}
-                            >
-                              {transaction.status === "completed"
-                                ? "Concluído"
-                                : transaction.status === "pending"
-                                  ? "Pendente"
-                                  : "Cancelado"}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
-                          <p className="text-gray-400 text-xs">ID: {transaction.id}</p>
-                          <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
-                            <ExternalLink className="w-4 h-4 mr-1" />
-                            Detalhes
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="bg-zinc-900 rounded-lg p-8 text-center">
-                      <p className="text-gray-400">Nenhuma transação encontrada.</p>
-                    </div>
-                  )}
+            <div className="bg-zinc-900 rounded-lg p-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-yellow-900 bg-opacity-20 rounded-lg">
+                  <Clock className="w-6 h-6 text-yellow-500" />
                 </div>
-              </TabsContent>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-400">Pendentes</p>
+                  <p className="text-2xl font-bold text-white">{orders.filter((o) => o.status === "pending").length}</p>
+                </div>
+              </div>
+            </div>
 
-              <TabsContent value="purchases" className="pt-4">
-                <div className="space-y-4">
-                  {filteredOrders.length > 0 ? (
-                    filteredOrders.map((order) => (
-                      <div
-                        key={order.id}
-                        className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="text-white font-medium">{order.event.name}</h3>
-                            <p className="text-gray-400 text-sm">{order.ticketType}</p>
-                            <p className="text-gray-400 text-sm mt-1">Quantidade: {order.quantity}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-white">R$ {order.total.toFixed(2).replace(".", ",")}</p>
-                            <div className="flex items-center justify-end mt-1">
-                              <Calendar className="w-3 h-3 text-gray-400 mr-1" />
-                              <p className="text-gray-400 text-xs">
-                                {new Date(order.date).toLocaleDateString("pt-BR")}
-                              </p>
-                            </div>
-                            <span
-                              className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
-                                order.status === "completed"
-                                  ? "bg-green-900 bg-opacity-20 text-green-500"
-                                  : order.status === "pending"
-                                    ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
-                                    : "bg-red-900 bg-opacity-20 text-red-500"
-                              }`}
-                            >
-                              {order.status === "completed"
-                                ? "Concluído"
-                                : order.status === "pending"
-                                  ? "Pendente"
-                                  : "Falha"}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
-                          <p className="text-gray-400 text-xs">Pedido: {order.id}</p>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-zinc-700 text-white bg-transparent hover:bg-zinc-800"
-                            >
-                              <Download className="w-4 h-4 mr-1" />
-                              Baixar Ingresso
-                            </Button>
-                            <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
-                              <ExternalLink className="w-4 h-4 mr-1" />
-                              Detalhes
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="bg-zinc-900 rounded-lg p-8 text-center">
-                      <p className="text-gray-400">Nenhuma compra encontrada.</p>
-                    </div>
-                  )}
+            <div className="bg-zinc-900 rounded-lg p-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-purple-900 bg-opacity-20 rounded-lg">
+                  <Download className="w-6 h-6 text-purple-500" />
                 </div>
-              </TabsContent>
-
-              <TabsContent value="sales" className="pt-4">
-                <div className="space-y-4">
-                  {filteredSales.length > 0 ? (
-                    filteredSales.map((sale) => (
-                      <div
-                        key={sale.id}
-                        className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="text-white font-medium">{sale.event.name}</h3>
-                            <p className="text-gray-400 text-sm">{sale.ticketType}</p>
-                            <p className="text-gray-400 text-sm mt-1">Quantidade: {sale.quantity}</p>
-                            <p className="text-gray-400 text-sm">Comprador: {sale.user.name}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-green-500">+R$ {sale.total.toFixed(2).replace(".", ",")}</p>
-                            <div className="flex items-center justify-end mt-1">
-                              <Calendar className="w-3 h-3 text-gray-400 mr-1" />
-                              <p className="text-gray-400 text-xs">{new Date(sale.date).toLocaleDateString("pt-BR")}</p>
-                            </div>
-                            <span
-                              className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
-                                sale.status === "completed"
-                                  ? "bg-green-900 bg-opacity-20 text-green-500"
-                                  : sale.status === "pending"
-                                    ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
-                                    : "bg-red-900 bg-opacity-20 text-red-500"
-                              }`}
-                            >
-                              {sale.status === "completed"
-                                ? "Concluído"
-                                : sale.status === "pending"
-                                  ? "Pendente"
-                                  : "Cancelado"}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
-                          <p className="text-gray-400 text-xs">Venda: {sale.id}</p>
-                          <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
-                            <ExternalLink className="w-4 h-4 mr-1" />
-                            Detalhes
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="bg-zinc-900 rounded-lg p-8 text-center">
-                      <p className="text-gray-400">Nenhuma venda encontrada.</p>
-                    </div>
-                  )}
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-400">Receita Total</p>
+                  <p className="text-2xl font-bold text-white">
+                    {formatCurrency(orders.reduce((sum, order) => sum + order.total, 0))}
+                  </p>
                 </div>
-              </TabsContent>
-            </Tabs>
+              </div>
+            </div>
           </div>
         </div>
       </div>
