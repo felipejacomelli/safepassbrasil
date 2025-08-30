@@ -1,16 +1,15 @@
 "use client"
 
-import { use, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useMediaQuery } from "@/hooks/use-media-query"
 
 export default function SellTicketPage({ params }: { params: { slug: string } }) {
-  const { slug } = use(params as any)
   const isDesktop = useMediaQuery("(min-width: 640px)")
   const router = useRouter()
 
   // Find the event data based on the slug
-  const event = events.find((e) => e.slug === slug) || events[0]
+  const event = events.find((e) => e.slug === params.slug) || events[0]
 
   // State for form
   const [ticketType, setTicketType] = useState(() => {

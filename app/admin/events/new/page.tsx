@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Calendar, Clock, MapPin, DollarSign, Info, ImageIcon, Plus, Trash2, Save } from "lucide-react"
+import { Calendar, Clock, MapPin, Info, ImageIcon, Trash2, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -405,108 +405,6 @@ export default function NewEventPage() {
         </TabsContent>
 
         {/* Tickets Tab */}
-        <TabsContent value="tickets">
-          <Card className="bg-zinc-900 border-zinc-800 text-white">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-xl">Tipos de Ingressos</CardTitle>
-              <Button className="bg-primary hover:bg-blue-600 text-black" onClick={addTicketType}>
-                <Plus size={16} className="mr-2" />
-                Adicionar Tipo
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {ticketTypes.map((ticket, index) => (
-                <div key={ticket.id} className={`p-4 rounded-lg bg-zinc-800 ${index > 0 ? "mt-4" : ""}`}>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">Tipo de Ingresso #{index + 1}</h3>
-                    {ticketTypes.length > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-500 hover:text-red-400 hover:bg-zinc-700"
-                        onClick={() => removeTicketType(ticket.id)}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor={`ticket-name-${ticket.id}`}>Nome</Label>
-                      <Input
-                        id={`ticket-name-${ticket.id}`}
-                        value={ticket.name}
-                        onChange={(e) => handleTicketChange(ticket.id, "name", e.target.value)}
-                        placeholder="Ex: Pista Premium"
-                        className="bg-zinc-700 border-zinc-600 text-white mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor={`ticket-price-${ticket.id}`}>Preço (R$)</Label>
-                      <div className="relative">
-                        <DollarSign
-                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                          size={16}
-                        />
-                        <Input
-                          id={`ticket-price-${ticket.id}`}
-                          type="number"
-                          value={ticket.price}
-                          onChange={(e) => handleTicketChange(ticket.id, "price", Number.parseFloat(e.target.value))}
-                          placeholder="0.00"
-                          className="bg-zinc-700 border-zinc-600 text-white pl-10 mt-1"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <Label htmlFor={`ticket-description-${ticket.id}`}>Descrição</Label>
-                    <Textarea
-                      id={`ticket-description-${ticket.id}`}
-                      value={ticket.description}
-                      onChange={(e) => handleTicketChange(ticket.id, "description", e.target.value)}
-                      placeholder="Descreva este tipo de ingresso..."
-                      className="bg-zinc-700 border-zinc-600 text-white mt-1"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div>
-                      <Label htmlFor={`ticket-quantity-${ticket.id}`}>Quantidade Disponível</Label>
-                      <Input
-                        id={`ticket-quantity-${ticket.id}`}
-                        type="number"
-                        value={ticket.quantity}
-                        onChange={(e) => handleTicketChange(ticket.id, "quantity", Number.parseInt(e.target.value))}
-                        placeholder="0"
-                        className="bg-zinc-700 border-zinc-600 text-white mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor={`ticket-max-${ticket.id}`}>Máximo por Compra</Label>
-                      <Input
-                        id={`ticket-max-${ticket.id}`}
-                        type="number"
-                        value={ticket.maxPerPurchase}
-                        onChange={(e) =>
-                          handleTicketChange(ticket.id, "maxPerPurchase", Number.parseInt(e.target.value))
-                        }
-                        placeholder="4"
-                        className="bg-zinc-700 border-zinc-600 text-white mt-1"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Details Tab */}
         <TabsContent value="details">
           <Card className="bg-zinc-900 border-zinc-800 text-white">
             <CardHeader>
@@ -589,7 +487,8 @@ export default function NewEventPage() {
                     <img
                       src={
                         eventForm.imageUrl ||
-                        "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60"
+                        "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60" ||
+                        "/placeholder.svg"
                       }
                       alt={eventForm.name}
                       className="w-full h-full object-cover"

@@ -11,8 +11,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertTriangle } from "lucide-react"
-import { request } from "@/lib/utils"
-import Cookies from "js-cookie"
 
 export default function LoginPage() {
   const { login, register, isAuthenticated } = useAuth()
@@ -55,17 +53,16 @@ export default function LoginPage() {
       setIsLoading(true)
 
       try {
-        const result = await request({
-          method: "POST",
-          url: 'user_app/user/login',
-          body: {
-            email: formData.email,
-            password: formData.password, 
-          }
-        })
-        Cookies.set('tokenauth', result.data.token, { expires: 7 })	
+        const result = await login(formData.email, formData.password)
+
         if (result.success) {
-          router.push("/account")
+          if (result.requires2FA) {
+            router.push(`/verify?email=${encodeURIComponent(formData.email)}`)
+          } else if (result.isAdmin) {
+            router.push("/admin")
+          } else {
+            router.push("/account")
+          }
         } else {
           setError("Email ou senha inválidos")
         }
@@ -94,21 +91,12 @@ export default function LoginPage() {
       setIsLoading(true)
 
       try {
-        const result = await request({
-          method: "POST",
-          url: 'user_app/user/register',
-          body: {
-            username: formData.name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(),
-            name: formData.name,
-            email: formData.email,
-            password: formData.password, 
-          }
-        })
+        const result = await register(formData.name, formData.email, formData.password)
 
         if (result.success) {
-          location.reload()
+          router.push("/account")
         } else {
-          setError("Erro ao criar conta")
+          setError(result.message || "Erro ao criar conta")
         }
       } catch (err) {
         setError("Ocorreu um erro ao criar a conta. Tente novamente.")

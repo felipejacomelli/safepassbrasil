@@ -22,12 +22,19 @@ import {
 
 export default function OrdersPage() {
   const router = useRouter()
-  const { user, transactions = [], orders = [], sales = [], isLoading } = useAuth()
+  const { user, transactions = [], orders = [], sales = [], isLoading, logout } = useAuth()
   const [activeTab, setActiveTab] = useState("transactions")
   const [withdrawalAmount, setWithdrawalAmount] = useState("")
   const [showWithdrawalForm, setShowWithdrawalForm] = useState(false)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null)
   const [statusFilter, setStatusFilter] = useState("all")
+  const [showUserMenu, setShowUserMenu] = useState(false)
+
+  const handleLogout = () => {
+    // Add logout logic here if needed
+    setShowUserMenu(false)
+    router.push("/")
+  }
 
   // Redirect if not logged in
   useEffect(() => {
@@ -84,6 +91,121 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-black">
+      {/* Existing Header with User Dropdown */}
+      <header className="bg-black sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle
+                cx="12"
+                cy="7"
+                r="4"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="text-white text-2xl font-bold ml-2">reticket</span>
+          </div>
+          {user && (
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="bg-transparent border border-primary text-white px-4 py-2 rounded flex items-center gap-2"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle
+                    cx="12"
+                    cy="7"
+                    r="4"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                {user.name.split(" ")[0]}
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={showUserMenu ? "transform rotate-180" : ""}
+                >
+                  <path
+                    d="M6 9L12 15L18 9"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+              {showUserMenu && (
+                <div className="absolute top-full right-0 mt-2 bg-zinc-900 border border-zinc-800 rounded shadow-lg">
+                  <div className="p-4 border-b border-zinc-800">
+                    <p className="font-medium mb-1 text-white">{user.name}</p>
+                    <p className="text-sm text-gray-400">{user.email}</p>
+                  </div>
+                  <a
+                    href="/account"
+                    className="block px-4 py-2 text-white hover:bg-zinc-800"
+                    onMouseEnter={(e) => (e.target.style.backgroundColor = "#27272A")}
+                    onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
+                  >
+                    Minha Conta
+                  </a>
+                  <a
+                    href="/account/orders"
+                    className="block px-4 py-2 text-white hover:bg-zinc-800"
+                    onMouseEnter={(e) => (e.target.style.backgroundColor = "#27272A")}
+                    onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
+                  >
+                    Meus Pedidos
+                  </a>
+                  {user.isAdmin && (
+                    <a
+                      href="/admin"
+                      className="block px-4 py-2 text-blue-500 hover:bg-zinc-800"
+                      onMouseEnter={(e) => (e.target.style.backgroundColor = "#27272A")}
+                      onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
+                    >
+                      Painel Admin
+                    </a>
+                  )}
+                  <div className="border-t border-zinc-800 mt-2">
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full px-4 py-2 text-red-500 hover:bg-zinc-800"
+                      onMouseEnter={(e) => (e.target.style.backgroundColor = "#27272A")}
+                      onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
+                    >
+                      Sair
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </header>
+
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar */}
@@ -208,7 +330,11 @@ export default function OrdersPage() {
                 </TabsList>
 
                 <div className="mt-4 md:mt-0 flex items-center">
-                  <Button variant="outline" size="sm" className="border-zinc-700 text-white">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-zinc-700 text-white bg-transparent hover:bg-zinc-800"
+                  >
                     <Filter className="w-4 h-4 mr-2" />
                     Filtrar
                   </Button>
@@ -331,7 +457,11 @@ export default function OrdersPage() {
                         <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
                           <p className="text-gray-400 text-xs">Pedido: {order.id}</p>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="border-zinc-700 text-white">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-zinc-700 text-white bg-transparent hover:bg-zinc-800"
+                            >
                               <Download className="w-4 h-4 mr-1" />
                               Baixar Ingresso
                             </Button>

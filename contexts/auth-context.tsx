@@ -109,13 +109,13 @@ type AuthContextType = {
 }
 
 export const AuthContext = createContext<AuthContextType>({
-  user: mockUsers[0],
+  user: null,
   isAuthenticated: false,
   isLoading: true,
   transactions: [],
   orders: [],
   sales: [],
-  login: (email, password) => Promise.resolve({ success: true }),
+  login: (email, password) => Promise.resolve({ success: false }),
   verifyTwoFactor: (email, code, isBackupCode) => Promise.resolve(false),
   logout: () => {},
   updateUser: (data) => {},

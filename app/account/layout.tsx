@@ -7,26 +7,6 @@ interface AccountLayoutProps {
 export default function AccountLayout({ children }: AccountLayoutProps) {
   return (
     <>
-      {/* Navigation */}
-      <nav className="w-full py-4 border-b border-zinc-800 bg-black">
-        <div className="container mx-auto px-4 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2">
-            <div className="bg-primary p-1.5 rounded">
-              <div className="w-6 h-6 bg-black rounded" />
-            </div>
-            <span className="text-white text-xl font-bold">reticket</span>
-          </a>
-          <div className="flex items-center gap-6">
-            <a href="#" className="text-white hover:text-primary transition">
-              Como Funciona
-            </a>
-            <a href="#" className="text-white hover:text-primary transition">
-              WhatsApp
-            </a>
-          </div>
-        </div>
-      </nav>
-
       {/* Main Content */}
       {children}
 

@@ -3,8 +3,110 @@
 import { useSearchParams } from "next/navigation"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useEffect, useState } from "react"
-import { request } from "@/lib/utils"
-import { formatDate } from "@/lib/date"
+
+// Updated events with real events likely to happen in Brazil in 2025
+const events = [
+  {
+    image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60",
+    title: "Rock in Rio 2025",
+    date: "19-28 de Setembro, 2025",
+    location: "Cidade do Rock, Rio de Janeiro",
+    price: "A partir de R$ 650",
+    slug: "rock-in-rio-2025",
+    category: "Música",
+    city: "Rio de Janeiro",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
+    title: "Lollapalooza Brasil 2025",
+    date: "28-30 de Março, 2025",
+    location: "Autódromo de Interlagos, São Paulo",
+    price: "A partir de R$ 750",
+    slug: "lollapalooza-brasil-2025",
+    category: "Música",
+    city: "São Paulo",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop&q=60",
+    title: "Tomorrowland Brasil 2025",
+    date: "10-12 de Outubro, 2025",
+    location: "Parque Maeda, Itu, São Paulo",
+    price: "A partir de R$ 1200",
+    slug: "tomorrowland-brasil-2025",
+    category: "Música",
+    city: "São Paulo",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&auto=format&fit=crop&q=60",
+    title: "Grande Prêmio de São Paulo F1 2025",
+    date: "14-16 de Novembro, 2025",
+    location: "Autódromo de Interlagos, São Paulo",
+    price: "A partir de R$ 980",
+    slug: "gp-sao-paulo-f1-2025",
+    category: "Esportes",
+    city: "São Paulo",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&auto=format&fit=crop&q=60",
+    title: "O Fantasma da Ópera - Turnê 2025",
+    date: "15 de Maio - 30 de Junho, 2025",
+    location: "Teatro Municipal, São Paulo",
+    price: "A partir de R$ 280",
+    slug: "fantasma-da-opera-2025",
+    category: "Teatro",
+    city: "São Paulo",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60",
+    title: "Festival de Jazz de Curitiba 2025",
+    date: "20-25 de Agosto, 2025",
+    location: "Parque Barigui, Curitiba",
+    price: "A partir de R$ 180",
+    slug: "festival-jazz-curitiba-2025",
+    category: "Música",
+    city: "Curitiba",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&auto=format&fit=crop&q=60",
+    title: "Festival de Verão Salvador 2025",
+    date: "17-25 de Janeiro, 2025",
+    location: "Parque de Exposições, Salvador",
+    price: "A partir de R$ 220",
+    slug: "festival-verao-salvador-2025",
+    category: "Música",
+    city: "Salvador",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&auto=format&fit=crop&q=60",
+    title: "Campeonato Brasileiro 2025 - Final",
+    date: "7 de Dezembro, 2025",
+    location: "Estádio do Maracanã, Rio de Janeiro",
+    price: "A partir de R$ 350",
+    slug: "campeonato-brasileiro-final-2025",
+    category: "Esportes",
+    city: "Rio de Janeiro",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800&auto=format&fit=crop&q=60",
+    title: "Cirque du Soleil - Novo Espetáculo 2025",
+    date: "5-30 de Abril, 2025",
+    location: "Parque Villa-Lobos, São Paulo",
+    price: "A partir de R$ 320",
+    slug: "cirque-du-soleil-2025",
+    category: "Teatro",
+    city: "São Paulo",
+  },
+  {
+    image: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=800&auto=format&fit=crop&q=60",
+    title: "Festival Literário de Paraty 2025",
+    date: "3-7 de Julho, 2025",
+    location: "Centro Histórico, Paraty",
+    price: "A partir de R$ 120",
+    slug: "flip-paraty-2025",
+    category: "Festivais",
+    city: "Paraty",
+  },
+]
 
 const categories = [
   {
@@ -69,11 +171,9 @@ export default function SearchPage() {
 
   useEffect(() => {
     // Filter events based on search query, category, and location
-    let filteredEvents = []
-    console.log(query)
-    if (query) {
-      searchEvents()
+    let filteredEvents = [...events]
 
+    if (query) {
       filteredEvents = filteredEvents.filter(
         (event) =>
           event.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -133,29 +233,10 @@ export default function SearchPage() {
     }
   }
 
-  const searchEvents = async () => {
-    const response = request({
-      method: "GET",
-      url: 'event_app/events/by/',
-      body: {
-        filter_by: {
-          name__icontains: query,
-        }
-      }
-    })
-
-    const responseData = await response
-
-    setSearchResults(prev => ({
-       ...prev,
-       events: responseData.data?.events || [],
-    } as any))
-  }
-  
+  // Update the renderEventCard function to include a sell button next to the "Ver ingressos" button
 
   // Function to render event cards
   const renderEventCard = (event, index) => {
-    console.log(event)
     return (
       <div
         key={`search-event-${index}`}
@@ -182,7 +263,7 @@ export default function SearchPage() {
           >
             <img
               src={event.image || "/placeholder.svg"}
-              alt={event.name}
+              alt={event.title}
               style={{
                 position: "absolute",
                 top: 0,
@@ -208,7 +289,7 @@ export default function SearchPage() {
               color: "white",
             }}
           >
-            {event.name}
+            {event.title}
           </h3>
 
           <div
@@ -221,7 +302,7 @@ export default function SearchPage() {
             }}
           >
             <span style={{ marginRight: "8px" }}>📅</span>
-            <span>{formatDate(event.start_date)}</span>
+            <span>{event.date}</span>
           </div>
 
           <div
