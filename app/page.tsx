@@ -5,37 +5,20 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { MapPin, User, ShoppingCart, Plus } from "lucide-react"
+import { eventsApi, transformEventForFrontend, Event } from "@/lib/api"
 
-// Updated events with real events likely to happen in Brazil in 2025
-const events = [
-  {
-    image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60",
-    title: "Rock in Rio 2025",
-    date: "19-28 de Setembro, 2025",
-    location: "Cidade do Rock, Rio de Janeiro",
-    price: "A partir de R$ 650",
-    slug: "rock-in-rio-2025",
-    ticketCount: 23, // Fixed ticket count to avoid hydration mismatch
-  },
-  {
-    image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
-    title: "Lollapalooza Brasil 2025",
-    date: "28-30 de Março, 2025",
-    location: "Autódromo de Interlagos, São Paulo",
-    price: "A partir de R$ 750",
-    slug: "lollapalooza-brasil-2025",
-    ticketCount: 18,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop&q=60",
-    title: "Tomorrowland Brasil 2025",
-    date: "10-12 de Outubro, 2025",
-    location: "Parque Maeda, Itu, São Paulo",
-    price: "A partir de R$ 1200",
-    slug: "tomorrowland-brasil-2025",
-    ticketCount: 12,
-  },
-]
+// Interface para eventos do frontend
+interface FrontendEvent {
+  image: string;
+  title: string;
+  date: string;
+  location: string;
+  price: string;
+  slug: string;
+  ticketCount: number;
+  description?: string;
+  category?: string;
+}
 
 const categories = [
   {
@@ -92,14 +75,43 @@ export default function Page() {
 
   const { user, isAuthenticated, logout } = useAuth()
   const [showUserMenu, setShowUserMenu] = useState(false)
+  
+  // Estado para os eventos carregados da API
+  const [events, setEvents] = useState<FrontendEvent[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Ensure client-side rendering to avoid hydration mismatch
   useEffect(() => {
     setIsClient(true)
   }, [])
+  
+  // Carregar eventos da API
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        setLoading(true)
+        const apiEvents = await eventsApi.getAll()
+        const transformedEvents = apiEvents.map(transformEventForFrontend)
+        setEvents(transformedEvents)
+        setError(null)
+      } catch (err) {
+        console.error('Erro ao carregar eventos:', err)
+        setError('Erro ao carregar eventos')
+        // Fallback para dados mockados em caso de erro
+        setEvents([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    if (isClient) {
+      loadEvents()
+    }
+  }, [isClient])
 
   // Add search function
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (!searchQuery.trim()) return
 
@@ -633,9 +645,23 @@ export default function Page() {
               gap: "24px",
             }}
           >
-            {events.map((event, index) => (
-              <EventCard key={index} {...event} />
-            ))}
+            {loading ? (
+              <div style={{ textAlign: "center", padding: "40px", gridColumn: "1 / -1" }}>
+                <p>Carregando eventos...</p>
+              </div>
+            ) : error ? (
+              <div style={{ textAlign: "center", padding: "40px", gridColumn: "1 / -1", color: "#ef4444" }}>
+                <p>{error}</p>
+              </div>
+            ) : events.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "40px", gridColumn: "1 / -1" }}>
+                <p>Nenhum evento encontrado.</p>
+              </div>
+            ) : (
+              events.map((event, index) => (
+                <EventCard key={index} {...event} />
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -1576,31 +1602,7 @@ function EventCard({ image, title, date, location, price, slug, ticketCount }) {
                 width: "100%",
               }}
             >
-              Ver ingressos
-            </button>
-          </a>
-
-          <a
-            href={`/event/${slug}?sell=true`}
-            style={{
-              textDecoration: "none",
-              flex: "1",
-            }}
-          >
-            <button
-              style={{
-                backgroundColor: "black",
-                border: "1px solid #3B82F6",
-                color: "#3B82F6",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "500",
-                width: "100%",
-              }}
-            >
-              Vender
+              Ver Detalhes
             </button>
           </a>
         </div>
@@ -1609,25 +1611,32 @@ function EventCard({ image, title, date, location, price, slug, ticketCount }) {
   )
 }
 
-// Update the CategoryCard function to navigate to search page with category filter
-function CategoryCard({ image, name, count }) {
+// CategoryCard component with proper TypeScript types
+function CategoryCard({ image, name, count }: { image: string; name: string; count: string }) {
   return (
-    <a
-      href={`/search?category=${encodeURIComponent(name)}`}
+    <div
       style={{
-        textDecoration: "none",
+        position: "relative",
+        borderRadius: "12px",
+        overflow: "hidden",
+        cursor: "pointer",
+        transition: "transform 0.2s",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.transform = "scale(1.05)"
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.transform = "scale(1)"
       }}
     >
       <div
         style={{
+          paddingTop: "75%", // 4:3 aspect ratio
           position: "relative",
-          borderRadius: "12px",
-          overflow: "hidden",
-          aspectRatio: "1/1",
         }}
       >
         <img
-          src={image || "/placeholder.svg"}
+          src={image}
           alt={name}
           style={{
             position: "absolute",
@@ -1641,11 +1650,8 @@ function CategoryCard({ image, name, count }) {
         <div
           style={{
             position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%)",
+            inset: 0,
+            background: "linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2))",
             display: "flex",
             flexDirection: "column",
             justifyContent: "flex-end",
@@ -1656,7 +1662,7 @@ function CategoryCard({ image, name, count }) {
             style={{
               color: "white",
               fontSize: "18px",
-              fontWeight: "bold",
+              fontWeight: "600",
               marginBottom: "4px",
             }}
           >
@@ -1666,35 +1672,43 @@ function CategoryCard({ image, name, count }) {
             style={{
               color: "#A1A1AA",
               fontSize: "14px",
+              margin: 0,
             }}
           >
             {count} eventos
           </p>
         </div>
       </div>
-    </a>
+    </div>
   )
 }
 
-// Update the LocationCard function to navigate to search page with location filter
-function LocationCard({ image, name, count }) {
+// LocationCard component with proper TypeScript types
+function LocationCard({ image, name, count }: { image: string; name: string; count: string }) {
   return (
-    <a
-      href={`/search?location=${encodeURIComponent(name)}`}
+    <div
       style={{
-        textDecoration: "none",
+        position: "relative",
+        borderRadius: "12px",
+        overflow: "hidden",
+        cursor: "pointer",
+        transition: "transform 0.2s",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.transform = "scale(1.05)"
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.transform = "scale(1)"
       }}
     >
       <div
         style={{
+          paddingTop: "75%", // 4:3 aspect ratio
           position: "relative",
-          borderRadius: "12px",
-          overflow: "hidden",
-          aspectRatio: "1/1",
         }}
       >
         <img
-          src={image || "/placeholder.svg"}
+          src={image}
           alt={name}
           style={{
             position: "absolute",
@@ -1708,11 +1722,8 @@ function LocationCard({ image, name, count }) {
         <div
           style={{
             position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%)",
+            inset: 0,
+            background: "linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2))",
             display: "flex",
             flexDirection: "column",
             justifyContent: "flex-end",
@@ -1723,7 +1734,7 @@ function LocationCard({ image, name, count }) {
             style={{
               color: "white",
               fontSize: "18px",
-              fontWeight: "bold",
+              fontWeight: "600",
               marginBottom: "4px",
             }}
           >
@@ -1733,12 +1744,13 @@ function LocationCard({ image, name, count }) {
             style={{
               color: "#A1A1AA",
               fontSize: "14px",
+              margin: 0,
             }}
           >
             {count} eventos
           </p>
         </div>
       </div>
-    </a>
+    </div>
   )
 }
