@@ -6,6 +6,33 @@ import { useMediaQuery } from "@/hooks/use-media-query"
 import { useAuth } from "@/contexts/auth-context"
 import { User, ShoppingCart } from "lucide-react"
 
+interface CartItem {
+  id: string
+  eventId: string
+  eventName: string
+  ticketType: string
+  price: number
+  quantity: number
+  date: string
+  location: string
+  image: string
+}
+
+interface FormData {
+  name: string
+  email: string
+  cardNumber: string
+  expiryDate: string
+  cvv: string
+  address: string
+  city: string
+  zipCode: string
+}
+
+interface FormErrors {
+  [key: string]: string
+}
+
 export default function CartPage() {
   const [isClient, setIsClient] = useState(false)
   const isDesktop = useMediaQuery("(min-width: 640px)")
@@ -55,7 +82,7 @@ export default function CartPage() {
 
   // Checkout state
   const [isCheckingOut, setIsCheckingOut] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
     cardNumber: "",
@@ -65,7 +92,7 @@ export default function CartPage() {
     city: "",
     zipCode: "",
   })
-  const [errors, setErrors] = useState({})
+  const [errors, setErrors] = useState<FormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
@@ -87,15 +114,15 @@ export default function CartPage() {
   }, [isAuthenticated, user])
 
   // Calculate total
-  const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
+  const subtotal = cartItems.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
   const serviceFee = subtotal * 0.1 // 10% service fee
   const total = subtotal + serviceFee
 
   // Update quantity
-  const updateQuantity = (id, newQuantity) => {
+  const updateQuantity = (id: string, newQuantity: number) => {
     if (newQuantity < 1) return
 
-    const updatedCart = cartItems.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item))
+    const updatedCart = cartItems.map((item: CartItem) => (item.id === id ? { ...item, quantity: newQuantity } : item))
 
     setCartItems(updatedCart)
 
@@ -106,8 +133,8 @@ export default function CartPage() {
   }
 
   // Remove item
-  const removeItem = (id) => {
-    const updatedCart = cartItems.filter((item) => item.id !== id)
+  const removeItem = (id: string) => {
+    const updatedCart = cartItems.filter((item: CartItem) => item.id !== id)
     setCartItems(updatedCart)
 
     // Update localStorage
@@ -117,7 +144,7 @@ export default function CartPage() {
   }
 
   // Handle form input change
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
@@ -126,11 +153,11 @@ export default function CartPage() {
   }
 
   // Handle checkout form submission
-  const handleCheckout = (e) => {
+  const handleCheckout = (e: React.FormEvent) => {
     e.preventDefault()
 
     // Validate form
-    const newErrors = {}
+    const newErrors: FormErrors = {}
 
     if (!formData.cardNumber.trim()) newErrors.cardNumber = "Número do cartão é obrigatório"
     if (!formData.expiryDate.trim()) newErrors.expiryDate = "Data de validade é obrigatória"
@@ -271,7 +298,7 @@ export default function CartPage() {
             {isDesktop && (
               <>
                 <a
-                  href="#"
+                  href="/#como-funciona"
                   style={{
                     color: "white",
                     textDecoration: "none",
@@ -370,10 +397,10 @@ export default function CartPage() {
                         fontSize: "14px",
                       }}
                       onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = "#27272A"
+                        (e.currentTarget as HTMLElement).style.backgroundColor = "#27272A"
                       }}
                       onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = "transparent"
+                        (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
                       }}
                     >
                       Minha Conta
@@ -389,10 +416,10 @@ export default function CartPage() {
                         fontSize: "14px",
                       }}
                       onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = "#27272A"
+                        (e.currentTarget as HTMLElement).style.backgroundColor = "#27272A"
                       }}
                       onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = "transparent"
+                        (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
                       }}
                     >
                       Meus Pedidos
@@ -409,10 +436,10 @@ export default function CartPage() {
                           fontSize: "14px",
                         }}
                         onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = "#27272A"
+                          (e.currentTarget as HTMLElement).style.backgroundColor = "#27272A"
                         }}
                         onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = "transparent"
+                          (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
                         }}
                       >
                         Painel Admin
@@ -440,10 +467,10 @@ export default function CartPage() {
                           cursor: "pointer",
                         }}
                         onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = "#27272A"
+                          (e.currentTarget as HTMLElement).style.backgroundColor = "#27272A"
                         }}
                         onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = "transparent"
+                          (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
                         }}
                       >
                         Sair
@@ -684,7 +711,7 @@ export default function CartPage() {
                       gap: "16px",
                     }}
                   >
-                    {cartItems.map((item) => (
+                    {cartItems.map((item: CartItem) => (
                       <div
                         key={item.id}
                         style={{

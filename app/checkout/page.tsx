@@ -1,5 +1,17 @@
 "use client"
 
+interface CartItem {
+  id: string
+  eventId: string
+  eventName: string
+  ticketType: string
+  price: number
+  quantity: number
+  date: string
+  location: string
+  image: string
+}
+
 import type React from "react"
 
 import { useState } from "react"
@@ -59,7 +71,7 @@ export default function CheckoutPage() {
   })
 
   // Calculate totals
-  const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
+  const subtotal = cartItems.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
   const serviceFee = subtotal * 0.1 // 10% service fee
   const total = subtotal + serviceFee
 
@@ -314,7 +326,7 @@ export default function CheckoutPage() {
             <span className="text-white text-xl font-bold">reticket</span>
           </a>
           <div className="flex items-center gap-6">
-            <a href="#" className="text-white hover:text-primary transition">
+            <a href="/#como-funciona" className="text-white hover:text-primary transition">
               Como Funciona
             </a>
             <a href="#" className="text-white hover:text-primary transition">
@@ -741,7 +753,7 @@ export default function CheckoutPage() {
 
               {/* Cart Items */}
               <div className="space-y-4 mb-6">
-                {cartItems.map((item) => (
+                {cartItems.map((item: CartItem) => (
                   <div key={item.id} className="flex gap-4">
                     <div className="w-20 h-20 bg-zinc-800 rounded-md overflow-hidden flex-shrink-0">
                       <img

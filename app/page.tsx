@@ -237,7 +237,7 @@ export default function Page() {
             {isDesktop && (
               <>
                 <a
-                  href="#"
+                  href="#como-funciona"
                   style={{
                     color: "white",
                     textDecoration: "none",
@@ -353,10 +353,10 @@ export default function Page() {
                         fontSize: "14px",
                       }}
                       onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = "#27272A"
+                        e.currentTarget.style.backgroundColor = "#27272A"
                       }}
                       onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = "transparent"
+                        e.currentTarget.style.backgroundColor = "transparent"
                       }}
                     >
                       Minha Conta
@@ -372,10 +372,10 @@ export default function Page() {
                         fontSize: "14px",
                       }}
                       onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = "#27272A"
+                        e.currentTarget.style.backgroundColor = "#27272A"
                       }}
                       onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = "transparent"
+                        e.currentTarget.style.backgroundColor = "transparent"
                       }}
                     >
                       Meus Pedidos
@@ -392,10 +392,10 @@ export default function Page() {
                           fontSize: "14px",
                         }}
                         onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = "#27272A"
+                          e.currentTarget.style.backgroundColor = "#27272A"
                         }}
                         onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = "transparent"
+                          e.currentTarget.style.backgroundColor = "transparent"
                         }}
                       >
                         Painel Admin
@@ -423,10 +423,10 @@ export default function Page() {
                           cursor: "pointer",
                         }}
                         onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = "#27272A"
+                          e.currentTarget.style.backgroundColor = "#27272A"
                         }}
                         onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = "transparent"
+                          e.currentTarget.style.backgroundColor = "transparent"
                         }}
                       >
                         Sair
@@ -743,6 +743,7 @@ export default function Page() {
 
       {/* How It Works Section */}
       <section
+        id="como-funciona"
         style={{
           padding: "64px 16px",
         }}
@@ -1384,9 +1385,19 @@ export default function Page() {
   )
 }
 
-function EventCard({ image, title, date, location, price, slug, ticketCount }) {
+interface EventCardProps {
+  image: string;
+  title: string;
+  date: string;
+  location: string;
+  price: string;
+  slug: string;
+  ticketCount: number;
+}
+
+function EventCard({ image, title, date, location, price, slug, ticketCount }: EventCardProps) {
   // Function to format date for calendar display
-  const formatDateForCalendar = (dateString) => {
+  const formatDateForCalendar = (dateString: string) => {
     // Extract the first date from ranges like "19-28 de Setembro, 2025"
     const dateMatch = dateString.match(/(\d{1,2})\s*(?:-\d{1,2})?\s*de\s*(\w+)/)
     if (dateMatch) {
@@ -1394,7 +1405,7 @@ function EventCard({ image, title, date, location, price, slug, ticketCount }) {
       const monthName = dateMatch[2]
 
       // Map Portuguese month names to abbreviations
-      const monthMap = {
+      const monthMap: { [key: string]: string } = {
         Janeiro: "JAN",
         Fevereiro: "FEV",
         Março: "MAR",

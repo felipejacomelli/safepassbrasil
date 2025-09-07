@@ -1,5 +1,13 @@
 "use client"
 
+interface PaymentMethod {
+  method: "pix" | "bank" | "card"
+  details: {
+    pixKey?: string
+    bankName?: string
+  }
+}
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { AccountSidebar } from "@/components/account-sidebar"
@@ -83,7 +91,7 @@ export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState("transactions")
   const [withdrawalAmount, setWithdrawalAmount] = useState("")
   const [showWithdrawalForm, setShowWithdrawalForm] = useState(false)
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null)
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null)
   const [statusFilter, setStatusFilter] = useState("all")
   const [showUserMenu, setShowUserMenu] = useState(false)
 
@@ -151,7 +159,7 @@ export default function OrdersPage() {
 
           {/* Navigation Links */}
           <nav className="flex items-center gap-4">
-            <a href="#" className="text-white text-sm">
+            <a href="/#como-funciona" className="text-white text-sm">
               Como Funciona
             </a>
             <a href="#" className="text-white text-sm">

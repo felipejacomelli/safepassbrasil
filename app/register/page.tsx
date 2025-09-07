@@ -154,7 +154,7 @@ export default function RegisterPage() {
             {isDesktop && (
               <>
                 <a
-                  href="#"
+                  href="/#como-funciona"
                   style={{
                     color: "white",
                     textDecoration: "none",

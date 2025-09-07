@@ -5,6 +5,50 @@ import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { Calendar, Clock, MapPin, Users, Ticket, User, ShoppingCart, Info, Camera, Plus, Minus } from "lucide-react"
 
+// Interfaces
+interface TicketType {
+  id: string
+  name: string
+  price: number
+  available: number
+}
+
+interface EventData {
+  slug: string
+  title: string
+  date: string
+  time: string
+  location: string
+  attendance: string
+  price: string
+  startingPrice: number
+  availableTickets: number
+  ticketTypes: TicketType[]
+  image: string
+  description: string[]
+  gallery: string[]
+}
+
+interface TicketQuantities {
+  [key: string]: number
+}
+
+interface CartTicket {
+  id: string
+  eventId: string
+  eventName: string
+  ticketType: string
+  price: number
+  quantity: number
+  date: string
+  location: string
+  image: string
+  description: string[]
+  time: string
+  attendance: string
+  gallery: string[]
+}
+
 // Mock event data
 const eventsData = [
   {
@@ -184,24 +228,24 @@ const eventsData = [
 
 export default function EventPage({ params }: { params: { slug: string } }) {
   const isDesktop = useMediaQuery("(min-width: 640px)")
-  const [event, setEvent] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [notFound, setNotFound] = useState(false)
-  const [ticketQuantities, setTicketQuantities] = useState({})
+  const [event, setEvent] = useState<EventData | null>(null)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [notFound, setNotFound] = useState<boolean>(false)
+  const [ticketQuantities, setTicketQuantities] = useState<TicketQuantities>({})
 
   const { user, isAuthenticated, logout } = useAuth()
-  const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState<boolean>(false)
 
   useEffect(() => {
     // Find the event data based on the slug
-    const foundEvent = eventsData.find((e) => e.slug === params.slug)
+    const foundEvent = eventsData.find((e: EventData) => e.slug === params.slug)
 
     if (foundEvent) {
       setEvent(foundEvent)
       setNotFound(false)
       // Initialize ticket quantities
-      const initialQuantities = {}
-      foundEvent.ticketTypes.forEach((ticket) => {
+      const initialQuantities: TicketQuantities = {}
+      foundEvent.ticketTypes.forEach((ticket: TicketType) => {
         initialQuantities[ticket.id] = 1
       })
       setTicketQuantities(initialQuantities)
@@ -226,18 +270,20 @@ export default function EventPage({ params }: { params: { slug: string } }) {
     window.location.href = "/cart"
   }
 
-  const updateTicketQuantity = (ticketId, newQuantity) => {
+  const updateTicketQuantity = (ticketId: string, newQuantity: number) => {
     if (newQuantity < 1) return
-    setTicketQuantities((prev) => ({
+    setTicketQuantities((prev: TicketQuantities) => ({
       ...prev,
       [ticketId]: newQuantity,
     }))
   }
 
-  const addToCart = (ticketType) => {
+  const addToCart = (ticketType: TicketType) => {
+    if (!event) return
+    
     const quantity = ticketQuantities[ticketType.id] || 1
 
-    const ticket = {
+    const ticket: CartTicket = {
       id: Math.random().toString(36).substr(2, 9),
       eventId: event.slug,
       eventName: event.title,
@@ -254,7 +300,7 @@ export default function EventPage({ params }: { params: { slug: string } }) {
     }
 
     // Get existing cart or create new one
-    let cart = []
+    let cart: CartTicket[] = []
     try {
       const savedCart = localStorage.getItem("cart")
       if (savedCart) {
@@ -323,6 +369,10 @@ export default function EventPage({ params }: { params: { slug: string } }) {
         </a>
       </div>
     )
+  }
+
+  if (!event) {
+    return null
   }
 
   return (
@@ -407,7 +457,7 @@ export default function EventPage({ params }: { params: { slug: string } }) {
             {isDesktop && (
               <>
                 <a
-                  href="#"
+                  href="/#como-funciona"
                   style={{
                     color: "white",
                     textDecoration: "none",
@@ -506,10 +556,10 @@ export default function EventPage({ params }: { params: { slug: string } }) {
                         fontSize: "14px",
                       }}
                       onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = "#27272A"
+                        (e.currentTarget as HTMLElement).style.backgroundColor = "#27272A"
                       }}
                       onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = "transparent"
+                        (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
                       }}
                     >
                       Minha Conta
@@ -525,10 +575,10 @@ export default function EventPage({ params }: { params: { slug: string } }) {
                         fontSize: "14px",
                       }}
                       onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = "#27272A"
+                        (e.currentTarget as HTMLElement).style.backgroundColor = "#27272A"
                       }}
                       onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = "transparent"
+                        (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
                       }}
                     >
                       Meus Pedidos
@@ -545,10 +595,10 @@ export default function EventPage({ params }: { params: { slug: string } }) {
                           fontSize: "14px",
                         }}
                         onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = "#27272A"
+                          (e.currentTarget as HTMLElement).style.backgroundColor = "#27272A"
                         }}
                         onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = "transparent"
+                          (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
                         }}
                       >
                         Painel Admin
@@ -576,10 +626,10 @@ export default function EventPage({ params }: { params: { slug: string } }) {
                           cursor: "pointer",
                         }}
                         onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = "#27272A"
+                          (e.currentTarget as HTMLElement).style.backgroundColor = "#27272A"
                         }}
                         onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = "transparent"
+                          (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
                         }}
                       >
                         Sair

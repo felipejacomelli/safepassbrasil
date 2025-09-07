@@ -161,7 +161,7 @@ export default function AdminOrdersPage() {
 
           {/* Navigation Links */}
           <nav className="flex items-center gap-4">
-            <a href="#" className="text-white text-sm">
+            <a href="/#como-funciona" className="text-white text-sm">
               Como Funciona
             </a>
             <a href="#" className="text-white text-sm">

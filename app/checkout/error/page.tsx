@@ -65,7 +65,7 @@ export default function CheckoutErrorPage() {
             <span className="text-white text-xl font-bold">reticket</span>
           </a>
           <div className="flex items-center gap-6">
-            <a href="#" className="text-white hover:text-primary transition">
+            <a href="/#como-funciona" className="text-white hover:text-primary transition">
               Como Funciona
             </a>
             <a href="#" className="text-white hover:text-primary transition">

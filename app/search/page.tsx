@@ -4,6 +4,39 @@ import { useSearchParams } from "next/navigation"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useEffect, useState } from "react"
 
+// Interfaces
+interface Event {
+  image: string
+  title: string
+  date: string
+  location: string
+  price: string
+  slug: string
+  category: string
+  city: string
+}
+
+interface Category {
+  name: string
+  count: string
+  image: string
+}
+
+interface Location {
+  name: string
+  count: string
+  image: string
+}
+
+interface SearchResults {
+  events: Event[]
+  categories: Category[]
+  locations: Location[]
+  query: string
+  categoryFilter: string
+  locationFilter: string
+}
+
 // Updated events with real events likely to happen in Brazil in 2025
 const events = [
   {
@@ -160,14 +193,7 @@ export default function SearchPage() {
   const categoryFilter = searchParams.get("category") || ""
   const locationFilter = searchParams.get("location") || ""
   const isDesktop = useMediaQuery("(min-width: 640px)")
-  const [searchResults, setSearchResults] = useState<{
-    events: typeof events
-    categories: typeof categories
-    locations: typeof locations
-    query: string
-    categoryFilter: string
-    locationFilter: string
-  } | null>(null)
+  const [searchResults, setSearchResults] = useState<SearchResults | null>(null)
 
   useEffect(() => {
     // Filter events based on search query, category, and location
@@ -236,7 +262,7 @@ export default function SearchPage() {
   // Update the renderEventCard function to include a sell button next to the "Ver ingressos" button
 
   // Function to render event cards
-  const renderEventCard = (event, index) => {
+  const renderEventCard = (event: Event, index: number) => {
     return (
       <div
         key={`search-event-${index}`}
@@ -510,7 +536,7 @@ export default function SearchPage() {
             {isDesktop && (
               <>
                 <a
-                  href="#"
+                  href="/#como-funciona"
                   style={{
                     color: "white",
                     textDecoration: "none",

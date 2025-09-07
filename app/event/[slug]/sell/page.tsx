@@ -34,7 +34,7 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
   const [success, setSuccess] = useState(false)
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
 
@@ -143,7 +143,7 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
             {isDesktop && (
               <>
                 <a
-                  href="#"
+                  href="/#como-funciona"
                   style={{
                     color: "white",
                     textDecoration: "none",
