@@ -20,6 +20,42 @@ interface FrontendEvent {
   category?: string;
 }
 
+// Interface para categorias da API
+interface ApiCategory {
+  id: number;
+  name: string;
+  slug: string;
+  image: string | null;
+  description: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Interface para localizações da API
+interface ApiLocation {
+  id: number;
+  name: string;
+  slug: string;
+  image: string | null;
+  description: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Interface para categorias do frontend
+interface FrontendCategory {
+  name: string;
+  count: string;
+  image: string;
+}
+
+// Interface para localizações do frontend
+interface FrontendLocation {
+  name: string;
+  count: string;
+  image: string;
+}
+
 const defaultCategories = [
   {
     name: "Música",
@@ -78,8 +114,8 @@ export default function Page() {
   
   // Estado para os eventos carregados da API
   const [events, setEvents] = useState<FrontendEvent[]>([])
-  const [categories, setCategories] = useState(defaultCategories)
-  const [locations, setLocations] = useState(defaultLocations)
+  const [categories, setCategories] = useState<FrontendCategory[]>(defaultCategories)
+  const [locations, setLocations] = useState<FrontendLocation[]>(defaultLocations)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -88,34 +124,80 @@ export default function Page() {
     setIsClient(true)
   }, [])
   
-  // Carregar eventos da API
+  // Funções para buscar dados da API
+  const loadCategories = async (): Promise<FrontendCategory[]> => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/category_app/categories/')
+      if (!response.ok) throw new Error('Erro ao carregar categorias')
+      const apiCategories: ApiCategory[] = await response.json()
+      
+      return apiCategories.map(category => ({
+        name: category.name,
+        count: "0", // Será atualizado depois com base nos eventos
+        image: category.image ? `http://127.0.0.1:8000${category.image}` : `https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60`
+      }))
+    } catch (err) {
+      console.error('Erro ao carregar categorias:', err)
+      return defaultCategories
+    }
+  }
+
+  const loadLocations = async (): Promise<FrontendLocation[]> => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/category_app/locations/')
+      if (!response.ok) throw new Error('Erro ao carregar localizações')
+      const apiLocations: ApiLocation[] = await response.json()
+      
+      return apiLocations.map(location => ({
+        name: location.name,
+        count: "0", // Será atualizado depois com base nos eventos
+        image: location.image ? `http://127.0.0.1:8000${location.image}` : `https://images.unsplash.com/photo-1543059080-f9b1272213d5?w=800&auto=format&fit=crop&q=60`
+      }))
+    } catch (err) {
+      console.error('Erro ao carregar localizações:', err)
+      return defaultLocations
+    }
+  }
+
+  // Carregar dados da API
   useEffect(() => {
-    const loadEvents = async () => {
+    const loadData = async () => {
       try {
         setLoading(true)
-        const apiEvents = await eventsApi.getAll()
+        
+        // Carregar eventos, categorias e localizações em paralelo
+        const [apiEvents, apiCategories, apiLocations] = await Promise.all([
+          eventsApi.getAll(),
+          loadCategories(),
+          loadLocations()
+        ])
+        
         const transformedEvents = apiEvents.map(transformEventForFrontend)
         setEvents(transformedEvents)
+        setCategories(apiCategories)
+        setLocations(apiLocations)
         setError(null)
       } catch (err) {
-        console.error('Erro ao carregar eventos:', err)
-        setError('Erro ao carregar eventos')
+        console.error('Erro ao carregar dados:', err)
+        setError('Erro ao carregar dados')
         // Fallback para dados mockados em caso de erro
         setEvents([])
+        setCategories(defaultCategories)
+        setLocations(defaultLocations)
       } finally {
         setLoading(false)
       }
     }
     
     if (isClient) {
-      loadEvents()
+      loadData()
     }
   }, [isClient])
 
   // Atualizar contagens das categorias baseadas nos eventos carregados
   useEffect(() => {
-    if (events.length > 0) {
-      const categoryCounts = defaultCategories.map(category => {
+    if (events.length > 0 && categories.length > 0) {
+      const categoryCounts = categories.map(category => {
         const count = events.filter(event => event.category === category.name).length
         return {
           ...category,
@@ -128,8 +210,8 @@ export default function Page() {
 
   // Atualizar contagens das localizações baseadas nos eventos carregados
   useEffect(() => {
-    if (events.length > 0) {
-      const locationCounts = defaultLocations.map(location => {
+    if (events.length > 0 && locations.length > 0) {
+      const locationCounts = locations.map(location => {
         const count = events.filter(event => event.location === location.name).length
         return {
           ...location,
