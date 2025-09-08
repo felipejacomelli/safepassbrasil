@@ -20,48 +20,48 @@ interface FrontendEvent {
   category?: string;
 }
 
-const categories = [
+const defaultCategories = [
   {
     name: "Música",
-    count: "120+",
+    count: "0",
     image: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60",
   },
   {
     name: "Esportes",
-    count: "85+",
+    count: "0",
     image: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&auto=format&fit=crop&q=60",
   },
   {
     name: "Teatro",
-    count: "45+",
+    count: "0",
     image: "https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&auto=format&fit=crop&q=60",
   },
   {
     name: "Festivais",
-    count: "30+",
+    count: "0",
     image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&auto=format&fit=crop&q=60",
   },
 ]
 
-const locations = [
+const defaultLocations = [
   {
     name: "São Paulo",
-    count: "200+",
+    count: "0",
     image: "https://images.unsplash.com/photo-1543059080-f9b1272213d5?w=800&auto=format&fit=crop&q=60",
   },
   {
     name: "Rio de Janeiro",
-    count: "150+",
+    count: "0",
     image: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&auto=format&fit=crop&q=60",
   },
   {
     name: "Belo Horizonte",
-    count: "80+",
+    count: "0",
     image: "https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60",
   },
   {
     name: "Curitiba",
-    count: "65+",
+    count: "0",
     image: "https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60",
   },
 ]
@@ -78,6 +78,8 @@ export default function Page() {
   
   // Estado para os eventos carregados da API
   const [events, setEvents] = useState<FrontendEvent[]>([])
+  const [categories, setCategories] = useState(defaultCategories)
+  const [locations, setLocations] = useState(defaultLocations)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -109,6 +111,34 @@ export default function Page() {
       loadEvents()
     }
   }, [isClient])
+
+  // Atualizar contagens das categorias baseadas nos eventos carregados
+  useEffect(() => {
+    if (events.length > 0) {
+      const categoryCounts = defaultCategories.map(category => {
+        const count = events.filter(event => event.category === category.name).length
+        return {
+          ...category,
+          count: count > 0 ? `${count}+` : "0"
+        }
+      })
+      setCategories(categoryCounts)
+    }
+  }, [events])
+
+  // Atualizar contagens das localizações baseadas nos eventos carregados
+  useEffect(() => {
+    if (events.length > 0) {
+      const locationCounts = defaultLocations.map(location => {
+        const count = events.filter(event => event.location === location.name).length
+        return {
+          ...location,
+          count: count > 0 ? `${count}+` : "0"
+        }
+      })
+      setLocations(locationCounts)
+    }
+  }, [events])
 
   // Add search function
   const handleSearch = (e: React.FormEvent) => {
@@ -1624,6 +1654,12 @@ function EventCard({ image, title, date, location, price, slug, ticketCount }: E
 
 // CategoryCard component with proper TypeScript types
 function CategoryCard({ image, name, count }: { image: string; name: string; count: string }) {
+  const router = useRouter()
+
+  const handleCategoryClick = () => {
+    router.push(`/search?category=${encodeURIComponent(name)}`)
+  }
+
   return (
     <div
       style={{
@@ -1633,6 +1669,7 @@ function CategoryCard({ image, name, count }: { image: string; name: string; cou
         cursor: "pointer",
         transition: "transform 0.2s",
       }}
+      onClick={handleCategoryClick}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLElement).style.transform = "scale(1.05)"
       }}
@@ -1696,6 +1733,12 @@ function CategoryCard({ image, name, count }: { image: string; name: string; cou
 
 // LocationCard component with proper TypeScript types
 function LocationCard({ image, name, count }: { image: string; name: string; count: string }) {
+  const router = useRouter()
+
+  const handleLocationClick = () => {
+    router.push(`/search?location=${encodeURIComponent(name)}`)
+  }
+
   return (
     <div
       style={{
@@ -1705,6 +1748,7 @@ function LocationCard({ image, name, count }: { image: string; name: string; cou
         cursor: "pointer",
         transition: "transform 0.2s",
       }}
+      onClick={handleLocationClick}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLElement).style.transform = "scale(1.05)"
       }}
