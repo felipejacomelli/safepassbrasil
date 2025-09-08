@@ -134,7 +134,7 @@ export default function Page() {
       return apiCategories.map(category => ({
         name: category.name,
         count: "0", // Será atualizado depois com base nos eventos
-        image: category.image ? `http://127.0.0.1:8000${category.image}` : `https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60`
+        image: category.image || `https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60`
       }))
     } catch (err) {
       console.error('Erro ao carregar categorias:', err)
@@ -151,7 +151,7 @@ export default function Page() {
       return apiLocations.map(location => ({
         name: location.name,
         count: "0", // Será atualizado depois com base nos eventos
-        image: location.image ? `http://127.0.0.1:8000${location.image}` : `https://images.unsplash.com/photo-1543059080-f9b1272213d5?w=800&auto=format&fit=crop&q=60`
+        image: location.image || `https://images.unsplash.com/photo-1543059080-f9b1272213d5?w=800&auto=format&fit=crop&q=60`
       }))
     } catch (err) {
       console.error('Erro ao carregar localizações:', err)
@@ -172,7 +172,18 @@ export default function Page() {
           loadLocations()
         ])
         
-        const transformedEvents = apiEvents.map(transformEventForFrontend)
+        // Transformar eventos da API para o formato do frontend
+        const transformedEvents: FrontendEvent[] = apiEvents.map(event => ({
+          image: event.image,
+          title: event.name,
+          date: event.date,
+          location: event.location,
+          price: event.price,
+          slug: event.slug,
+          ticketCount: event.ticket_count,
+          description: event.description,
+          category: event.category
+        }))
         setEvents(transformedEvents)
         setCategories(apiCategories)
         setLocations(apiLocations)
@@ -225,6 +236,14 @@ export default function Page() {
   // Add search function
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!searchQuery.trim()) return
+
+    // Navigate to search page with query
+    router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
+  }
+
+  // Function for search button click
+  const handleSearchButtonClick = () => {
     if (!searchQuery.trim()) return
 
     // Navigate to search page with query
@@ -674,7 +693,7 @@ export default function Page() {
           }}
         >
           <button
-            onClick={handleSearch}
+            onClick={handleSearchButtonClick}
             style={{
               backgroundColor: "#3B82F6",
               color: "black",

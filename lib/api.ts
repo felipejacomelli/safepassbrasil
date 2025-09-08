@@ -3,7 +3,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 // Tipos para os dados da API
-export interface Event {
+export interface ApiEvent {
   id: number;
   name: string;
   image: string;
@@ -18,6 +18,19 @@ export interface Event {
   active: boolean;
   created_at: string;
   closing_date: string;
+}
+
+// Interface para o frontend
+export interface Event {
+  image: string;
+  title: string;
+  date: string;
+  location: string;
+  price: string;
+  slug: string;
+  category: string;
+  city: string;
+  ticket_count: number;
 }
 
 // Função para fazer requisições HTTP
@@ -51,41 +64,59 @@ async function apiRequest<T>(
 
 // Interface para a resposta da API de eventos
 interface EventsResponse {
-  events: Event[];
+  events: ApiEvent[];
   count: number;
 }
 
 // Funções específicas para eventos
 export const eventsApi = {
   // Listar todos os eventos
-  getAll: async (): Promise<Event[]> => {
+  getAll: async (): Promise<ApiEvent[]> => {
     const response = await apiRequest<EventsResponse>('/event_app/events');
     return response.events;
   },
   
   // Buscar evento por ID
-  getById: (id: number): Promise<Event> => {
-    return apiRequest<Event>(`/event_app/event/${id}`);
+  getById: (id: number): Promise<ApiEvent> => {
+    return apiRequest<ApiEvent>(`/event_app/event/${id}`);
   },
   
   // Buscar eventos filtrados
-  getFiltered: (filters: Record<string, string>): Promise<Event[]> => {
+  getFiltered: (filters: Record<string, string>): Promise<ApiEvent[]> => {
     const queryParams = new URLSearchParams(filters).toString();
-    return apiRequest<Event[]>(`/event_app/events/by/?${queryParams}`);
+    return apiRequest<ApiEvent[]>(`/event_app/events/by/?${queryParams}`);
+  },
+
+  // Buscar eventos com filtros de busca
+  search: async (params: {
+    q?: string;
+    category?: string;
+    location?: string;
+  }): Promise<EventsResponse> => {
+    const queryParams = new URLSearchParams();
+    
+    if (params.q) queryParams.append('q', params.q);
+    if (params.category) queryParams.append('category', params.category);
+    if (params.location) queryParams.append('location', params.location);
+    
+    const queryString = queryParams.toString();
+    const endpoint = `/event_app/events/search/${queryString ? `?${queryString}` : ''}`;
+    
+    return apiRequest<EventsResponse>(endpoint);
   },
 };
 
 // Função para transformar dados da API para o formato esperado pelo frontend
-export function transformEventForFrontend(apiEvent: Event) {
+export function transformEventForFrontend(apiEvent: ApiEvent): Event {
   return {
     image: apiEvent.image || '',
-    title: apiEvent.name,
+    title: apiEvent.name || '',
     date: apiEvent.date || '',
     location: apiEvent.location || '',
     price: apiEvent.price || '',
     slug: apiEvent.slug || '',
-    ticketCount: apiEvent.ticket_count || 0,
-    description: apiEvent.description || '',
     category: apiEvent.category || '',
+    city: apiEvent.location?.split(',').pop()?.trim() || '',
+    ticket_count: apiEvent.ticket_count || 0
   };
 }

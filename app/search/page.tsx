@@ -3,6 +3,74 @@
 import { useSearchParams } from "next/navigation"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useEffect, useState } from "react"
+import { eventsApi, transformEventForFrontend } from "@/lib/api"
+
+// Função para buscar contadores dinâmicos das categorias
+const fetchCategoryCounts = async (): Promise<Category[]> => {
+  try {
+    const response = await fetch('http://localhost:8000/category_app/categories/counts/')
+    if (!response.ok) {
+      throw new Error('Falha ao buscar contadores de categorias')
+    }
+    const data = await response.json()
+    
+    // Mapear os dados da API para o formato esperado pelo frontend
+    return data.map((item: any) => ({
+      name: item.name,
+      count: item.event_count.toString(),
+      image: getCategoryImage(item.name)
+    }))
+  } catch (error) {
+    console.error('Erro ao buscar contadores de categorias:', error)
+    return []
+  }
+}
+
+// Função para buscar localizações dinâmicas
+const fetchLocations = async (): Promise<Location[]> => {
+  try {
+    const response = await fetch('http://localhost:8000/category_app/locations/')
+    if (!response.ok) {
+      throw new Error('Falha ao buscar localizações')
+    }
+    const data = await response.json()
+    
+    // Mapear os dados da API para o formato esperado pelo frontend
+    return data.map((item: any) => ({
+      name: item.name,
+      count: '0', // Será atualizado dinamicamente conforme necessário
+      image: item.image || getLocationImage(item.name)
+    }))
+  } catch (error) {
+    console.error('Erro ao buscar localizações:', error)
+    return []
+  }
+}
+
+// Função auxiliar para obter imagem da categoria
+const getCategoryImage = (categoryName: string): string => {
+  const imageMap: { [key: string]: string } = {
+    'Música': 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60',
+    'Esportes': 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&auto=format&fit=crop&q=60',
+    'Teatro': 'https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&auto=format&fit=crop&q=60',
+    'Festivais': 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&auto=format&fit=crop&q=60',
+    'Música Eletrônica': 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop&q=60'
+  }
+  return imageMap[categoryName] || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60'
+}
+
+// Função auxiliar para obter imagem da localização
+const getLocationImage = (locationName: string): string => {
+  const imageMap: { [key: string]: string } = {
+    'São Paulo': 'https://images.unsplash.com/photo-1543059080-f9b1272213d5?w=800&auto=format&fit=crop&q=60',
+    'Rio de Janeiro': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&auto=format&fit=crop&q=60',
+    'Belo Horizonte': 'https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60',
+    'Curitiba': 'https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60',
+    'Brasília': 'https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60',
+    'Salvador': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&auto=format&fit=crop&q=60'
+  }
+  return imageMap[locationName] || 'https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60'
+}
 
 // Interfaces
 interface Event {
@@ -14,6 +82,7 @@ interface Event {
   slug: string
   category: string
   city: string
+  ticket_count: number
 }
 
 interface Category {
@@ -37,155 +106,11 @@ interface SearchResults {
   locationFilter: string
 }
 
-// Updated events with real events likely to happen in Brazil in 2025
-const events = [
-  {
-    image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60",
-    title: "Rock in Rio 2025",
-    date: "19-28 de Setembro, 2025",
-    location: "Cidade do Rock, Rio de Janeiro",
-    price: "A partir de R$ 650",
-    slug: "rock-in-rio-2025",
-    category: "Música",
-    city: "Rio de Janeiro",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
-    title: "Lollapalooza Brasil 2025",
-    date: "28-30 de Março, 2025",
-    location: "Autódromo de Interlagos, São Paulo",
-    price: "A partir de R$ 750",
-    slug: "lollapalooza-brasil-2025",
-    category: "Música",
-    city: "São Paulo",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop&q=60",
-    title: "Tomorrowland Brasil 2025",
-    date: "10-12 de Outubro, 2025",
-    location: "Parque Maeda, Itu, São Paulo",
-    price: "A partir de R$ 1200",
-    slug: "tomorrowland-brasil-2025",
-    category: "Música",
-    city: "São Paulo",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&auto=format&fit=crop&q=60",
-    title: "Grande Prêmio de São Paulo F1 2025",
-    date: "14-16 de Novembro, 2025",
-    location: "Autódromo de Interlagos, São Paulo",
-    price: "A partir de R$ 980",
-    slug: "gp-sao-paulo-f1-2025",
-    category: "Esportes",
-    city: "São Paulo",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&auto=format&fit=crop&q=60",
-    title: "O Fantasma da Ópera - Turnê 2025",
-    date: "15 de Maio - 30 de Junho, 2025",
-    location: "Teatro Municipal, São Paulo",
-    price: "A partir de R$ 280",
-    slug: "fantasma-da-opera-2025",
-    category: "Teatro",
-    city: "São Paulo",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60",
-    title: "Festival de Jazz de Curitiba 2025",
-    date: "20-25 de Agosto, 2025",
-    location: "Parque Barigui, Curitiba",
-    price: "A partir de R$ 180",
-    slug: "festival-jazz-curitiba-2025",
-    category: "Música",
-    city: "Curitiba",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&auto=format&fit=crop&q=60",
-    title: "Festival de Verão Salvador 2025",
-    date: "17-25 de Janeiro, 2025",
-    location: "Parque de Exposições, Salvador",
-    price: "A partir de R$ 220",
-    slug: "festival-verao-salvador-2025",
-    category: "Música",
-    city: "Salvador",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&auto=format&fit=crop&q=60",
-    title: "Campeonato Brasileiro 2025 - Final",
-    date: "7 de Dezembro, 2025",
-    location: "Estádio do Maracanã, Rio de Janeiro",
-    price: "A partir de R$ 350",
-    slug: "campeonato-brasileiro-final-2025",
-    category: "Esportes",
-    city: "Rio de Janeiro",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800&auto=format&fit=crop&q=60",
-    title: "Cirque du Soleil - Novo Espetáculo 2025",
-    date: "5-30 de Abril, 2025",
-    location: "Parque Villa-Lobos, São Paulo",
-    price: "A partir de R$ 320",
-    slug: "cirque-du-soleil-2025",
-    category: "Teatro",
-    city: "São Paulo",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=800&auto=format&fit=crop&q=60",
-    title: "Festival Literário de Paraty 2025",
-    date: "3-7 de Julho, 2025",
-    location: "Centro Histórico, Paraty",
-    price: "A partir de R$ 120",
-    slug: "flip-paraty-2025",
-    category: "Festivais",
-    city: "Paraty",
-  },
-]
 
-const categories = [
-  {
-    name: "Música",
-    count: "120+",
-    image: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    name: "Esportes",
-    count: "85+",
-    image: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    name: "Teatro",
-    count: "45+",
-    image: "https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    name: "Festivais",
-    count: "30+",
-    image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&auto=format&fit=crop&q=60",
-  },
-]
 
-const locations = [
-  {
-    name: "São Paulo",
-    count: "200+",
-    image: "https://images.unsplash.com/photo-1543059080-f9b1272213d5?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    name: "Rio de Janeiro",
-    count: "150+",
-    image: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    name: "Belo Horizonte",
-    count: "80+",
-    image: "https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    name: "Curitiba",
-    count: "65+",
-    image: "https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60",
-  },
-]
+
+
+
 
 export default function SearchPage() {
   const searchParams = useSearchParams()
@@ -194,56 +119,73 @@ export default function SearchPage() {
   const locationFilter = searchParams.get("location") || ""
   const isDesktop = useMediaQuery("(min-width: 640px)")
   const [searchResults, setSearchResults] = useState<SearchResults | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Filter events based on search query, category, and location
-    let filteredEvents = [...events]
+    const fetchEvents = async () => {
+      setLoading(true)
+      setError(null)
+      
+      try {
+        // Buscar eventos da API
+        const response = await eventsApi.search({
+          q: query || undefined,
+          category: categoryFilter || undefined,
+          location: locationFilter || undefined,
+        })
+        
+        // Transformar eventos para o formato do frontend
+        const transformedEvents = response.events.map(transformEventForFrontend)
+        
+        // Buscar categorias com contadores dinâmicos
+        const dynamicCategories = await fetchCategoryCounts()
+        let filteredCategories = [...dynamicCategories]
+        if (query) {
+          filteredCategories = filteredCategories.filter((category) =>
+            category.name.toLowerCase().includes(query.toLowerCase()),
+          )
+        }
 
-    if (query) {
-      filteredEvents = filteredEvents.filter(
-        (event) =>
-          event.title.toLowerCase().includes(query.toLowerCase()) ||
-          event.location.toLowerCase().includes(query.toLowerCase()),
-      )
+        // Buscar localizações dinâmicas
+        const dynamicLocations = await fetchLocations()
+        let filteredLocations = [...dynamicLocations]
+        if (query) {
+          filteredLocations = filteredLocations.filter((location) =>
+            location.name.toLowerCase().includes(query.toLowerCase()),
+          )
+        }
+
+        setSearchResults({
+          events: transformedEvents,
+          categories: filteredCategories,
+          locations: filteredLocations,
+          query,
+          categoryFilter,
+          locationFilter,
+        })
+      } catch (err) {
+        console.error('Erro ao buscar eventos:', err)
+        setError('Erro ao carregar eventos. Tente novamente.')
+        
+        // Em caso de erro, definir resultados vazios
+        const fallbackCategories = await fetchCategoryCounts()
+        const fallbackLocations = await fetchLocations()
+        
+        setSearchResults({
+          events: [],
+          categories: [...fallbackCategories],
+          locations: [...fallbackLocations],
+          query,
+          categoryFilter,
+          locationFilter,
+        })
+      } finally {
+        setLoading(false)
+      }
     }
 
-    if (categoryFilter) {
-      filteredEvents = filteredEvents.filter((event) => event.category === categoryFilter)
-    }
-
-    if (locationFilter) {
-      // Fix: Make location filter case-insensitive and check both city and location
-      filteredEvents = filteredEvents.filter(
-        (event) =>
-          event.city.toLowerCase() === locationFilter.toLowerCase() ||
-          event.location.toLowerCase().includes(locationFilter.toLowerCase()),
-      )
-    }
-
-    // Filter categories based on search query
-    let filteredCategories = [...categories]
-    if (query) {
-      filteredCategories = filteredCategories.filter((category) =>
-        category.name.toLowerCase().includes(query.toLowerCase()),
-      )
-    }
-
-    // Filter locations based on search query
-    let filteredLocations = [...locations]
-    if (query) {
-      filteredLocations = filteredLocations.filter((location) =>
-        location.name.toLowerCase().includes(query.toLowerCase()),
-      )
-    }
-
-    setSearchResults({
-      events: filteredEvents,
-      categories: filteredCategories,
-      locations: filteredLocations,
-      query,
-      categoryFilter,
-      locationFilter,
-    })
+    fetchEvents()
   }, [query, categoryFilter, locationFilter])
 
   // Determine the title based on filters
@@ -370,7 +312,7 @@ export default function SearchPage() {
                 strokeLinejoin="round"
               />
             </svg>
-            <span>{Math.floor(Math.random() * 20) + 5} ingressos disponíveis</span>
+            <span>{event.ticket_count} ingressos disponíveis</span>
           </div>
 
           <div
@@ -787,7 +729,29 @@ export default function SearchPage() {
                 {getSearchTitle()}
               </h1>
 
-              {searchResults.events.length === 0 ? (
+              {loading ? (
+                <div style={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "center", 
+                  padding: "40px",
+                  color: "#A1A1AA" 
+                }}>
+                  <div style={{ marginRight: "12px" }}>🔄</div>
+                  <span>Carregando eventos...</span>
+                </div>
+              ) : error ? (
+                <div style={{ 
+                  padding: "20px", 
+                  backgroundColor: "#7F1D1D", 
+                  borderRadius: "8px", 
+                  marginBottom: "32px",
+                  color: "#FEF2F2" 
+                }}>
+                  <div style={{ marginBottom: "8px", fontWeight: "600" }}>⚠️ Erro ao carregar eventos</div>
+                  <div>{error}</div>
+                </div>
+              ) : searchResults.events.length === 0 ? (
                 <p style={{ color: "#A1A1AA", marginBottom: "32px" }}>
                   Nenhum resultado encontrado. Tente outra busca ou remova os filtros.
                 </p>
