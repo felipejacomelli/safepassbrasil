@@ -40,45 +40,33 @@ export default function CartPage() {
   const { user, isAuthenticated, logout } = useAuth()
 
   // Cart state
-  const [cartItems, setCartItems] = useState(() => {
-    // If we're in the browser, try to get cart items from localStorage
+  const [cartItems, setCartItems] = useState<CartItem[]>([])
+
+  // Load cart items from localStorage on client side
+  useEffect(() => {
     if (typeof window !== "undefined") {
       const savedCart = localStorage.getItem("cart")
       if (savedCart) {
         try {
-          return JSON.parse(savedCart)
+          setCartItems(JSON.parse(savedCart))
         } catch (e) {
           console.error("Failed to parse cart from localStorage", e)
+          setCartItems([])
         }
       }
     }
+  }, [])
 
-    // Default cart with sample items
-    return [
-      {
-        id: "1",
-        eventId: "rock-in-rio-2025",
-        eventName: "Rock in Rio 2025",
-        ticketType: "Pista Premium",
-        price: 750,
-        quantity: 2,
-        date: "19-28 de Setembro, 2025",
-        location: "Cidade do Rock, Rio de Janeiro",
-        image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60",
-      },
-      {
-        id: "2",
-        eventId: "lollapalooza-brasil-2025",
-        eventName: "Lollapalooza Brasil 2025",
-        ticketType: "VIP",
-        price: 1200,
-        quantity: 1,
-        date: "28-30 de Março, 2025",
-        location: "Autódromo de Interlagos, São Paulo",
-        image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
-      },
-    ]
-  })
+  // Sync cart items with localStorage whenever cartItems changes
+  useEffect(() => {
+    if (typeof window !== "undefined" && isClient) {
+      if (cartItems.length === 0) {
+        localStorage.removeItem("cart")
+      } else {
+        localStorage.setItem("cart", JSON.stringify(cartItems))
+      }
+    }
+  }, [cartItems, isClient])
 
   // Checkout state
   const [isCheckingOut, setIsCheckingOut] = useState(false)
@@ -123,24 +111,13 @@ export default function CartPage() {
     if (newQuantity < 1) return
 
     const updatedCart = cartItems.map((item: CartItem) => (item.id === id ? { ...item, quantity: newQuantity } : item))
-
     setCartItems(updatedCart)
-
-    // Update localStorage
-    if (typeof window !== "undefined") {
-      localStorage.setItem("cart", JSON.stringify(updatedCart))
-    }
   }
 
   // Remove item
   const removeItem = (id: string) => {
     const updatedCart = cartItems.filter((item: CartItem) => item.id !== id)
     setCartItems(updatedCart)
-
-    // Update localStorage
-    if (typeof window !== "undefined") {
-      localStorage.setItem("cart", JSON.stringify(updatedCart))
-    }
   }
 
   // Handle form input change
@@ -274,9 +251,6 @@ export default function CartPage() {
 
       // Clear cart
       setCartItems([])
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("cart")
-      }
     }, 2000)
   }
 
