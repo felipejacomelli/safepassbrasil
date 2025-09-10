@@ -104,6 +104,7 @@ const defaultLocations = [
 
 // Update the Page component to include search functionality
 export default function Page() {
+  console.log('🔍 DEBUG - Componente Page renderizado')
   const [isClient, setIsClient] = useState(false)
   const isDesktop = useMediaQuery("(min-width: 640px)")
   const [searchQuery, setSearchQuery] = useState("")
@@ -116,64 +117,41 @@ export default function Page() {
   const [events, setEvents] = useState<FrontendEvent[]>([])
   const [categories, setCategories] = useState<FrontendCategory[]>(defaultCategories)
   const [locations, setLocations] = useState<FrontendLocation[]>(defaultLocations)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [dataLoaded, setDataLoaded] = useState(false)
 
   // Ensure client-side rendering to avoid hydration mismatch
   useEffect(() => {
+    console.log('🔍 DEBUG - useEffect isClient executado')
     setIsClient(true)
+    // Adicionar um alert para garantir que está executando no cliente
+    if (typeof window !== 'undefined') {
+      console.log('🔍 DEBUG - Window está disponível, executando no cliente!')
+    }
   }, [])
   
-  // Funções para buscar dados da API
-  const loadCategories = async (): Promise<FrontendCategory[]> => {
-    try {
-      const response = await fetch('http://127.0.0.1:8000/category_app/categories/')
-      if (!response.ok) throw new Error('Erro ao carregar categorias')
-      const apiCategories: ApiCategory[] = await response.json()
-      
-      return apiCategories.map(category => ({
-        name: category.name,
-        count: "0", // Será atualizado depois com base nos eventos
-        image: category.image || `https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60`
-      }))
-    } catch (err) {
-      console.error('Erro ao carregar categorias:', err)
-      return defaultCategories
-    }
-  }
-
-  const loadLocations = async (): Promise<FrontendLocation[]> => {
-    try {
-      const response = await fetch('http://127.0.0.1:8000/category_app/locations/')
-      if (!response.ok) throw new Error('Erro ao carregar localizações')
-      const apiLocations: ApiLocation[] = await response.json()
-      
-      return apiLocations.map(location => ({
-        name: location.name,
-        count: "0", // Será atualizado depois com base nos eventos
-        image: location.image || `https://images.unsplash.com/photo-1543059080-f9b1272213d5?w=800&auto=format&fit=crop&q=60`
-      }))
-    } catch (err) {
-      console.error('Erro ao carregar localizações:', err)
-      return defaultLocations
-    }
-  }
-
-  // Carregar dados da API
+  // Carregar dados quando o componente for montado no cliente
   useEffect(() => {
+    if (!isClient || dataLoaded) {
+      return
+    }
+    
+    console.log('🔍 DEBUG - Iniciando carregamento dos dados!')
+    setLoading(true)
+    
     const loadData = async () => {
       try {
-        setLoading(true)
+        console.log('🔍 DEBUG - Carregando localizações...')
+        const apiLocations = await loadLocationCounts()
+        console.log('🔍 DEBUG - Localizações carregadas:', apiLocations)
         
-        // Carregar eventos, categorias e localizações em paralelo
-        const [apiEvents, apiCategories, apiLocations] = await Promise.all([
+        const [apiEvents, apiCategories] = await Promise.all([
           eventsApi.getAll(),
-          loadCategories(),
-          loadLocations()
+          loadCategoryCounts()
         ])
         
-        // Transformar eventos da API para o formato do frontend
-        const transformedEvents: FrontendEvent[] = apiEvents.map(event => ({
+        const transformedEvents: FrontendEvent[] = apiEvents.map((event: any) => ({
           image: event.image,
           title: event.name,
           date: event.date,
@@ -184,14 +162,17 @@ export default function Page() {
           description: event.description,
           category: event.category
         }))
+        
+        console.log('🔍 DEBUG - Setando estados...')
         setEvents(transformedEvents)
         setCategories(apiCategories)
         setLocations(apiLocations)
         setError(null)
+        setDataLoaded(true)
+        console.log('🔍 DEBUG - Dados carregados com sucesso!')
       } catch (err) {
-        console.error('Erro ao carregar dados:', err)
+        console.error('🔍 DEBUG - Erro ao carregar dados:', err)
         setError('Erro ao carregar dados')
-        // Fallback para dados mockados em caso de erro
         setEvents([])
         setCategories(defaultCategories)
         setLocations(defaultLocations)
@@ -200,38 +181,80 @@ export default function Page() {
       }
     }
     
-    if (isClient) {
-      loadData()
+    loadData()
+  }, [isClient, dataLoaded])
+  
+  // Funções para buscar dados da API
+  const loadCategoryCounts = async (): Promise<FrontendCategory[]> => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/category_app/categories/counts/')
+      if (!response.ok) throw new Error('Erro ao carregar contadores de categorias')
+      const apiCategoryCounts = await response.json()
+      
+      return apiCategoryCounts.map((category: any) => ({
+        name: category.name,
+        count: category.event_count > 0 ? `${category.event_count}+` : "0",
+        image: getCategoryImage(category.name)
+      }))
+    } catch (err) {
+      console.error('Erro ao carregar contadores de categorias:', err)
+      return defaultCategories
     }
-  }, [isClient])
+  }
 
-  // Atualizar contagens das categorias baseadas nos eventos carregados
-  useEffect(() => {
-    if (events.length > 0 && categories.length > 0) {
-      const categoryCounts = categories.map(category => {
-        const count = events.filter(event => event.category === category.name).length
-        return {
-          ...category,
-          count: count > 0 ? `${count}+` : "0"
-        }
-      })
-      setCategories(categoryCounts)
+  // Função auxiliar para obter imagem da categoria
+  const getCategoryImage = (categoryName: string): string => {
+    const imageMap: { [key: string]: string } = {
+      'Música': 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60',
+      'Esportes': 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&auto=format&fit=crop&q=60',
+      'Teatro': 'https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&auto=format&fit=crop&q=60',
+      'Festivais': 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&auto=format&fit=crop&q=60',
+      'Shows': 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60',
+      'Stand-up': 'https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&auto=format&fit=crop&q=60',
+      'Conferências': 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=60'
     }
-  }, [events])
+    return imageMap[categoryName] || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60'
+  }
 
-  // Atualizar contagens das localizações baseadas nos eventos carregados
-  useEffect(() => {
-    if (events.length > 0 && locations.length > 0) {
-      const locationCounts = locations.map(location => {
-        const count = events.filter(event => event.location === location.name).length
-        return {
-          ...location,
-          count: count > 0 ? `${count}+` : "0"
-        }
-      })
-      setLocations(locationCounts)
+  const loadLocationCounts = async (): Promise<FrontendLocation[]> => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/category_app/locations/counts/')
+      if (!response.ok) throw new Error('Erro ao carregar contadores de localizações')
+      const apiLocationCounts = await response.json()
+      
+      console.log('🔍 DEBUG - Dados recebidos do backend:', apiLocationCounts)
+      
+      const result = apiLocationCounts.map((location: any) => ({
+        name: location.name,
+        count: location.event_count > 0 ? `${location.event_count}+` : "0",
+        image: getLocationImage(location.name)
+      }))
+      
+      console.log('🔍 DEBUG - Dados processados para frontend:', result)
+      return result
+    } catch (err) {
+      console.error('Erro ao carregar contadores de localizações:', err)
+      return defaultLocations
     }
-  }, [events])
+  }
+
+  // Função auxiliar para obter imagem da localização
+  const getLocationImage = (locationName: string): string => {
+    const imageMap: { [key: string]: string } = {
+      'São Paulo': 'https://images.unsplash.com/photo-1543059080-f9b1272213d5?w=800&auto=format&fit=crop&q=60',
+      'Rio de Janeiro': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&auto=format&fit=crop&q=60',
+      'Belo Horizonte': 'https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60',
+      'Curitiba': 'https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60',
+      'Brasília': 'https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60',
+      'Salvador': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&auto=format&fit=crop&q=60'
+    }
+    return imageMap[locationName] || 'https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60'
+  }
+
+  // Os dados são carregados diretamente no corpo do componente acima
+
+  // Os contadores agora vêm diretamente do backend via endpoints dinâmicos
+  // Removidos os useEffects de contagem local
 
   // Add search function
   const handleSearch = (e: React.FormEvent) => {
@@ -267,9 +290,11 @@ export default function Page() {
   const handleSellTickets = () => {
     router.push("/sell")
   }
+  
+  console.log('🔍 DEBUG - Estado atual das localizações antes da renderização:', locations)
 
-  // Show loading state until client-side hydration is complete
-  if (!isClient) {
+  // Show loading state until client-side hydration is complete and data is loaded
+  if (!isClient || loading) {
     return (
       <div
         style={{
@@ -827,9 +852,11 @@ export default function Page() {
               gap: "16px",
             }}
           >
-            {categories.map((category, index) => (
-              <CategoryCard key={index} {...category} />
-            ))}
+            {categories
+              .filter(category => parseInt(category.count) > 0)
+              .map((category, index) => (
+                <CategoryCard key={index} {...category} />
+              ))}
           </div>
         </div>
       </section>
@@ -865,9 +892,11 @@ export default function Page() {
               gap: "16px",
             }}
           >
-            {locations.map((location, index) => (
-              <LocationCard key={index} {...location} />
-            ))}
+            {locations
+              .filter(location => parseInt(location.count) > 0)
+              .map((location, index) => (
+                <LocationCard key={index} {...location} />
+              ))}
           </div>
         </div>
       </section>
