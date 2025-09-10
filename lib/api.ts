@@ -78,7 +78,11 @@ export const eventsApi = {
   
   // Buscar evento por ID
   getById: (id: number): Promise<ApiEvent> => {
-    return apiRequest<ApiEvent>(`/event_app/event/${id}`);
+    return apiRequest<ApiEvent>(`/event_app/event?id=${id}`);
+  },
+
+  getBySlug: (slug: string): Promise<ApiEvent> => {
+    return apiRequest<ApiEvent>(`/event_app/event/${slug}/`);
   },
   
   // Buscar eventos filtrados

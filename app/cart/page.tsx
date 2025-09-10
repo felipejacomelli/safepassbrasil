@@ -146,10 +146,77 @@ export default function CartPage() {
   // Handle form input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
+    let formattedValue = value
+
+    // Format expiry date with automatic "/" separator
+    if (name === 'expiryDate') {
+      // Remove all non-numeric characters
+      const numericValue = value.replace(/\D/g, '')
+      
+      // Add "/" after 2 digits (MM/YY format)
+      if (numericValue.length >= 2) {
+        formattedValue = numericValue.slice(0, 2) + '/' + numericValue.slice(2, 4)
+      } else {
+        formattedValue = numericValue
+      }
+      
+      // Limit to MM/YY format (5 characters max)
+      if (formattedValue.length > 5) {
+        formattedValue = formattedValue.slice(0, 5)
+      }
+    }
+    
+    // Format CVV (only numbers, max 4 digits)
+    if (name === 'cvv') {
+      // Remove all non-digits and limit to 4 characters
+      formattedValue = value.replace(/\D/g, '').slice(0, 4)
+    }
+    
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: formattedValue,
     }))
+
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors[name]
+        return newErrors
+      })
+    }
+
+    // Real-time validation for name field
+    if (name === 'name' && formattedValue.trim()) {
+      const nameParts = formattedValue.trim().split(/\s+/)
+      if (nameParts.length < 2) {
+        setErrors((prev) => ({
+          ...prev,
+          name: "Digite seu nome completo (pelo menos nome e sobrenome)"
+        }))
+      }
+    }
+
+    // Real-time validation for email field
+    if (name === 'email' && formattedValue.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formattedValue)) {
+        setErrors((prev) => ({
+          ...prev,
+          email: "Digite um email válido"
+        }))
+      }
+    }
+
+    // Real-time validation for CVV field
+    if (name === 'cvv' && formattedValue) {
+      if (formattedValue.length < 3) {
+        setErrors((prev) => ({
+          ...prev,
+          cvv: "CVV deve ter pelo menos 3 dígitos"
+        }))
+      }
+    }
   }
 
   // Handle checkout form submission
@@ -159,9 +226,38 @@ export default function CartPage() {
     // Validate form
     const newErrors: FormErrors = {}
 
+    // Validate full name (must have at least 2 names)
+    if (!formData.name.trim()) {
+      newErrors.name = "Nome completo é obrigatório"
+    } else {
+      const nameParts = formData.name.trim().split(/\s+/)
+      if (nameParts.length < 2) {
+        newErrors.name = "Digite seu nome completo (pelo menos nome e sobrenome)"
+      }
+    }
+
+    // Validate email
+    if (!formData.email.trim()) {
+      newErrors.email = "Email é obrigatório"
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formData.email)) {
+        newErrors.email = "Digite um email válido"
+      }
+    }
+
     if (!formData.cardNumber.trim()) newErrors.cardNumber = "Número do cartão é obrigatório"
     if (!formData.expiryDate.trim()) newErrors.expiryDate = "Data de validade é obrigatória"
-    if (!formData.cvv.trim()) newErrors.cvv = "CVV é obrigatório"
+    
+    // Validate CVV
+    if (!formData.cvv.trim()) {
+      newErrors.cvv = "CVV é obrigatório"
+    } else {
+      const cvvValue = formData.cvv.replace(/\D/g, '')
+      if (cvvValue.length < 3 || cvvValue.length > 4) {
+        newErrors.cvv = "CVV deve ter 3 ou 4 dígitos"
+      }
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
@@ -1057,12 +1153,23 @@ export default function CartPage() {
                           width: "100%",
                           padding: "12px",
                           backgroundColor: "#27272A",
-                          border: "1px solid #3F3F46",
+                          border: errors.name ? "1px solid #EF4444" : "1px solid #3F3F46",
                           borderRadius: "8px",
                           color: "white",
                           fontSize: "16px",
                         }}
                       />
+                      {errors.name && (
+                        <div
+                          style={{
+                            color: "#EF4444",
+                            fontSize: "14px",
+                            marginTop: "4px",
+                          }}
+                        >
+                          {errors.name}
+                        </div>
+                      )}
                     </div>
 
                     <div style={{ marginBottom: "20px" }}>
@@ -1085,12 +1192,23 @@ export default function CartPage() {
                           width: "100%",
                           padding: "12px",
                           backgroundColor: "#27272A",
-                          border: "1px solid #3F3F46",
+                          border: errors.email ? "1px solid #EF4444" : "1px solid #3F3F46",
                           borderRadius: "8px",
                           color: "white",
                           fontSize: "16px",
                         }}
                       />
+                      {errors.email && (
+                        <div
+                          style={{
+                            color: "#EF4444",
+                            fontSize: "14px",
+                            marginTop: "4px",
+                          }}
+                        >
+                          {errors.email}
+                        </div>
+                      )}
                     </div>
 
                     <div style={{ marginBottom: "20px" }}>

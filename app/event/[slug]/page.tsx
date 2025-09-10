@@ -1,9 +1,10 @@
 "use client"
 
 import { useMediaQuery } from "@/hooks/use-media-query"
-import { useEffect, useState } from "react"
+import { useEffect, useState, use } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { Calendar, Clock, MapPin, Users, Ticket, User, ShoppingCart, Info, Camera, Plus, Minus } from "lucide-react"
+import { eventsApi } from "@/lib/api"
 
 // Interfaces
 interface TicketType {
@@ -49,184 +50,10 @@ interface CartTicket {
   gallery: string[]
 }
 
-// Mock event data
-const eventsData = [
-  {
-    slug: "festival-de-verao",
-    title: "Festival de Verão",
-    date: "15 Dez, 2023",
-    time: "16:00",
-    location: "Copacabana, RJ",
-    attendance: "50k+ pessoas",
-    price: "A partir de R$ 150",
-    startingPrice: 150,
-    availableTickets: 45,
-    ticketTypes: [
-      { id: "pista", name: "Pista", price: 150, available: 45 },
-      { id: "premium", name: "Pista Premium", price: 250, available: 23 },
-      { id: "vip", name: "VIP", price: 450, available: 8 },
-    ],
-    image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&auto=format&fit=crop&q=60",
-    description: [
-      "O Festival de Verão é um dos eventos mais aguardados da temporada, reunindo grandes nomes da música brasileira e internacional em um cenário paradisíaco.",
-      "Com uma programação diversificada que vai do pop ao rock, do samba ao eletrônico, o festival promete agradar a todos os gostos musicais.",
-      "Além dos shows, o evento conta com áreas de alimentação, lounges e diversas atividades para tornar sua experiência ainda mais completa.",
-    ],
-    gallery: [
-      "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1506157786151-b8491531f063?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-    ],
-  },
-  {
-    slug: "rock-in-rio-2023",
-    title: "Rock in Rio 2023",
-    date: "2-10 Set, 2023",
-    time: "14:00",
-    location: "Cidade do Rock, RJ",
-    attendance: "100k+ pessoas",
-    price: "A partir de R$ 250",
-    startingPrice: 250,
-    availableTickets: 128,
-    ticketTypes: [
-      { id: "pista", name: "Pista", price: 250, available: 128 },
-      { id: "premium", name: "Pista Premium", price: 380, available: 67 },
-      { id: "vip", name: "VIP", price: 650, available: 15 },
-      { id: "camarote", name: "Camarote", price: 1200, available: 3 },
-    ],
-    image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&auto=format&fit=crop&q=60",
-    description: [
-      "O Rock in Rio é um dos maiores festivais de música do mundo, reunindo artistas nacionais e internacionais em performances inesquecíveis. Em 2023, o evento promete ser ainda mais grandioso, com uma lineup diversificada e cheia de estrelas.",
-      "Durante os dias de festival, a Cidade do Rock se transforma em um verdadeiro parque de diversões para os amantes da música, com várias atrações além dos shows principais, incluindo a famosa roda gigante, tirolesa, e diversas opções gastronômicas.",
-      "Não perca a chance de fazer parte deste evento histórico e viver momentos únicos ao som de seus artistas favoritos!",
-    ],
-    gallery: [
-      "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
-      "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-    ],
-  },
-  {
-    slug: "lollapalooza-brasil-2024",
-    title: "Lollapalooza Brasil 2024",
-    date: "24-26 Mar, 2024",
-    time: "11:00",
-    location: "Interlagos, SP",
-    attendance: "80k+ pessoas",
-    price: "A partir de R$ 200",
-    startingPrice: 200,
-    availableTickets: 67,
-    ticketTypes: [
-      { id: "pista", name: "Pista", price: 200, available: 67 },
-      { id: "premium", name: "Pista Premium", price: 320, available: 34 },
-      { id: "vip", name: "VIP", price: 580, available: 12 },
-    ],
-    image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
-    description: [
-      "O Lollapalooza Brasil retorna em 2024 para sua décima edição no país, trazendo o melhor da música alternativa, rock, hip-hop, música eletrônica e muito mais.",
-      "Distribuído em diversos palcos no Autódromo de Interlagos, o festival oferece uma experiência completa com atrações para todos os gostos, além de áreas de descanso, praça de alimentação com opções diversificadas e espaços instagramáveis.",
-      "Prepare-se para três dias intensos de música, arte e cultura em um dos festivais mais aguardados do calendário brasileiro.",
-    ],
-    gallery: [
-      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
-      "https://images.unsplash.com/photo-1506157786151-b8491531f063?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-    ],
-  },
-  {
-    slug: "rock-in-rio-2025",
-    title: "Rock in Rio 2025",
-    date: "19-28 Set, 2025",
-    time: "14:00",
-    location: "Cidade do Rock, RJ",
-    attendance: "100k+ pessoas",
-    price: "A partir de R$ 650",
-    startingPrice: 650,
-    availableTickets: 234,
-    ticketTypes: [
-      { id: "pista", name: "Pista", price: 650, available: 234 },
-      { id: "premium", name: "Pista Premium", price: 850, available: 156 },
-      { id: "vip", name: "VIP", price: 1200, available: 45 },
-      { id: "camarote", name: "Camarote", price: 2200, available: 8 },
-    ],
-    image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60",
-    description: [
-      "O Rock in Rio retorna em 2025 para sua edição comemorativa de 40 anos, prometendo ser o maior festival da história do evento.",
-      "Com uma programação especial que celebra quatro décadas de música, o festival trará grandes nomes do rock, pop, hip-hop e música eletrônica de diferentes gerações.",
-      "A Cidade do Rock será completamente renovada para esta edição especial, com novas áreas temáticas, atrações interativas e uma experiência imersiva única.",
-      "Não perca a chance de fazer parte desta celebração histórica da música mundial!",
-    ],
-    gallery: [
-      "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
-      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-    ],
-  },
-  {
-    slug: "lollapalooza-brasil-2025",
-    title: "Lollapalooza Brasil 2025",
-    date: "28-30 Mar, 2025",
-    time: "11:00",
-    location: "Interlagos, SP",
-    attendance: "90k+ pessoas",
-    price: "A partir de R$ 750",
-    startingPrice: 750,
-    availableTickets: 156,
-    ticketTypes: [
-      { id: "pista", name: "Pista", price: 750, available: 156 },
-      { id: "premium", name: "Pista Premium", price: 950, available: 89 },
-      { id: "vip", name: "VIP", price: 1400, available: 23 },
-    ],
-    image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
-    description: [
-      "O Lollapalooza Brasil 2025 promete ser a maior edição já realizada no país, com uma lineup internacional de peso e novidades exclusivas.",
-      "O festival expandirá para três dias completos de música, com mais de 70 atrações distribuídas em 5 palcos diferentes no Autódromo de Interlagos.",
-      "Além dos shows, o evento contará com áreas gastronômicas ampliadas, espaços de arte interativa e uma nova área dedicada à sustentabilidade e tecnologia.",
-      "Prepare-se para uma experiência musical completa em um dos festivais mais importantes do calendário global.",
-    ],
-    gallery: [
-      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
-      "https://images.unsplash.com/photo-1506157786151-b8491531f063?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-    ],
-  },
-  {
-    slug: "tomorrowland-brasil-2025",
-    title: "Tomorrowland Brasil 2025",
-    date: "10-12 Out, 2025",
-    time: "12:00",
-    location: "Parque Maeda, SP",
-    attendance: "180k+ pessoas",
-    price: "A partir de R$ 1200",
-    startingPrice: 1200,
-    availableTickets: 89,
-    ticketTypes: [
-      { id: "pista", name: "Pista", price: 1200, available: 89 },
-      { id: "premium", name: "Pista Premium", price: 1600, available: 34 },
-      { id: "vip", name: "VIP", price: 2400, available: 12 },
-    ],
-    image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop&q=60",
-    description: [
-      "O Tomorrowland retorna ao Brasil em 2025 com sua maior edição já realizada no país, trazendo o melhor da música eletrônica mundial.",
-      "Com mais de 10 palcos temáticos espalhados pelo Parque Maeda, o festival promete uma experiência imersiva única, com cenografia elaborada e efeitos visuais de última geração.",
-      "Além dos DJs internacionais, o evento contará com uma área dedicada aos talentos brasileiros da música eletrônica e experiências gastronômicas exclusivas.",
-      "Prepare-se para três dias de magia, música e uma produção de nível internacional que só o Tomorrowland pode oferecer.",
-    ],
-    gallery: [
-      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
-      "https://images.unsplash.com/photo-1506157786151-b8491531f063?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-    ],
-  },
-]
+// Página de detalhes do evento - integrada com API real
 
-export default function EventPage({ params }: { params: { slug: string } }) {
+export default function EventPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params)
   const isDesktop = useMediaQuery("(min-width: 640px)")
   const [event, setEvent] = useState<EventData | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
@@ -237,24 +64,54 @@ export default function EventPage({ params }: { params: { slug: string } }) {
   const [showUserMenu, setShowUserMenu] = useState<boolean>(false)
 
   useEffect(() => {
-    // Find the event data based on the slug
-    const foundEvent = eventsData.find((e: EventData) => e.slug === params.slug)
-
-    if (foundEvent) {
-      setEvent(foundEvent)
-      setNotFound(false)
-      // Initialize ticket quantities
-      const initialQuantities: TicketQuantities = {}
-      foundEvent.ticketTypes.forEach((ticket: TicketType) => {
-        initialQuantities[ticket.id] = 1
-      })
-      setTicketQuantities(initialQuantities)
-    } else {
-      setNotFound(true)
-    }
-
-    setLoading(false)
-  }, [params.slug])
+    const fetchEvent = async () => {
+      try {
+        setLoading(true);
+        const apiEvent = await eventsApi.getBySlug(slug);
+        
+        // Transformar dados da API para o formato esperado
+        const transformedEvent: EventData = {
+          slug: apiEvent.slug,
+          title: apiEvent.name,
+          date: apiEvent.date,
+          time: '20:00', // Valor padrão, pode ser ajustado conforme necessário
+          location: apiEvent.location,
+          attendance: '1k+ pessoas', // Valor padrão
+          price: apiEvent.price,
+          startingPrice: parseFloat(apiEvent.price?.replace(/[^\d,]/g, '').replace(',', '.') || '0'),
+          availableTickets: apiEvent.ticket_count,
+          ticketTypes: [
+            {
+              id: '1',
+              name: 'Ingresso Padrão',
+              price: parseFloat(apiEvent.price?.replace(/[^\d,]/g, '').replace(',', '.') || '0'),
+              available: apiEvent.ticket_count
+            }
+          ],
+          image: apiEvent.image,
+          description: [apiEvent.description || 'Descrição não disponível'],
+          gallery: [apiEvent.image] // Usar a imagem principal como galeria por enquanto
+        };
+        
+        setEvent(transformedEvent);
+        setNotFound(false);
+        
+        // Initialize ticket quantities
+        const initialQuantities: TicketQuantities = {};
+        transformedEvent.ticketTypes.forEach((ticket: TicketType) => {
+          initialQuantities[ticket.id] = 1;
+        });
+        setTicketQuantities(initialQuantities);
+      } catch (error) {
+        console.error('Erro ao buscar evento:', error);
+        setNotFound(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchEvent();
+  }, [slug])
 
   const handleLogout = () => {
     logout()
