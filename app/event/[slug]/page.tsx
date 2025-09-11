@@ -15,6 +15,7 @@ interface TicketType {
 }
 
 interface EventData {
+  id: number
   slug: string
   title: string
   date: string
@@ -71,6 +72,7 @@ export default function EventPage({ params }: { params: Promise<{ slug: string }
         
         // Transformar dados da API para o formato esperado
         const transformedEvent: EventData = {
+          id: apiEvent.id,
           slug: apiEvent.slug,
           title: apiEvent.name,
           date: apiEvent.date,
@@ -142,7 +144,7 @@ export default function EventPage({ params }: { params: Promise<{ slug: string }
 
     const ticket: CartTicket = {
       id: Math.random().toString(36).substr(2, 9),
-      eventId: event.slug,
+      eventId: event.id.toString(),
       eventName: event.title,
       ticketType: ticketType.name,
       price: ticketType.price,

@@ -244,14 +244,29 @@ export default function CartPage() {
     // Submit form
     setIsSubmitting(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
-      setOrderComplete(true)
-
-      // Clear cart
-      setCartItems([])
-    }, 2000)
+    // Process purchase for each cart item
+    const processPurchases = async () => {
+      try {
+        const { eventsApi } = await import('@/lib/api')
+        
+        for (const item of cartItems) {
+          await eventsApi.purchaseTickets(item.eventId, item.quantity)
+        }
+        
+        setIsSubmitting(false)
+        setOrderComplete(true)
+        
+        // Clear cart
+        setCartItems([])
+      } catch (error) {
+        console.error('Erro ao processar compra:', error)
+        setIsSubmitting(false)
+        // You might want to show an error message to the user here
+        alert('Erro ao processar a compra. Tente novamente.')
+      }
+    }
+    
+    processPurchases()
   }
 
   const handleLogout = () => {
@@ -694,9 +709,9 @@ export default function CartPage() {
           <>
             <h1
               style={{
-                fontSize: "28px",
+                fontSize: "32px",
                 fontWeight: "bold",
-                marginBottom: "24px",
+                marginBottom: "32px",
               }}
             >
               Meu Carrinho

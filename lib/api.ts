@@ -108,6 +108,14 @@ export const eventsApi = {
     
     return apiRequest<EventsResponse>(endpoint);
   },
+
+  // Purchase tickets and update event ticket count
+  purchaseTickets: async (eventId: string, quantity: number): Promise<{ success: boolean; message: string }> => {
+    return apiRequest<{ success: boolean; message: string }>(`/event_app/events/${eventId}/purchase/`, {
+      method: 'POST',
+      body: JSON.stringify({ quantity }),
+    });
+  }
 };
 
 // Função para transformar dados da API para o formato esperado pelo frontend
