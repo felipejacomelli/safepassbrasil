@@ -2,12 +2,11 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useMediaQuery } from "@/hooks/use-media-query"
 
 export default function RegisterPage() {
-  const isDesktop = useMediaQuery("(min-width: 640px)")
+  const [isDesktop, setIsDesktop] = useState(false)
   const router = useRouter()
 
   // Form state
@@ -19,6 +18,11 @@ export default function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [success, setSuccess] = useState(false)
+
+  // Set desktop state after client mount to avoid hydration mismatch
+  useEffect(() => {
+    setIsDesktop(window.matchMedia("(min-width: 640px)").matches)
+  }, [])
 
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {

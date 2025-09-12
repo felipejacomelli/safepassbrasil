@@ -1,6 +1,5 @@
 "use client"
 
-import { useMediaQuery } from "@/hooks/use-media-query"
 import { useEffect, useState, use } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { Calendar, Clock, MapPin, Users, Ticket, User, ShoppingCart, Info, Camera, Plus, Minus } from "lucide-react"
@@ -55,7 +54,7 @@ interface CartTicket {
 
 export default function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
-  const isDesktop = useMediaQuery("(min-width: 640px)")
+  const [isDesktop, setIsDesktop] = useState(false)
   const [event, setEvent] = useState<EventData | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [notFound, setNotFound] = useState<boolean>(false)
@@ -65,6 +64,9 @@ export default function EventPage({ params }: { params: Promise<{ slug: string }
   const [showUserMenu, setShowUserMenu] = useState<boolean>(false)
 
   useEffect(() => {
+    // Set desktop state after client mount to avoid hydration mismatch
+    setIsDesktop(window.matchMedia("(min-width: 640px)").matches)
+    
     const fetchEvent = async () => {
       try {
         setLoading(true);

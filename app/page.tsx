@@ -1,6 +1,6 @@
 "use client"
 
-import { useMediaQuery } from "@/hooks/use-media-query"
+// Removed useMediaQuery to avoid hydration mismatch - using CSS classes instead
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
@@ -106,7 +106,6 @@ const defaultLocations = [
 export default function Page() {
   console.log('🔍 DEBUG - Componente Page renderizado')
   const [isClient, setIsClient] = useState(false)
-  const isDesktop = useMediaQuery("(min-width: 640px)")
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
 
@@ -125,15 +124,12 @@ export default function Page() {
   useEffect(() => {
     console.log('🔍 DEBUG - useEffect isClient executado')
     setIsClient(true)
-    // Adicionar um alert para garantir que está executando no cliente
-    if (typeof window !== 'undefined') {
-      console.log('🔍 DEBUG - Window está disponível, executando no cliente!')
-    }
+    console.log('🔍 DEBUG - Window está disponível, executando no cliente!')
   }, [])
   
-  // Carregar dados quando o componente for montado no cliente
+  // Carregar dados quando o componente for montado
   useEffect(() => {
-    if (!isClient || dataLoaded) {
+    if (dataLoaded) {
       return
     }
     
@@ -182,7 +178,7 @@ export default function Page() {
     }
     
     loadData()
-  }, [isClient, dataLoaded])
+  }, [dataLoaded])
   
   // Funções para buscar dados da API
   const loadCategoryCounts = async (): Promise<FrontendCategory[]> => {
@@ -293,8 +289,8 @@ export default function Page() {
   
   console.log('🔍 DEBUG - Estado atual das localizações antes da renderização:', locations)
 
-  // Show loading state until client-side hydration is complete and data is loaded
-  if (!isClient || loading) {
+  // Show loading state while data is being loaded
+  if (loading) {
     return (
       <div
         style={{
@@ -390,30 +386,35 @@ export default function Page() {
               gap: "16px",
             }}
           >
-            {isDesktop && (
-              <>
-                <a
-                  href="#como-funciona"
-                  style={{
-                    color: "white",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                  }}
-                >
-                  Como Funciona
-                </a>
-                <a
-                  href="#"
-                  style={{
-                    color: "white",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                  }}
-                >
-                  WhatsApp
-                </a>
-              </>
-            )}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "16px",
+              }}
+              className="hidden sm:flex"
+            >
+              <a
+                href="#como-funciona"
+                style={{
+                  color: "white",
+                  textDecoration: "none",
+                  fontSize: "14px",
+                }}
+              >
+                Como Funciona
+              </a>
+              <a
+                href="#"
+                style={{
+                  color: "white",
+                  textDecoration: "none",
+                  fontSize: "14px",
+                }}
+              >
+                WhatsApp
+              </a>
+            </div>
 
             {isAuthenticated && user ? (
               <div style={{ position: "relative" }}>
@@ -648,7 +649,7 @@ export default function Page() {
       >
         <h1
           style={{
-            fontSize: isDesktop ? "64px" : "32px",
+            fontSize: "clamp(24px, 6vw, 48px)",
             fontWeight: "bold",
             lineHeight: "1.1",
             maxWidth: "800px",
@@ -660,7 +661,7 @@ export default function Page() {
         <p
           style={{
             color: "#3B82F6",
-            fontSize: isDesktop ? "24px" : "18px",
+            fontSize: "18px",
             fontWeight: "500",
             margin: "0 0 32px 0",
           }}
@@ -714,8 +715,9 @@ export default function Page() {
             gap: "16px",
             width: "100%",
             maxWidth: "600px",
-            flexDirection: isDesktop ? "row" : "column",
+            flexDirection: "column",
           }}
+          className="sm:flex-row"
         >
           <button
             onClick={handleSearchButtonClick}
@@ -848,7 +850,7 @@ export default function Page() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : "repeat(2, 1fr)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
               gap: "16px",
             }}
           >
@@ -888,7 +890,7 @@ export default function Page() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : "repeat(2, 1fr)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
               gap: "16px",
             }}
           >
@@ -939,7 +941,7 @@ export default function Page() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: isDesktop ? "repeat(3, 1fr)" : "1fr",
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
               gap: "32px",
             }}
           >
@@ -1116,7 +1118,7 @@ export default function Page() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : "repeat(1, 1fr)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
               gap: "32px",
             }}
           >
@@ -1124,7 +1126,7 @@ export default function Page() {
             <div>
               <h3
                 style={{
-                  fontSize: "18px",
+                  fontSize: "clamp(18px, 4vw, 24px)",
                   fontWeight: "bold",
                   marginBottom: "16px",
                   color: "white",

@@ -1,48 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useMediaQuery } from "@/hooks/use-media-query"
 import { ArrowLeft, Check, AlertCircle } from "lucide-react"
+import { eventsApi, transformEventForFrontend, Event } from "@/lib/api"
 
-// Available events for ticket selling
-const availableEvents = [
-  {
-    id: "rock-in-rio-2025",
-    title: "Rock in Rio 2025",
-    date: "19-28 de Setembro, 2025",
-    location: "Cidade do Rock, Rio de Janeiro",
-    image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    id: "lollapalooza-brasil-2025",
-    title: "Lollapalooza Brasil 2025",
-    date: "28-30 de Março, 2025",
-    location: "Autódromo de Interlagos, São Paulo",
-    image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    id: "tomorrowland-brasil-2025",
-    title: "Tomorrowland Brasil 2025",
-    date: "10-12 de Outubro, 2025",
-    location: "Parque Maeda, Itu, São Paulo",
-    image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    id: "festival-de-verao-2025",
-    title: "Festival de Verão 2025",
-    date: "15 de Dezembro, 2025",
-    location: "Praia de Copacabana, Rio de Janeiro",
-    image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    id: "show-anitta-2025",
-    title: "Show da Anitta - Turnê Nacional",
-    date: "20 de Julho, 2025",
-    location: "Allianz Parque, São Paulo",
-    image: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60",
-  },
-]
+// Interface para eventos na página de venda
+interface SellEvent {
+  id: string
+  title: string
+  date: string
+  location: string
+  image: string
+  ticket_count: number
+}
 
 // Ticket categories/types
 const ticketCategories = [
@@ -54,9 +25,63 @@ const ticketCategories = [
   { id: "backstage", name: "Backstage", description: "Acesso aos bastidores" },
 ]
 
+// Contact validation functions
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+const validatePhone = (phone: string): boolean => {
+  // Remove all non-numeric characters
+  const cleanPhone = phone.replace(/\D/g, '')
+  // Brazilian phone: 10-11 digits (with area code)
+  return cleanPhone.length >= 10 && cleanPhone.length <= 11
+}
+
+const validateWhatsApp = (whatsapp: string): boolean => {
+  // Remove all non-numeric characters
+  const cleanWhatsApp = whatsapp.replace(/\D/g, '')
+  // WhatsApp: 10-13 digits (can include country code)
+  return cleanWhatsApp.length >= 10 && cleanWhatsApp.length <= 13
+}
+
+const validateContactInfo = (contact: string): { isValid: boolean; message: string } => {
+  const trimmedContact = contact.trim()
+  
+  if (!trimmedContact) {
+    return { isValid: false, message: "Por favor, forneça informações de contato" }
+  }
+  
+  // Check if it's an email
+  if (trimmedContact.includes('@')) {
+    if (validateEmail(trimmedContact)) {
+      return { isValid: true, message: "" }
+    } else {
+      return { isValid: false, message: "Por favor, insira um email válido" }
+    }
+  }
+  
+  // Check if it's a phone/WhatsApp (contains only numbers, spaces, parentheses, hyphens, plus)
+  const phonePattern = /^[\d\s\(\)\-\+]+$/
+  if (phonePattern.test(trimmedContact)) {
+    if (validatePhone(trimmedContact) || validateWhatsApp(trimmedContact)) {
+      return { isValid: true, message: "" }
+    } else {
+      return { isValid: false, message: "Por favor, insira um telefone/WhatsApp válido (10-13 dígitos)" }
+    }
+  }
+  
+  return { isValid: false, message: "Por favor, insira um email, telefone ou WhatsApp válido" }
+}
+
 export default function SellTicketsPage() {
-  const isDesktop = useMediaQuery("(min-width: 640px)")
+  const [isDesktop, setIsDesktop] = useState(false)
   const router = useRouter()
+
+  // Events state
+  const [availableEvents, setAvailableEvents] = useState<SellEvent[]>([])
+  const [eventsLoading, setEventsLoading] = useState(true)
+  const [eventsError, setEventsError] = useState("")
 
   // Form state
   const [selectedEvent, setSelectedEvent] = useState("")
@@ -68,9 +93,45 @@ export default function SellTicketsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [contactError, setContactError] = useState("")
+
+  // Load events from API
+  useEffect(() => {
+    // Set desktop state after client mount to avoid hydration mismatch
+    setIsDesktop(window.matchMedia("(min-width: 640px)").matches)
+    
+    const loadEvents = async () => {
+      try {
+        setEventsLoading(true)
+        setEventsError("")
+        
+        const apiEvents = await eventsApi.getAll()
+        
+        // Transform API events to SellEvent format
+        const transformedEvents: SellEvent[] = apiEvents.map((event) => ({
+          id: event.id.toString(),
+          title: event.name,
+          date: event.date,
+          location: event.location,
+          image: event.image || "/placeholder.svg",
+          ticket_count: event.ticket_count
+        }))
+        
+        setAvailableEvents(transformedEvents)
+      } catch (err) {
+        console.error('Erro ao carregar eventos:', err)
+        setEventsError('Erro ao carregar eventos. Tente novamente.')
+        setAvailableEvents([])
+      } finally {
+        setEventsLoading(false)
+      }
+    }
+    
+    loadEvents()
+  }, [])
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
 
@@ -90,8 +151,10 @@ export default function SellTicketsPage() {
       return
     }
 
-    if (!contactInfo.trim()) {
-      setError("Por favor, forneça informações de contato")
+    // Validate contact info with new validator
+    const contactValidation = validateContactInfo(contactInfo)
+    if (!contactValidation.isValid) {
+      setError(contactValidation.message)
       return
     }
 
@@ -297,6 +360,40 @@ export default function SellTicketsPage() {
           )}
 
           <form onSubmit={handleSubmit}>
+            {/* Events Loading/Error State */}
+            {eventsLoading && (
+              <div
+                style={{
+                  backgroundColor: "rgba(59, 130, 246, 0.1)",
+                  border: "1px solid rgba(59, 130, 246, 0.3)",
+                  borderRadius: "8px",
+                  padding: "16px",
+                  marginBottom: "24px",
+                  textAlign: "center",
+                }}
+              >
+                <span style={{ color: "#3B82F6" }}>Carregando eventos...</span>
+              </div>
+            )}
+
+            {eventsError && (
+              <div
+                style={{
+                  backgroundColor: "rgba(239, 68, 68, 0.1)",
+                  border: "1px solid rgba(239, 68, 68, 0.3)",
+                  borderRadius: "8px",
+                  padding: "16px",
+                  marginBottom: "24px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                }}
+              >
+                <AlertCircle size={20} color="#EF4444" />
+                <span style={{ color: "#EF4444" }}>{eventsError}</span>
+              </div>
+            )}
+
             {/* Event Selection */}
             <div style={{ marginBottom: "24px" }}>
               <label
@@ -312,22 +409,26 @@ export default function SellTicketsPage() {
               <select
                 value={selectedEvent}
                 onChange={(e) => setSelectedEvent(e.target.value)}
+                disabled={eventsLoading || availableEvents.length === 0}
                 style={{
                   width: "100%",
                   padding: "12px",
-                  backgroundColor: "#27272A",
+                  backgroundColor: eventsLoading || availableEvents.length === 0 ? "#1F1F23" : "#27272A",
                   border: "1px solid #3F3F46",
                   borderRadius: "8px",
-                  color: "white",
+                  color: eventsLoading || availableEvents.length === 0 ? "#71717A" : "white",
                   fontSize: "16px",
                   outline: "none",
+                  cursor: eventsLoading || availableEvents.length === 0 ? "not-allowed" : "pointer",
                 }}
                 required
               >
-                <option value="">Escolha um evento...</option>
+                <option value="">
+                  {eventsLoading ? "Carregando..." : availableEvents.length === 0 ? "Nenhum evento disponível" : "Escolha um evento..."}
+                </option>
                 {availableEvents.map((event) => (
                   <option key={event.id} value={event.id}>
-                    {event.title} - {event.date}
+                    {event.title} - {event.date} ({event.ticket_count} ingressos disponíveis)
                   </option>
                 ))}
               </select>
@@ -356,7 +457,7 @@ export default function SellTicketsPage() {
                     objectFit: "cover",
                   }}
                 />
-                <div>
+                <div style={{ flex: 1 }}>
                   <h3
                     style={{
                       fontSize: "18px",
@@ -379,10 +480,35 @@ export default function SellTicketsPage() {
                     style={{
                       color: "#A1A1AA",
                       fontSize: "14px",
+                      marginBottom: "4px",
                     }}
                   >
                     {selectedEventData.location}
                   </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      marginTop: "8px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        backgroundColor: selectedEventData.ticket_count > 0 ? "rgba(34, 197, 94, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                        color: selectedEventData.ticket_count > 0 ? "#22C55E" : "#EF4444",
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        fontSize: "12px",
+                        fontWeight: "600",
+                      }}
+                    >
+                      {selectedEventData.ticket_count > 0 
+                        ? `${selectedEventData.ticket_count} ingressos disponíveis`
+                        : "Esgotado"
+                      }
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -544,7 +670,18 @@ export default function SellTicketsPage() {
               <input
                 type="text"
                 value={contactInfo}
-                onChange={(e) => setContactInfo(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setContactInfo(value)
+                  
+                  // Real-time validation
+                  if (value.trim()) {
+                    const validation = validateContactInfo(value)
+                    setContactError(validation.isValid ? "" : validation.message)
+                  } else {
+                    setContactError("")
+                  }
+                }}
                 placeholder="WhatsApp, email ou telefone para contato"
                 style={{
                   width: "100%",
@@ -567,6 +704,17 @@ export default function SellTicketsPage() {
               >
                 Essas informações serão compartilhadas com compradores interessados.
               </p>
+              {contactError && (
+                <p
+                  style={{
+                    color: "#EF4444",
+                    fontSize: "14px",
+                    marginTop: "8px",
+                  }}
+                >
+                  {contactError}
+                </p>
+              )}
             </div>
 
             {/* Summary */}

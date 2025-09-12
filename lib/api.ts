@@ -110,10 +110,22 @@ export const eventsApi = {
   },
 
   // Purchase tickets and update event ticket count
-  purchaseTickets: async (eventId: string, quantity: number): Promise<{ success: boolean; message: string }> => {
+  purchaseTickets: async (eventId: string | number, quantity: number): Promise<{ success: boolean; message: string }> => {
     return apiRequest<{ success: boolean; message: string }>(`/event_app/events/${eventId}/purchase/`, {
       method: 'POST',
       body: JSON.stringify({ quantity }),
+    });
+  },
+
+  sellTickets: async (eventId: string | number, ticketData: {
+    quantity: number;
+    price: number;
+    ticket_type?: string;
+    description?: string;
+  }): Promise<{ success: boolean; message: string; total_tickets?: number }> => {
+    return apiRequest<{ success: boolean; message: string; total_tickets?: number }>(`/event_app/events/${eventId}/sell/`, {
+      method: 'POST',
+      body: JSON.stringify(ticketData),
     });
   }
 };

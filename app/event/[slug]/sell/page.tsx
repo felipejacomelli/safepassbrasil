@@ -1,32 +1,32 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useMediaQuery } from "@/hooks/use-media-query"
+import { eventsApi } from "@/lib/api"
 
 export default function SellTicketPage({ params }: { params: { slug: string } }) {
-  const isDesktop = useMediaQuery("(min-width: 640px)")
+  const [isDesktop, setIsDesktop] = useState(false)
   const router = useRouter()
 
   // Find the event data based on the slug
   const event = events.find((e) => e.slug === params.slug) || events[0]
 
   // State for form
-  const [ticketType, setTicketType] = useState(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search)
-      return params.get("type") || "pista-premium"
-    }
-    return "pista-premium"
-  })
+  const [ticketType, setTicketType] = useState("pista-premium")
+  const [price, setPrice] = useState("")
 
-  const [price, setPrice] = useState(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search)
-      return params.get("price") || ""
-    }
-    return ""
-  })
+  // Initialize form values from URL params after hydration
+  useEffect(() => {
+    // Set desktop state after client mount to avoid hydration mismatch
+    setIsDesktop(window.matchMedia("(min-width: 640px)").matches)
+    
+    const urlParams = new URLSearchParams(window.location.search)
+    const typeParam = urlParams.get("type")
+    const priceParam = urlParams.get("price")
+    
+    if (typeParam) setTicketType(typeParam)
+    if (priceParam) setPrice(priceParam)
+  }, [])
   const [quantity, setQuantity] = useState("1")
   const [description, setDescription] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -34,7 +34,7 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
   const [success, setSuccess] = useState(false)
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
 
@@ -44,19 +44,62 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
       return
     }
 
-    // Simulate form submission
+    // Validate quantity
+    if (!quantity || isNaN(Number(quantity)) || Number(quantity) <= 0) {
+      setError("Por favor, insira uma quantidade válida")
+      return
+    }
+
     setIsSubmitting(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
-      setSuccess(true)
+    try {
+      // Get event ID from the events array
+      const eventData = events.find(e => e.slug === params.slug)
+      if (!eventData) {
+        setError("Evento não encontrado")
+        setIsSubmitting(false)
+        return
+      }
 
-      // Redirect after success
-      setTimeout(() => {
-        router.push(`/event/${params.slug}`)
-      }, 3000)
-    }, 1500)
+      // Map slug to event ID (temporary solution)
+      let eventId: number
+      switch (params.slug) {
+        case "rock-in-rio-2025":
+          eventId = 3
+          break
+        case "festival-de-verao":
+          eventId = 4
+          break
+        case "lollapalooza-brasil-2025":
+          eventId = 5
+          break
+        default:
+          eventId = 3 // Default to Rock in Rio
+      }
+
+      // Call the sell tickets API
+      const result = await eventsApi.sellTickets(eventId, {
+        quantity: Number(quantity),
+        price: Number(price),
+        ticket_type: ticketType,
+        description: description
+      })
+
+      if (result.success) {
+        setSuccess(true)
+        // Redirect after success
+        setTimeout(() => {
+          router.push(`/event/${params.slug}`)
+        }, 3000)
+      } else {
+        setError(result.message || "Erro ao listar ingressos")
+      }
+    } catch (err) {
+      console.error('Erro ao vender ingressos:', err)
+      setError("Erro ao conectar com o servidor. Tente novamente.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

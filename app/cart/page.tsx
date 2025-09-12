@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useMediaQuery } from "@/hooks/use-media-query"
 import { useAuth } from "@/contexts/auth-context"
 import { User, ShoppingCart } from "lucide-react"
 
@@ -35,7 +34,7 @@ interface FormErrors {
 
 export default function CartPage() {
   const [isClient, setIsClient] = useState(false)
-  const isDesktop = useMediaQuery("(min-width: 640px)")
+  const [isDesktop, setIsDesktop] = useState(false)
   const router = useRouter()
   const { user, isAuthenticated, logout } = useAuth()
 
@@ -44,22 +43,20 @@ export default function CartPage() {
 
   // Load cart items from localStorage on client side
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedCart = localStorage.getItem("cart")
-      if (savedCart) {
-        try {
-          setCartItems(JSON.parse(savedCart))
-        } catch (e) {
-          console.error("Failed to parse cart from localStorage", e)
-          setCartItems([])
-        }
+    const savedCart = localStorage.getItem("cart")
+    if (savedCart) {
+      try {
+        setCartItems(JSON.parse(savedCart))
+      } catch (e) {
+        console.error("Failed to parse cart from localStorage", e)
+        setCartItems([])
       }
     }
   }, [])
 
   // Sync cart items with localStorage whenever cartItems changes
   useEffect(() => {
-    if (typeof window !== "undefined" && isClient) {
+    if (isClient) {
       if (cartItems.length === 0) {
         localStorage.removeItem("cart")
       } else {
@@ -88,6 +85,8 @@ export default function CartPage() {
   // Ensure client-side rendering to avoid hydration mismatch
   useEffect(() => {
     setIsClient(true)
+    // Set desktop state after client mount to avoid hydration mismatch
+    setIsDesktop(window.matchMedia("(min-width: 640px)").matches)
   }, [])
 
   // Pre-fill form with user data when user is logged in
@@ -127,17 +126,44 @@ export default function CartPage() {
 
     // Format expiry date with automatic "/" separator
     if (name === 'expiryDate') {
-      // Remove all non-numeric characters
-      const numericValue = value.replace(/\D/g, '')
+      const prev = formData.expiryDate
+      const isDeleting = value.length < prev.length
       
-      // Add "/" after 2 digits (MM/YY format)
+      // Remove all non-numeric characters and limit to 4 digits (MMYY)
+      let numericValue = value.replace(/\D/g, '').slice(0, 4)
+      
+      // Validate month (01-12)
       if (numericValue.length >= 2) {
-        formattedValue = numericValue.slice(0, 2) + '/' + numericValue.slice(2, 4)
-      } else {
-        formattedValue = numericValue
+        const month = parseInt(numericValue.slice(0, 2))
+        if (month > 12) {
+          numericValue = '12' + numericValue.slice(2)
+        } else if (month === 0) {
+          numericValue = '01' + numericValue.slice(2)
+        }
       }
       
-      // Limit to MM/YY format (5 characters max)
+      // Validate year (current year or future)
+      if (numericValue.length === 4) {
+        const currentYear = new Date().getFullYear() % 100
+        const year = parseInt(numericValue.slice(2, 4))
+        if (year < currentYear) {
+          numericValue = numericValue.slice(0, 2) + currentYear.toString().padStart(2, '0')
+        }
+      }
+      
+      if (numericValue.length === 0) {
+        formattedValue = ''
+      } else if (numericValue.length <= 2) {
+        // When typing forward and reaching 2 digits, add the slash
+        formattedValue = !isDeleting && numericValue.length === 2
+          ? `${numericValue}/`
+          : numericValue
+      } else {
+        // For 3-4 digits, always format as MM/YY
+        formattedValue = `${numericValue.slice(0, 2)}/${numericValue.slice(2)}`
+      }
+      
+      // Ensure max length MM/YY (5 characters)
       if (formattedValue.length > 5) {
         formattedValue = formattedValue.slice(0, 5)
       }

@@ -1,7 +1,6 @@
 "use client"
 
 import { useSearchParams } from "next/navigation"
-import { useMediaQuery } from "@/hooks/use-media-query"
 import { useEffect, useState } from "react"
 import { eventsApi, transformEventForFrontend } from "@/lib/api"
 
@@ -117,12 +116,15 @@ export default function SearchPage() {
   const query = searchParams.get("q") || ""
   const categoryFilter = searchParams.get("category") || ""
   const locationFilter = searchParams.get("location") || ""
-  const isDesktop = useMediaQuery("(min-width: 640px)")
+  const [isDesktop, setIsDesktop] = useState(false)
   const [searchResults, setSearchResults] = useState<SearchResults | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    // Set desktop state after client mount to avoid hydration mismatch
+    setIsDesktop(window.matchMedia("(min-width: 640px)").matches)
+    
     const fetchEvents = async () => {
       setLoading(true)
       setError(null)

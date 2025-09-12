@@ -19,45 +19,45 @@ const mockUsers = [
     transactions: [
       {
         id: "1",
-        type: "purchase",
+        type: "purchase" as const,
         amount: -350.0,
         date: "2025-04-20",
-        status: "completed",
+        status: "completed" as const,
         description: "Ingresso Rock in Rio - Metallica",
       },
       {
         id: "2",
-        type: "sale",
+        type: "sale" as const,
         amount: 420.5,
         date: "2025-04-18",
-        status: "completed",
+        status: "completed" as const,
         description: "Ingresso Lollapalooza - Arctic Monkeys",
       },
       {
         id: "3",
-        type: "withdrawal",
+        type: "withdrawal" as const,
         amount: -500.0,
         date: "2025-04-15",
-        status: "completed",
+        status: "completed" as const,
         description: "Saque para conta bancária",
       },
       {
         id: "4",
-        type: "sale",
+        type: "sale" as const,
         amount: 650.0,
         date: "2025-04-10",
-        status: "pending",
+        status: "pending" as const,
         description: "Ingresso Festival de Verão - Caetano Veloso",
       },
       {
         id: "5",
-        type: "purchase",
+        type: "purchase" as const,
         amount: -220.0,
         date: "2025-04-05",
-        status: "completed",
+        status: "completed" as const,
         description: "Ingresso Show Charlie Brown Jr.",
       },
-    ],
+    ] as Transaction[],
   },
   {
     id: "2",
@@ -124,15 +124,19 @@ export const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
   const [transactions, setTransactions] = useState([])
   const [orders, setOrders] = useState([])
   const [sales, setSales] = useState([])
 
   useEffect(() => {
+    setMounted(true)
     // Check if user is logged in from localStorage
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem("user")
+      if (storedUser) {
+        setUser(JSON.parse(storedUser))
+      }
     }
     setIsLoading(false)
   }, [])
@@ -151,7 +155,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // If no 2FA, log in directly
       const loggedInUser = { ...user }
       setUser(loggedInUser)
-      localStorage.setItem("user", JSON.stringify(loggedInUser))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("user", JSON.stringify(loggedInUser))
+      }
       return { success: true, isAdmin: user.isAdmin }
     }
 
@@ -164,7 +170,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (email === mockUsers[0].email) {
       const loggedInUser = { ...mockUsers[0] }
       setUser(loggedInUser)
-      localStorage.setItem("user", JSON.stringify(loggedInUser))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("user", JSON.stringify(loggedInUser))
+      }
       return true
     }
 
@@ -173,14 +181,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem("user")
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem("user")
+    }
   }
 
   const updateUser = (data: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...data }
       setUser(updatedUser)
-      localStorage.setItem("user", JSON.stringify(updatedUser))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("user", JSON.stringify(updatedUser))
+      }
     }
   }
 
@@ -188,8 +200,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: !!user,
-        isLoading,
+        isAuthenticated: mounted ? !!user : false,
+        isLoading: !mounted || isLoading,
         transactions,
         orders,
         sales,

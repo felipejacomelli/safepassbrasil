@@ -13,15 +13,13 @@ interface CartItem {
 }
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useMediaQuery } from "@/hooks/use-media-query"
 import { Button } from "@/components/ui/button"
 import { CreditCard, Landmark, Banknote, QrCode, ShieldCheck, ChevronRight, AlertCircle } from "lucide-react"
 
 export default function CheckoutPage() {
-  const isDesktop = useMediaQuery("(min-width: 640px)")
+  const [isDesktop, setIsDesktop] = useState(false)
   const router = useRouter()
 
   // Payment method state
@@ -42,33 +40,33 @@ export default function CheckoutPage() {
   const [termsAccepted, setTermsAccepted] = useState(false)
 
   // Get cart items from localStorage (or use sample data if empty)
-  const [cartItems, setCartItems] = useState(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const savedCart = localStorage.getItem("cart")
-        if (savedCart) {
-          return JSON.parse(savedCart)
-        }
-      } catch (e) {
-        console.error("Failed to parse cart from localStorage", e)
-      }
-    }
+  const [cartItems, setCartItems] = useState([
+    {
+      id: "1",
+      eventId: "rock-in-rio-2025",
+      eventName: "Rock in Rio 2025",
+      ticketType: "Pista Premium",
+      price: 750,
+      quantity: 1,
+      date: "19-28 de Setembro, 2025",
+      location: "Cidade do Rock, Rio de Janeiro",
+      image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60",
+    },
+  ])
 
-    // Sample cart item if none exists
-    return [
-      {
-        id: "1",
-        eventId: "rock-in-rio-2025",
-        eventName: "Rock in Rio 2025",
-        ticketType: "Pista Premium",
-        price: 750,
-        quantity: 1,
-        date: "19-28 de Setembro, 2025",
-        location: "Cidade do Rock, Rio de Janeiro",
-        image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60",
-      },
-    ]
-  })
+  // Load cart from localStorage after hydration
+  useEffect(() => {
+    try {
+      const savedCart = localStorage.getItem("cart")
+      if (savedCart) {
+        setCartItems(JSON.parse(savedCart))
+      }
+    } catch (e) {
+      console.error("Failed to parse cart from localStorage", e)
+    }
+    // Set desktop state after client mount to avoid hydration mismatch
+    setIsDesktop(window.matchMedia("(min-width: 640px)").matches)
+  }, [])
 
   // Calculate totals
   const subtotal = cartItems.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
@@ -195,9 +193,7 @@ export default function CheckoutPage() {
         // All zeros card succeeds
         if (cardNumber.replace(/\s+/g, "") === "0000000000000000") {
           // Clear cart
-          if (typeof window !== "undefined") {
-            localStorage.removeItem("cart")
-          }
+          localStorage.removeItem("cart")
           // Redirect to success page
           router.push("/checkout/success")
         }
@@ -211,9 +207,7 @@ export default function CheckoutPage() {
           const randomSuccess = Math.random() > 0.5
           if (randomSuccess) {
             // Clear cart
-            if (typeof window !== "undefined") {
-              localStorage.removeItem("cart")
-            }
+            localStorage.removeItem("cart")
             // Redirect to success page
             router.push("/checkout/success")
           } else {
@@ -224,9 +218,7 @@ export default function CheckoutPage() {
       } else {
         // Non-credit card payments always succeed for demo
         // Clear cart
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("cart")
-        }
+        localStorage.removeItem("cart")
         // Redirect to success page
         router.push("/checkout/success")
       }
