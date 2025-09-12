@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Check, AlertCircle } from "lucide-react"
+import { ArrowLeft, Check, AlertCircle, Plus, Minus } from "lucide-react"
 import { eventsApi, transformEventForFrontend, Event } from "@/lib/api"
 
 // Interface para eventos na página de venda
@@ -131,7 +131,7 @@ export default function SellTicketsPage() {
   }, [])
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
 
@@ -158,19 +158,41 @@ export default function SellTicketsPage() {
       return
     }
 
-    // Simulate form submission
+    // Submit to API
     setIsSubmitting(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
-      setSuccess(true)
+    try {
+      const selectedCategoryData = ticketCategories.find((cat) => cat.id === ticketCategory)
+      
+      const result = await eventsApi.sellTickets(selectedEvent, {
+        quantity: parseInt(quantity),
+        price: parseFloat(price),
+        ticket_type: selectedCategoryData?.name || 'Geral',
+        description: description || ''
+      })
 
-      // Redirect after success
-      setTimeout(() => {
-        router.push("/")
-      }, 3000)
-    }, 1500)
+      if (result.success) {
+        setSuccess(true)
+        
+        // Update the event's ticket count in local state
+        setAvailableEvents(prev => 
+          prev.map(event => 
+            event.id === selectedEvent 
+              ? { ...event, ticket_count: result.total_tickets || event.ticket_count + parseInt(quantity) }
+              : event
+          )
+        )
+
+        // Success - let user decide when to navigate
+      } else {
+        setError(result.message || "Erro ao publicar ingresso")
+      }
+    } catch (err) {
+      console.error('Erro ao publicar ingresso:', err)
+      setError("Erro ao conectar com o servidor. Tente novamente.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const selectedEventData = availableEvents.find((event) => event.id === selectedEvent)
@@ -230,23 +252,48 @@ export default function SellTicketsPage() {
               lineHeight: "1.6",
             }}
           >
-            Seu ingresso foi publicado na plataforma. Você será redirecionado para a página inicial em alguns segundos.
+            Seu ingresso foi publicado na plataforma e já está disponível para compra pelos usuários.
           </p>
-          <button
-            onClick={() => router.push("/")}
-            style={{
-              backgroundColor: "#3B82F6",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              padding: "12px 24px",
-              fontSize: "16px",
-              fontWeight: "600",
-              cursor: "pointer",
-            }}
-          >
-            Voltar ao Início
-          </button>
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+            <button
+              onClick={() => {
+                setSuccess(false)
+                setSelectedEvent("")
+                setTicketCategory("")
+                setPrice("")
+                setQuantity("1")
+                setDescription("")
+                setContactInfo("")
+              }}
+              style={{
+                 backgroundColor: "#3B82F6",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                padding: "12px 24px",
+                fontSize: "16px",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
+            >
+              Publicar Outro Ingresso
+            </button>
+            <button
+              onClick={() => router.push("/")}
+              style={{
+                backgroundColor: "#6B7280",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                padding: "12px 24px",
+                fontSize: "16px",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
+            >
+              Voltar ao Início
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -600,26 +647,73 @@ export default function SellTicketsPage() {
                 >
                   Quantidade
                 </label>
-                <select
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
+                <div
                   style={{
-                    width: "100%",
-                    padding: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
                     backgroundColor: "#27272A",
                     border: "1px solid #3F3F46",
                     borderRadius: "8px",
-                    color: "white",
-                    fontSize: "16px",
-                    outline: "none",
+                    padding: "12px",
                   }}
                 >
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-                    <option key={num} value={num}>
-                      {num} ingresso{num > 1 ? "s" : ""}
-                    </option>
-                  ))}
-                </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                       const newQuantity = Math.max(1, parseInt(quantity) - 1).toString()
+                       setQuantity(newQuantity)
+                     }}
+                    disabled={parseInt(quantity) <= 1}
+                    style={{
+                      backgroundColor: parseInt(quantity) <= 1 ? "#1F1F23" : "#3F3F46",
+                      border: "none",
+                      color: parseInt(quantity) <= 1 ? "#71717A" : "white",
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "4px",
+                      cursor: parseInt(quantity) <= 1 ? "not-allowed" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <span
+                    style={{
+                      minWidth: "40px",
+                      textAlign: "center",
+                      fontWeight: "600",
+                      fontSize: "16px",
+                      color: "white",
+                    }}
+                  >
+                    {quantity} ingresso{parseInt(quantity) > 1 ? "s" : ""}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                       const newQuantity = Math.min(8, parseInt(quantity) + 1).toString()
+                       setQuantity(newQuantity)
+                     }}
+                    disabled={parseInt(quantity) >= 8}
+                    style={{
+                      backgroundColor: parseInt(quantity) >= 8 ? "#1F1F23" : "#3F3F46",
+                      border: "none",
+                      color: parseInt(quantity) >= 8 ? "#71717A" : "white",
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "4px",
+                      cursor: parseInt(quantity) >= 8 ? "not-allowed" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
               </div>
             </div>
 
