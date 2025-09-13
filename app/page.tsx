@@ -183,7 +183,7 @@ export default function Page() {
   // Funções para buscar dados da API
   const loadCategoryCounts = async (): Promise<FrontendCategory[]> => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/category_app/categories/counts/')
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/category_app/categories/counts/`)
       if (!response.ok) throw new Error('Erro ao carregar contadores de categorias')
       const apiCategoryCounts = await response.json()
       
@@ -214,7 +214,7 @@ export default function Page() {
 
   const loadLocationCounts = async (): Promise<FrontendLocation[]> => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/category_app/locations/counts/')
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/category_app/locations/counts/`)
       if (!response.ok) throw new Error('Erro ao carregar contadores de localizações')
       const apiLocationCounts = await response.json()
       

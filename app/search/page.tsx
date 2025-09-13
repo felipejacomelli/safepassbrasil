@@ -7,7 +7,7 @@ import { eventsApi, transformEventForFrontend } from "@/lib/api"
 // Função para buscar contadores dinâmicos das categorias
 const fetchCategoryCounts = async (): Promise<Category[]> => {
   try {
-    const response = await fetch('http://localhost:8000/category_app/categories/counts/')
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/category_app/categories/counts/`)
     if (!response.ok) {
       throw new Error('Falha ao buscar contadores de categorias')
     }
@@ -28,7 +28,7 @@ const fetchCategoryCounts = async (): Promise<Category[]> => {
 // Função para buscar localizações dinâmicas
 const fetchLocations = async (): Promise<Location[]> => {
   try {
-    const response = await fetch('http://localhost:8000/category_app/locations/')
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/category_app/locations/`)
     if (!response.ok) {
       throw new Error('Falha ao buscar localizações')
     }
