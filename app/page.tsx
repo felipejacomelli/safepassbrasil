@@ -179,6 +179,26 @@ export default function Page() {
     
     loadData()
   }, [dataLoaded])
+
+  // Listener para atualizar contador de ingressos
+  useEffect(() => {
+    const handleTicketCountUpdate = (event: CustomEvent) => {
+      const { eventId, newCount } = event.detail
+      setEvents(prevEvents => 
+        prevEvents.map(evt => 
+          evt.slug === eventId || evt.title === eventId
+            ? { ...evt, ticketCount: newCount }
+            : evt
+        )
+      )
+    }
+
+    window.addEventListener('ticketCountUpdated', handleTicketCountUpdate as EventListener)
+    
+    return () => {
+      window.removeEventListener('ticketCountUpdated', handleTicketCountUpdate as EventListener)
+    }
+  }, [])
   
   // Funções para buscar dados da API
   const loadCategoryCounts = async (): Promise<FrontendCategory[]> => {

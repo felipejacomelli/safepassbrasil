@@ -94,6 +94,10 @@ export default function SellTicketsPage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
   const [contactError, setContactError] = useState("")
+  
+  // Proof upload state
+  const [proofFile, setProofFile] = useState<File | null>(null)
+  const [proofPreview, setProofPreview] = useState<string | null>(null)
 
   // Load events from API
   useEffect(() => {
@@ -809,6 +813,204 @@ export default function SellTicketsPage() {
                   {contactError}
                 </p>
               )}
+            </div>
+
+            {/* Upload Section */}
+            <div
+              style={{
+                backgroundColor: "#18181B",
+                borderRadius: "12px",
+                padding: "24px",
+                marginBottom: "24px",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: "20px",
+                  fontWeight: "bold",
+                  marginBottom: "16px",
+                }}
+              >
+                Comprovante do Ingresso
+              </h2>
+              <p
+                style={{
+                  color: "#A1A1AA",
+                  marginBottom: "16px",
+                  fontSize: "14px",
+                }}
+              >
+                Faça upload de uma foto ou PDF do seu ingresso para verificação. Não se preocupe, ocultaremos
+                informações sensíveis como códigos de barras e QR codes.
+              </p>
+              <div
+                style={{
+                  border: "2px dashed #3F3F46",
+                  borderRadius: "8px",
+                  padding: "32px 16px",
+                  textAlign: "center",
+                  cursor: "pointer",
+                }}
+                onClick={() => document.getElementById("proof-upload")?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  e.currentTarget.style.borderColor = "#3B82F6"
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault()
+                  e.currentTarget.style.borderColor = "#3F3F46"
+                }}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  e.currentTarget.style.borderColor = "#3F3F46"
+                  const files = e.dataTransfer.files
+                  if (files.length > 0) {
+                    const file = files[0]
+                    if (file.type.startsWith("image/") || file.type === "application/pdf") {
+                      setProofFile(file)
+                      if (file.type.startsWith("image/")) {
+                        const reader = new FileReader()
+                        reader.onload = (e) => {
+                          setProofPreview(e.target?.result as string)
+                        }
+                        reader.readAsDataURL(file)
+                      } else {
+                        setProofPreview(null)
+                      }
+                    }
+                  }
+                }}
+              >
+                {proofFile ? (
+                  <div style={{ position: "relative" }}>
+                    {proofPreview ? (
+                      <img
+                        src={proofPreview}
+                        alt="Preview do comprovante"
+                        style={{
+                          maxWidth: "200px",
+                          maxHeight: "200px",
+                          borderRadius: "8px",
+                          objectFit: "cover",
+                          margin: "0 auto",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <svg
+                          width="48"
+                          height="48"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M7 16.2V14.2H17V16.2H7ZM7 11.5V9.5H17V11.5H7ZM7 6.8V4.8H17V6.8H7Z" fill="#A1A1AA" />
+                          <path
+                            d="M3 20.5V3.5C3 2.4 3.9 1.5 5 1.5H19C20.1 1.5 21 2.4 21 3.5V20.5C21 21.6 20.1 22.5 19 22.5H5C3.9 22.5 3 21.6 3 20.5ZM5 20.5H19V3.5H5V20.5Z"
+                            fill="#A1A1AA"
+                          />
+                        </svg>
+                        <p style={{ color: "#A1A1AA", margin: 0 }}>
+                          {proofFile.name}
+                        </p>
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setProofFile(null)
+                        setProofPreview(null)
+                      }}
+                      style={{
+                        position: "absolute",
+                        top: "8px",
+                        right: "8px",
+                        backgroundColor: "rgba(0, 0, 0, 0.7)",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "50%",
+                        width: "24px",
+                        height: "24px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <svg
+                      width="48"
+                      height="48"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      style={{ margin: "0 auto 16px auto" }}
+                    >
+                      <path d="M7 16.2V14.2H17V16.2H7ZM7 11.5V9.5H17V11.5H7ZM7 6.8V4.8H17V6.8H7Z" fill="#A1A1AA" />
+                      <path
+                        d="M3 20.5V3.5C3 2.4 3.9 1.5 5 1.5H19C20.1 1.5 21 2.4 21 3.5V20.5C21 21.6 20.1 22.5 19 22.5H5C3.9 22.5 3 21.6 3 20.5ZM5 20.5H19V3.5H5V20.5Z"
+                        fill="#A1A1AA"
+                      />
+                    </svg>
+                    <p
+                      style={{
+                        color: "#A1A1AA",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      Arraste e solte arquivos aqui ou
+                    </p>
+                    <button
+                      type="button"
+                      style={{
+                        backgroundColor: "#27272A",
+                        color: "white",
+                        border: "none",
+                        padding: "8px 16px",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                      }}
+                    >
+                      Selecionar Arquivo
+                    </button>
+                  </>
+                )}
+              </div>
+              
+              <input
+                id="proof-upload"
+                type="file"
+                accept="image/*,application/pdf"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    setProofFile(file)
+                    if (file.type.startsWith("image/")) {
+                      const reader = new FileReader()
+                      reader.onload = (e) => {
+                        setProofPreview(e.target?.result as string)
+                      }
+                      reader.readAsDataURL(file)
+                    } else {
+                      setProofPreview(null)
+                    }
+                  }
+                }}
+              />
             </div>
 
             {/* Summary */}

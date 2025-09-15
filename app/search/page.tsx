@@ -190,6 +190,31 @@ export default function SearchPage() {
     fetchEvents()
   }, [query, categoryFilter, locationFilter])
 
+  // Listener para atualizar contador de ingressos
+  useEffect(() => {
+    const handleTicketCountUpdate = (event: CustomEvent) => {
+      const { eventId, newCount } = event.detail
+      setSearchResults(prevResults => {
+        if (!prevResults) return prevResults
+        
+        return {
+          ...prevResults,
+          events: prevResults.events.map(evt => 
+            evt.slug === eventId || evt.title === eventId
+              ? { ...evt, ticket_count: newCount }
+              : evt
+          )
+        }
+      })
+    }
+
+    window.addEventListener('ticketCountUpdated', handleTicketCountUpdate as EventListener)
+    
+    return () => {
+      window.removeEventListener('ticketCountUpdated', handleTicketCountUpdate as EventListener)
+    }
+  }, [])
+
   // Determine the title based on filters
   const getSearchTitle = () => {
     if (categoryFilter) {
@@ -368,7 +393,7 @@ export default function SearchPage() {
             </a>
 
             <a
-              href={`/event/${event.slug}?sell=true`}
+              href={`/event/${event.slug}/sell`}
               style={{
                 textDecoration: "none",
                 flex: "1",

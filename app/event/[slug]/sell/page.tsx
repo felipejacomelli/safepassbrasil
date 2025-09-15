@@ -4,16 +4,75 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { eventsApi } from "@/lib/api"
 
+// Contact validation functions
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+const validatePhone = (phone: string): boolean => {
+  // Remove all non-numeric characters
+  const cleanPhone = phone.replace(/\D/g, '')
+  // Brazilian phone: 10-11 digits (with area code)
+  return cleanPhone.length >= 10 && cleanPhone.length <= 11
+}
+
+const validateWhatsApp = (whatsapp: string): boolean => {
+  // Remove all non-numeric characters
+  const cleanWhatsApp = whatsapp.replace(/\D/g, '')
+  // WhatsApp: 10-13 digits (can include country code)
+  return cleanWhatsApp.length >= 10 && cleanWhatsApp.length <= 13
+}
+
+const validateContactInfo = (contact: string): { isValid: boolean; message: string } => {
+  const trimmedContact = contact.trim()
+  
+  if (!trimmedContact) {
+    return { isValid: false, message: "Por favor, forneça informações de contato" }
+  }
+  
+  // Check if it's an email
+  if (trimmedContact.includes('@')) {
+    if (validateEmail(trimmedContact)) {
+      return { isValid: true, message: "" }
+    } else {
+      return { isValid: false, message: "Por favor, insira um email válido" }
+    }
+  }
+  
+  // Check if it's a phone/WhatsApp (contains only numbers, spaces, parentheses, hyphens, plus)
+  const phonePattern = /^[\d\s\(\)\-\+]+$/
+  if (phonePattern.test(trimmedContact)) {
+    if (validatePhone(trimmedContact) || validateWhatsApp(trimmedContact)) {
+      return { isValid: true, message: "" }
+    } else {
+      return { isValid: false, message: "Por favor, insira um telefone/WhatsApp válido (10-13 dígitos)" }
+    }
+  }
+  
+  return { isValid: false, message: "Por favor, insira um email, telefone ou WhatsApp válido" }
+}
+
 export default function SellTicketPage({ params }: { params: { slug: string } }) {
   const [isDesktop, setIsDesktop] = useState(false)
+  const [event, setEvent] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
-
-  // Find the event data based on the slug
-  const event = events.find((e) => e.slug === params.slug) || events[0]
 
   // State for form
   const [ticketType, setTicketType] = useState("pista-premium")
   const [price, setPrice] = useState("")
+  const [quantity, setQuantity] = useState("1")
+  const [description, setDescription] = useState("")
+  const [contactInfo, setContactInfo] = useState("")
+  const [contactError, setContactError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
+  
+  // Proof upload state
+  const [proofFile, setProofFile] = useState<File | null>(null)
+  const [proofPreview, setProofPreview] = useState<string | null>(null)
 
   // Initialize form values from URL params after hydration
   useEffect(() => {
@@ -26,12 +85,23 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
     
     if (typeParam) setTicketType(typeParam)
     if (priceParam) setPrice(priceParam)
-  }, [])
-  const [quantity, setQuantity] = useState("1")
-  const [description, setDescription] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState(false)
+
+    // Fetch event data from API
+    const fetchEvent = async () => {
+      try {
+        const eventData = await eventsApi.getBySlug(params.slug)
+        setEvent(eventData)
+      } catch (error) {
+        console.error("Error fetching event:", error)
+        // If event not found, redirect to 404 or events page
+        router.push("/events")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchEvent()
+  }, [params.slug, router])
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -50,35 +120,23 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
       return
     }
 
+    // Validate contact info with new validator
+    const contactValidation = validateContactInfo(contactInfo)
+    if (!contactValidation.isValid) {
+      setError(contactValidation.message)
+      return
+    }
+
+    if (!event) {
+      setError("Evento não encontrado")
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      // Get event ID from the events array
-      const eventData = events.find(e => e.slug === params.slug)
-      if (!eventData) {
-        setError("Evento não encontrado")
-        setIsSubmitting(false)
-        return
-      }
-
-      // Map slug to event ID (temporary solution)
-      let eventId: number
-      switch (params.slug) {
-        case "rock-in-rio-2025":
-          eventId = 3
-          break
-        case "festival-de-verao":
-          eventId = 4
-          break
-        case "lollapalooza-brasil-2025":
-          eventId = 5
-          break
-        default:
-          eventId = 3 // Default to Rock in Rio
-      }
-
-      // Call the sell tickets API
-      const result = await eventsApi.sellTickets(eventId, {
+      // Call the sell tickets API using the event ID from the API
+      const result = await eventsApi.sellTickets(event.id, {
         quantity: Number(quantity),
         price: Number(price),
         ticket_type: ticketType,
@@ -87,12 +145,9 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
 
       if (result.success) {
         setSuccess(true)
-        // Redirect after success
-        setTimeout(() => {
-          router.push(`/event/${params.slug}`)
-        }, 3000)
+        // Success - let user decide when to navigate
       } else {
-        setError(result.message || "Erro ao listar ingressos")
+        setError(result.message || "Erro ao publicar ingresso")
       }
     } catch (err) {
       console.error('Erro ao vender ingressos:', err)
@@ -100,6 +155,74 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div
+        style={{
+          backgroundColor: "black",
+          color: "white",
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: "18px", marginBottom: "16px" }}>
+            Carregando evento...
+          </div>
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              border: "3px solid #333",
+              borderTop: "3px solid #fff",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto",
+            }}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  // Show error if event not found
+  if (!event) {
+    return (
+      <div
+        style={{
+          backgroundColor: "black",
+          color: "white",
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: "18px", marginBottom: "16px" }}>
+            Evento não encontrado
+          </div>
+          <button
+            onClick={() => router.push("/events")}
+            style={{
+              backgroundColor: "#fff",
+              color: "#000",
+              border: "none",
+              padding: "12px 24px",
+              borderRadius: "8px",
+              cursor: "pointer",
+            }}
+          >
+            Voltar aos eventos
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -411,63 +534,90 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                 style={{
                   backgroundColor: "#18181B",
                   borderRadius: "12px",
-                  padding: "24px",
+                  padding: "48px",
                   textAlign: "center",
                 }}
               >
                 <div
                   style={{
-                    width: "64px",
-                    height: "64px",
-                    backgroundColor: "rgba(16, 185, 129, 0.1)",
+                    backgroundColor: "rgba(34, 197, 94, 0.1)",
                     borderRadius: "50%",
+                    width: "80px",
+                    height: "80px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    margin: "0 auto 16px auto",
+                    margin: "0 auto 24px",
                   }}
                 >
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M5 13L9 17L19 7"
-                      stroke="#10B981"
+                      stroke="#22C55E"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
                   </svg>
                 </div>
-                <h2
+                <h1
                   style={{
                     fontSize: "24px",
                     fontWeight: "bold",
                     marginBottom: "16px",
+                    color: "#22C55E",
                   }}
                 >
-                  Ingresso publicado com sucesso!
-                </h2>
+                  Ingresso Publicado com Sucesso!
+                </h1>
                 <p
                   style={{
                     color: "#A1A1AA",
                     marginBottom: "24px",
+                    lineHeight: "1.6",
                   }}
                 >
-                  Seu ingresso para {event.title} foi publicado e já está disponível para compradores.
+                  Seu ingresso foi publicado na plataforma e já está disponível para compra pelos usuários.
                 </p>
-                <a
-                  href={`/event/${event.slug}`}
-                  style={{
-                    display: "inline-block",
-                    backgroundColor: "#3B82F6",
-                    color: "black",
-                    padding: "12px 24px",
-                    borderRadius: "8px",
-                    fontWeight: "bold",
-                    textDecoration: "none",
-                  }}
-                >
-                  Voltar para o evento
-                </a>
+                <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+                  <button
+                    onClick={() => {
+                      setSuccess(false)
+                      setTicketType("pista-premium")
+                      setPrice("")
+                      setQuantity("1")
+                      setDescription("")
+                      setContactInfo("")
+                    }}
+                    style={{
+                      backgroundColor: "#3B82F6",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      padding: "12px 24px",
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Publicar Outro Ingresso
+                  </button>
+                  <button
+                    onClick={() => router.push(`/event/${params.slug}`)}
+                    style={{
+                      backgroundColor: "#6B7280",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      padding: "12px 24px",
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Voltar ao Evento
+                  </button>
+                </div>
               </div>
             ) : (
               <form onSubmit={handleSubmit}>
@@ -618,7 +768,11 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                   </div>
 
                   {/* Description */}
-                  <div>
+                  <div
+                    style={{
+                      marginBottom: "16px",
+                    }}
+                  >
                     <label
                       htmlFor="description"
                       style={{
@@ -646,6 +800,68 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                         resize: "vertical",
                       }}
                     />
+                  </div>
+
+                  {/* Contact Information */}
+                  <div>
+                    <label
+                      htmlFor="contact"
+                      style={{
+                        display: "block",
+                        marginBottom: "8px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      Informações de Contato *
+                    </label>
+                    <input
+                      id="contact"
+                      type="text"
+                      value={contactInfo}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        setContactInfo(value)
+                        
+                        // Real-time validation
+                        if (value.trim()) {
+                          const validation = validateContactInfo(value)
+                          setContactError(validation.isValid ? "" : validation.message)
+                        } else {
+                          setContactError("")
+                        }
+                      }}
+                      placeholder="Email, telefone ou WhatsApp para contato"
+                      style={{
+                        width: "100%",
+                        backgroundColor: "#27272A",
+                        color: "white",
+                        padding: "12px",
+                        borderRadius: "8px",
+                        border: `1px solid ${contactError ? "#EF4444" : "#3F3F46"}`,
+                        fontSize: "16px",
+                      }}
+                      required
+                    />
+                    {contactError && (
+                      <p
+                        style={{
+                          color: "#EF4444",
+                          fontSize: "14px",
+                          marginTop: "4px",
+                        }}
+                      >
+                        {contactError}
+                      </p>
+                    )}
+                    <p
+                      style={{
+                        color: "#A1A1AA",
+                        fontSize: "14px",
+                        marginTop: "4px",
+                      }}
+                    >
+                      Essas informações serão compartilhadas apenas com compradores interessados
+                    </p>
                   </div>
                 </div>
 
@@ -685,44 +901,166 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                       textAlign: "center",
                       cursor: "pointer",
                     }}
+                    onClick={() => document.getElementById("proof-upload")?.click()}
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      e.currentTarget.style.borderColor = "#3B82F6"
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault()
+                      e.currentTarget.style.borderColor = "#3F3F46"
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      e.currentTarget.style.borderColor = "#3F3F46"
+                      const files = e.dataTransfer.files
+                      if (files.length > 0) {
+                        const file = files[0]
+                        if (file.type.startsWith("image/") || file.type === "application/pdf") {
+                          setProofFile(file)
+                          if (file.type.startsWith("image/")) {
+                            const reader = new FileReader()
+                            reader.onload = (e) => {
+                              setProofPreview(e.target?.result as string)
+                            }
+                            reader.readAsDataURL(file)
+                          } else {
+                            setProofPreview(null)
+                          }
+                        }
+                      }
+                    }}
                   >
-                    <svg
-                      width="48"
-                      height="48"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      style={{ margin: "0 auto 16px auto" }}
-                    >
-                      <path d="M7 16.2V14.2H17V16.2H7ZM7 11.5V9.5H17V11.5H7ZM7 6.8V4.8H17V6.8H7Z" fill="#A1A1AA" />
-                      <path
-                        d="M3 20.5V3.5C3 2.4 3.9 1.5 5 1.5H19C20.1 1.5 21 2.4 21 3.5V20.5C21 21.6 20.1 22.5 19 22.5H5C3.9 22.5 3 21.6 3 20.5ZM5 20.5H19V3.5H5V20.5Z"
-                        fill="#A1A1AA"
-                      />
-                    </svg>
-                    <p
-                      style={{
-                        color: "#A1A1AA",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      Arraste e solte arquivos aqui ou
-                    </p>
-                    <button
-                      type="button"
-                      style={{
-                        backgroundColor: "#27272A",
-                        color: "white",
-                        border: "none",
-                        padding: "8px 16px",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "14px",
-                      }}
-                    >
-                      Selecionar Arquivo
-                    </button>
+                    {proofFile ? (
+                      <div style={{ position: "relative" }}>
+                        {proofPreview ? (
+                          <img
+                            src={proofPreview}
+                            alt="Preview do comprovante"
+                            style={{
+                              maxWidth: "200px",
+                              maxHeight: "200px",
+                              borderRadius: "8px",
+                              objectFit: "cover",
+                              margin: "0 auto",
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              gap: "8px",
+                            }}
+                          >
+                            <svg
+                              width="48"
+                              height="48"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M7 16.2V14.2H17V16.2H7ZM7 11.5V9.5H17V11.5H7ZM7 6.8V4.8H17V6.8H7Z" fill="#A1A1AA" />
+                              <path
+                                d="M3 20.5V3.5C3 2.4 3.9 1.5 5 1.5H19C20.1 1.5 21 2.4 21 3.5V20.5C21 21.6 20.1 22.5 19 22.5H5C3.9 22.5 3 21.6 3 20.5ZM5 20.5H19V3.5H5V20.5Z"
+                                fill="#A1A1AA"
+                              />
+                            </svg>
+                            <p style={{ color: "#A1A1AA", margin: 0 }}>
+                              {proofFile.name}
+                            </p>
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setProofFile(null)
+                            setProofPreview(null)
+                          }}
+                          style={{
+                            position: "absolute",
+                            top: "8px",
+                            right: "8px",
+                            backgroundColor: "rgba(0, 0, 0, 0.7)",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "50%",
+                            width: "24px",
+                            height: "24px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <svg
+                          width="48"
+                          height="48"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          style={{ margin: "0 auto 16px auto" }}
+                        >
+                          <path d="M7 16.2V14.2H17V16.2H7ZM7 11.5V9.5H17V11.5H7ZM7 6.8V4.8H17V6.8H7Z" fill="#A1A1AA" />
+                          <path
+                            d="M3 20.5V3.5C3 2.4 3.9 1.5 5 1.5H19C20.1 1.5 21 2.4 21 3.5V20.5C21 21.6 20.1 22.5 19 22.5H5C3.9 22.5 3 21.6 3 20.5ZM5 20.5H19V3.5H5V20.5Z"
+                            fill="#A1A1AA"
+                          />
+                        </svg>
+                        <p
+                          style={{
+                            color: "#A1A1AA",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          Arraste e solte arquivos aqui ou
+                        </p>
+                        <button
+                          type="button"
+                          style={{
+                            backgroundColor: "#27272A",
+                            color: "white",
+                            border: "none",
+                            padding: "8px 16px",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "14px",
+                          }}
+                        >
+                          Selecionar Arquivo
+                        </button>
+                      </>
+                    )}
                   </div>
+                  
+                  <input
+                    id="proof-upload"
+                    type="file"
+                    accept="image/*,application/pdf"
+                    style={{ display: "none" }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        setProofFile(file)
+                        if (file.type.startsWith("image/")) {
+                          const reader = new FileReader()
+                          reader.onload = (e) => {
+                            setProofPreview(e.target?.result as string)
+                          }
+                          reader.readAsDataURL(file)
+                        } else {
+                          setProofPreview(null)
+                        }
+                      }
+                    }}
+                  />
                 </div>
 
                 {/* Terms and Conditions */}
@@ -891,69 +1229,4 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
   )
 }
 
-// Mock event data (same as in other files)
-const events = [
-  {
-    slug: "festival-de-verao",
-    title: "Festival de Verão",
-    date: "15 de Dezembro, 2023",
-    time: "16:00 - 02:00",
-    location: "Praia de Copacabana, Rio de Janeiro",
-    attendance: "50.000+ pessoas",
-    price: "A partir de R$ 150",
-    image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&auto=format&fit=crop&q=60",
-    description: [
-      "O Festival de Verão é um dos eventos mais aguardados da temporada, reunindo grandes nomes da música brasileira e internacional em um cenário paradisíaco.",
-      "Com uma programação diversificada que vai do pop ao rock, do samba ao eletrônico, o festival promete agradar a todos os gostos musicais.",
-      "Além dos shows, o evento conta com áreas de alimentação, lounges e diversas atividades para tornar sua experiência ainda mais completa.",
-    ],
-    gallery: [
-      "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1506157786151-b8491531f063?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-    ],
-  },
-  {
-    slug: "rock-in-rio-2025",
-    title: "Rock in Rio 2025",
-    date: "19-28 de Setembro, 2025",
-    time: "14:00 - 00:00",
-    location: "Cidade do Rock, Rio de Janeiro",
-    attendance: "100.000+ pessoas",
-    price: "A partir de R$ 650",
-    image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60",
-    description: [
-      "O Rock in Rio é um dos maiores festivais de música do mundo, reunindo artistas nacionais e internacionais em performances inesquecíveis. Em 2025, o evento promete ser ainda mais grandioso, com uma lineup diversificada e cheia de estrelas.",
-      "Durante os dias de festival, a Cidade do Rock se transforma em um verdadeiro parque de diversões para os amantes da música, com várias atrações além dos shows principais, incluindo a famosa roda gigante, tirolesa, e diversas opções gastronômicas.",
-      "Não perca a chance de fazer parte deste evento histórico e viver momentos únicos ao som de seus artistas favoritos!",
-    ],
-    gallery: [
-      "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
-      "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-    ],
-  },
-  {
-    slug: "lollapalooza-brasil-2025",
-    title: "Lollapalooza Brasil 2025",
-    date: "28-30 de Março, 2025",
-    time: "11:00 - 23:00",
-    location: "Autódromo de Interlagos, São Paulo",
-    attendance: "80.000+ pessoas",
-    price: "A partir de R$ 750",
-    image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
-    description: [
-      "O Lollapalooza Brasil retorna em 2025 para sua décima edição no país, trazendo o melhor da música alternativa, rock, hip-hop, música eletrônica e muito mais.",
-      "Distribuído em diversos palcos no Autódromo de Interlagos, o festival oferece uma experiência completa com atrações para todos os gostos, além de áreas de descanso, praça de alimentação com opções diversificadas e espaços instagramáveis.",
-      "Prepare-se para três dias intensos de música, arte e cultura em um dos festivais mais aguardados do calendário brasileiro.",
-    ],
-    gallery: [
-      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
-      "https://images.unsplash.com/photo-1506157786151-b8491531f063?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-    ],
-  },
-]
+// Remove the static events array as we're now using the API

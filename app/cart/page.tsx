@@ -276,7 +276,16 @@ export default function CartPage() {
         const { eventsApi } = await import('@/lib/api')
         
         for (const item of cartItems) {
-          await eventsApi.purchaseTickets(item.eventId, item.quantity)
+          const result = await eventsApi.purchaseTickets(item.eventId, item.quantity)
+          
+          // Atualizar o contador local se a resposta incluir remaining_tickets
+          if (result.remaining_tickets !== undefined) {
+            // Aqui você pode implementar uma atualização global do estado
+            // Por exemplo, usando um contexto ou evento customizado
+            window.dispatchEvent(new CustomEvent('ticketCountUpdated', {
+              detail: { eventId: item.eventId, newCount: result.remaining_tickets }
+            }))
+          }
         }
         
         setIsSubmitting(false)
