@@ -142,22 +142,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('authToken', response.token);
       }
 
-      // Criar objeto de usuário compatível com o frontend
+      // Buscar dados completos do perfil após login bem-sucedido
+      const profile = await authApi.getProfile();
+
+      // Criar objeto de usuário compatível com o frontend usando dados completos do perfil
       const loggedInUser: User = {
-        id: response.id,
-        name: response.name,
-        email: response.email,
-        phone: response.phone,
-        cpf: response.cpf,
-        country: response.country,
-        address: response.location,
+        id: profile.id,
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        cpf: profile.cpf,
+        country: profile.country,
+        address: profile.location,
         has2FA: false,
         isVerified: true,
         isAdmin: false,
         balance: 0,
         pendingBalance: 0,
         transactions: [],
-        memberSince: response.created_at ? new Date(response.created_at).getFullYear().toString() : ''
+        memberSince: profile.created_at ? new Date(profile.created_at).getFullYear().toString() : ''
       };
 
       setUser(loggedInUser);
@@ -218,13 +221,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return false
   }
 
-  const logout = () => {
-    setUser(null)
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem("user")
-      localStorage.removeItem("authToken") // Remover token também
+  const logout = async () => {
+    try {
+      // Chama o endpoint de logout no backend para invalidar o token
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user_app/user/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Token ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao fazer logout no backend:', error);
+      // Continua com o logout local mesmo se houver erro no backend
+    } finally {
+      // Limpa o estado local independentemente do resultado do backend
+      setUser(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user');
+        localStorage.removeItem('authToken');
+      }
     }
-  }
+  };
 
   const updateUser = async (data: Partial<User>): Promise<{ success: boolean; message?: string }> => {
     try {
@@ -232,7 +253,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
       
       if (!token) {
+        console.error('❌ Token de autenticação não encontrado');
         return { success: false, message: 'Token de autenticação não encontrado. Faça login novamente.' };
+      }
+
+      // Verificar se o usuário está autenticado no estado
+      if (!user) {
+        console.error('❌ Usuário não está autenticado no estado');
+        return { success: false, message: 'Usuário não autenticado. Faça login novamente.' };
+      }
+
+      // Verificar se o token ainda é válido fazendo uma requisição de teste
+      try {
+        await authApi.getProfile();
+        console.log('✅ Token validado com sucesso');
+      } catch (tokenError) {
+        console.error('❌ Token inválido ou expirado:', tokenError);
+        // Limpar dados de autenticação inválidos
+        setUser(null);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('user');
+          localStorage.removeItem('authToken');
+        }
+        return { success: false, message: 'Sessão expirada. Faça login novamente.' };
       }
 
       // Atualizar com a API real - mapear address do frontend para location do backend
@@ -251,7 +294,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: response.name,
         email: response.email,
         phone: response.phone,
-        address: response.location, // Mapear location para address
+        address: response.location, // Backend retorna location, frontend usa address
         cpf: response.cpf,
         country: response.country,
       };

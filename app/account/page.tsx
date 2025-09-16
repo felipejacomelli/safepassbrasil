@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +11,8 @@ import { CheckCircle, Clock, Edit, Mail, Phone, MapPin, Shield, User, CreditCard
 import { formatCpf } from "@/utils/formatCpf"
 
 export default function AccountPage() {
-  const { user, logout, updateUser } = useAuth()
+  const { user, logout, updateUser, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
@@ -21,6 +23,14 @@ export default function AccountPage() {
   const [phoneError, setPhoneError] = useState("")
   const [saveMessage, setSaveMessage] = useState("")
   const [saveError, setSaveError] = useState("")
+
+  // Verificar autenticação
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/login')
+      return
+    }
+  }, [isAuthenticated, isLoading, router])
 
   // Atualizar formData quando o usuário for carregado
   useEffect(() => {
@@ -33,9 +43,27 @@ export default function AccountPage() {
     }
   }, [user])
 
+  // Mostrar loading enquanto verifica autenticação
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Se não está autenticado, não renderiza nada (será redirecionado)
+  if (!isAuthenticated) {
+    return null
+  }
+
   const handleLogout = () => {
     logout()
     setShowUserMenu(false)
+    router.push("/") // Redireciona para página inicial após logout
   }
 
   const validatePhone = (phone: string) => {

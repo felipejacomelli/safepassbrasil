@@ -81,43 +81,36 @@ export interface Event {
 }
 
 // Função para fazer requisições HTTP
-async function apiRequest<T>(
+export const apiRequest = async (endpoint: string, options: RequestInit = {}): Promise<Response> => {
+  const token = localStorage.getItem('authToken');
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Token ${token}` }),
+    ...options.headers,
+  };
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  return response;
+};
+
+// Função auxiliar para fazer requisições que retornam JSON
+async function apiRequestJson<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const response = await apiRequest(endpoint, options);
   
-  const config: RequestInit = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    ...options,
-  };
-
-  // Adicionar token de autenticação se disponível
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers = {
-        ...config.headers,
-        'Authorization': `Token ${token}`,
-      };
-    }
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
-
-  try {
-    const response = await fetch(url, config);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('API request failed:', error);
-    throw error;
-  }
+  
+  const result = await response.json();
+  return result;
 }
 
 // Interface para a resposta da API de eventos
@@ -130,23 +123,23 @@ interface EventsResponse {
 export const eventsApi = {
   // Listar todos os eventos
   getAll: async (): Promise<ApiEvent[]> => {
-    const response = await apiRequest<EventsResponse>('/event_app/events');
+    const response = await apiRequestJson<EventsResponse>('/event_app/events');
     return response.events;
   },
   
   // Buscar evento por ID
   getById: (id: number): Promise<ApiEvent> => {
-    return apiRequest<ApiEvent>(`/event_app/event?id=${id}`);
+    return apiRequestJson<ApiEvent>(`/event_app/event?id=${id}`);
   },
 
   getBySlug: (slug: string): Promise<ApiEvent> => {
-    return apiRequest<ApiEvent>(`/event_app/event/${slug}/`);
+    return apiRequestJson<ApiEvent>(`/event_app/event/${slug}/`);
   },
   
   // Buscar eventos filtrados
   getFiltered: (filters: Record<string, string>): Promise<ApiEvent[]> => {
     const queryParams = new URLSearchParams(filters).toString();
-    return apiRequest<ApiEvent[]>(`/event_app/events/by/?${queryParams}`);
+    return apiRequestJson<ApiEvent[]>(`/event_app/events/by/?${queryParams}`);
   },
 
   // Buscar eventos com filtros de busca
@@ -164,7 +157,7 @@ export const eventsApi = {
     const queryString = queryParams.toString();
     const endpoint = `/event_app/events/search/${queryString ? `?${queryString}` : ''}`;
     
-    return apiRequest<EventsResponse>(endpoint);
+    return apiRequestJson<EventsResponse>(endpoint);
   },
 
   // Purchase tickets and update event ticket count
@@ -183,7 +176,7 @@ export const eventsApi = {
       }
     }
 
-    return apiRequest<{ success: boolean; message: string; remaining_tickets?: number }>(`/event_app/events/${eventId}/purchase/`, {
+    return apiRequestJson<{ success: boolean; message: string; remaining_tickets?: number }>(`/event_app/events/${eventId}/purchase/`, {
       method: 'POST',
       body: JSON.stringify({ quantity, user_id: userId }),
     });
@@ -203,7 +196,7 @@ export const eventsApi = {
       user_id: userId ? parseInt(userId) : null
     };
 
-    return apiRequest<{ success: boolean; message: string; total_tickets?: number }>(`/event_app/events/${eventId}/sell/`, {
+    return apiRequestJson<{ success: boolean; message: string; total_tickets?: number }>(`/event_app/events/${eventId}/sell/`, {
       method: 'POST',
       body: JSON.stringify(requestData),
     });
@@ -214,7 +207,7 @@ export const eventsApi = {
 export const authApi = {
   // Login do usuário
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    return apiRequest<LoginResponse>('/user_app/user/login', {
+    return apiRequestJson<LoginResponse>('/user_app/user/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
@@ -222,7 +215,7 @@ export const authApi = {
 
   // Registro de novo usuário
   register: async (userData: RegisterRequest): Promise<LoginResponse> => {
-    return apiRequest<LoginResponse>('/user_app/user/register', {
+    return apiRequestJson<LoginResponse>('/user_app/user/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
@@ -230,46 +223,46 @@ export const authApi = {
 
   // Obter perfil do usuário autenticado
   getProfile: async (): Promise<ApiUser> => {
-    return apiRequest<ApiUser>('/user_app/profile');
+    return apiRequestJson<ApiUser>('/user_app/profile');
   },
 
   // Atualizar perfil do usuário autenticado
   updateProfile: async (userData: UpdateUserRequest): Promise<ApiUser> => {
-    return apiRequest<ApiUser>('/user_app/profile', {
+    return apiRequestJson<ApiUser>('/user_app/profile', {
       method: 'PUT',
       body: JSON.stringify(userData),
     });
   },
 
   getLoginHistory: async (): Promise<any[]> => {
-    return apiRequest<any[]>('/user_app/user/login_history');
+    return apiRequestJson<any[]>('/user_app/user/login_history');
   },
 
   get2FAStatus: async (): Promise<{is_2fa_enabled: boolean}> => {
-    return apiRequest<{is_2fa_enabled: boolean}>('/user_app/user/2fa/status');
+    return apiRequestJson<{is_2fa_enabled: boolean}>('/user_app/user/2fa/status');
   },
 
   setup2FA: async (): Promise<{secret: string, otpauth_url: string}> => {
-    return apiRequest<{secret: string, otpauth_url: string}>('/user_app/user/2fa/setup', { method: 'POST' });
+    return apiRequestJson<{secret: string, otpauth_url: string}>('/user_app/user/2fa/setup', { method: 'POST' });
   },
 
   verify2FA: async (code: string): Promise<{success: boolean, backup_codes?: string[]}> => {
-    return apiRequest<{success: boolean, backup_codes?: string[]}>('/user_app/user/2fa/verify', {
+    return apiRequestJson<{success: boolean, backup_codes?: string[]}>('/user_app/user/2fa/verify', {
       method: 'POST',
       body: JSON.stringify({ code }),
     });
   },
 
   disable2FA: async (): Promise<{success: boolean}> => {
-    return apiRequest<{success: boolean}>('/user_app/user/2fa/disable', { method: 'POST' });
+    return apiRequestJson<{success: boolean}>('/user_app/user/2fa/disable', { method: 'POST' });
   },
 
   getBackupCodes: async (): Promise<{backup_codes: string[]}> => {
-    return apiRequest<{backup_codes: string[]}>('/user_app/user/2fa/backup_codes');
+    return apiRequestJson<{backup_codes: string[]}>('/user_app/user/2fa/backup_codes');
   },
 
   regenerateBackupCodes: async (): Promise<{backup_codes: string[]}> => {
-    return apiRequest<{backup_codes: string[]}>('/user_app/user/2fa/backup_codes', { method: 'POST' });
+    return apiRequestJson<{backup_codes: string[]}>('/user_app/user/2fa/backup_codes', { method: 'POST' });
   },
 };
 

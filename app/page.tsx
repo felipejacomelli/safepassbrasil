@@ -292,7 +292,7 @@ export default function Page() {
   const handleLogout = () => {
     logout()
     setShowUserMenu(false)
-    router.push("/")
+    router.push("/") // Redireciona para página inicial após logout
   }
 
   const handleUserClick = () => {

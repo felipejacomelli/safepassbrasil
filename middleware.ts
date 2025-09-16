@@ -1,27 +1,30 @@
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // This is a simplified middleware that would normally check for authentication
-  // In a real app, you would verify a session token or JWT
-
-  // For admin routes, we would check if the user has admin privileges
-  if (request.nextUrl.pathname.startsWith("/admin")) {
-    // In a real app, you would check if the user is an admin
-    // For this demo, we'll just let all requests through
-    // In production, you would redirect non-admin users to the login page
-    // return NextResponse.redirect(new URL('/login', request.url))
-  }
-
-  // For account routes, we would check if the user is authenticated
-  if (request.nextUrl.pathname.startsWith("/account")) {
-    // In a real app, you would check if the user is authenticated
-    // For this demo, we'll just let all requests through
+  // Para aplicações client-side que usam localStorage, o middleware não pode
+  // verificar diretamente o token. Vamos permitir o acesso e deixar que
+  // os componentes React façam a verificação de autenticação
+  const { pathname } = request.nextUrl
+  
+  // Apenas redireciona se explicitamente não autenticado via cookie
+  // (para casos onde o token é definido via cookie em login SSR)
+  if (pathname.startsWith('/admin') || pathname.startsWith('/account')) {
+    const cookieToken = request.cookies.get('authToken')?.value
+    const authHeader = request.headers.get('authorization')?.replace('Bearer ', '')
+    
+    // Só redireciona se tiver certeza de que não há autenticação
+    // Como usamos localStorage, vamos ser mais permissivos aqui
+    if (cookieToken === 'null' || cookieToken === 'undefined') {
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ["/account/:path*", "/admin/:path*"],
+  matcher: ['/admin/:path*', '/account/:path*', '/login']
 }
