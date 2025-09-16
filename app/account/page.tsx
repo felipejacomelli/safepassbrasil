@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AccountSidebar } from "@/components/AccountSidebar"
 import { CheckCircle, Clock, Edit, Mail, Phone, MapPin, Shield, User, CreditCard, Bell, Lock } from "lucide-react"
+import { formatCpf } from "@/utils/formatCpf"
 
 export default function AccountPage() {
   const { user, logout, updateUser } = useAuth()
@@ -16,7 +17,6 @@ export default function AccountPage() {
     name: "",
     email: "",
     phone: "",
-    address: "",
   })
   const [phoneError, setPhoneError] = useState("")
   const [saveMessage, setSaveMessage] = useState("")
@@ -29,7 +29,6 @@ export default function AccountPage() {
         name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
-        address: user.address || "",
       })
     }
   }, [user])
@@ -48,8 +47,8 @@ export default function AccountPage() {
       return "Telefone deve ter 10 ou 11 dígitos"
     }
     
-    // Verifica se é um número válido (não todos iguais)
-    if (/^(\d)\1+$/.test(cleanPhone)) {
+    // Verifica se é um número válido (não pode ser todos os dígitos iguais)
+    if (/^(\d)\1{9,10}$/.test(cleanPhone)) {
       return "Número de telefone inválido"
     }
     
@@ -76,7 +75,6 @@ export default function AccountPage() {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        address: formData.address,
       })
       
       if (result.success) {
@@ -105,7 +103,6 @@ export default function AccountPage() {
         name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
-        address: user.address || "",
       })
     }
     setIsEditing(false)
@@ -472,6 +469,16 @@ export default function AccountPage() {
                   </div>
 
                   <div>
+                    <Label htmlFor="cpf" className="text-gray-300">
+                      CPF
+                    </Label>
+                    <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded-md">
+                      <Shield className="w-5 h-5 text-primary" />
+                      <span className="text-white">{formatCpf(user?.cpf) || "Não informado"}</span>
+                    </div>
+                  </div>
+
+                  <div>
                     <Label htmlFor="phone" className="text-gray-300">
                       Telefone
                     </Label>
@@ -501,22 +508,13 @@ export default function AccountPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="address" className="text-gray-300">
-                      Endereço
+                    <Label htmlFor="country" className="text-gray-300">
+                      País
                     </Label>
-                    {isEditing ? (
-                      <Input
-                        id="address"
-                        value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        className="bg-zinc-800 border-zinc-700 text-white"
-                      />
-                    ) : (
-                      <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded-md">
-                        <MapPin className="w-5 h-5 text-primary" />
-                        <span className="text-white">{user?.address}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded-md">
+                      <MapPin className="w-5 h-5 text-primary" />
+                      <span className="text-white">{user?.country || "Não informado"}</span>
+                    </div>
                   </div>
                 </div>
 

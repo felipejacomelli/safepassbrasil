@@ -16,6 +16,8 @@ type User = {
   transactions: Transaction[]
   phone?: string
   address?: string
+  cpf?: string
+  country?: string
   profileImage?: string
   verificationStatus?: 'pending' | 'verified' | 'rejected'
   memberSince?: string
@@ -109,14 +111,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: profile.email,
         phone: profile.phone,
         address: profile.location,
+        cpf: profile.cpf,
+        country: profile.country,
         has2FA: false,
         isVerified: true,
         isAdmin: false,
         balance: 0,
         pendingBalance: 0,
         transactions: [],
-        memberSince: profile.created_at ? new Date(profile.created_at).getFullYear().toString() : '',
-        verificationStatus: 'verified' as const
+        memberSince: profile.created_at ? new Date(profile.created_at).getFullYear().toString() : ''
       }
       
       setUser(updatedUser)
@@ -145,14 +148,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: response.name,
         email: response.email,
         phone: response.phone,
-        has2FA: false, // Por enquanto, assumir que não tem 2FA
+        cpf: response.cpf,
+        country: response.country,
+        address: response.location,
+        has2FA: false,
         isVerified: true,
-        isAdmin: false, // Verificar se é admin baseado no email ou outro campo
+        isAdmin: false,
         balance: 0,
         pendingBalance: 0,
         transactions: [],
-        memberSince: response.created_at ? new Date(response.created_at).getFullYear().toString() : '',
-        verificationStatus: 'verified' as const
+        memberSince: response.created_at ? new Date(response.created_at).getFullYear().toString() : ''
       };
 
       setUser(loggedInUser);
@@ -183,6 +188,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: response.name,
         email: response.email,
         phone: response.phone,
+        cpf: response.cpf,
+        country: response.country,
+        address: response.location,
         has2FA: false,
         isVerified: true,
         isAdmin: false,
@@ -233,6 +241,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: data.email,
         phone: data.phone,
         location: data.address, // Frontend usa address, backend espera location
+        cpf: data.cpf,
+        country: data.country,
       });
 
       // Atualizar o usuário local com os dados retornados da API
@@ -242,6 +252,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: response.email,
         phone: response.phone,
         address: response.location, // Mapear location para address
+        cpf: response.cpf,
+        country: response.country,
       };
 
       setUser(updatedUser);

@@ -15,6 +15,9 @@ export interface LoginResponse {
   name: string;
   phone?: string;
   created_at?: string;
+  cpf?: string;
+  country?: string;
+  location?: string;
 }
 
 export interface RegisterRequest {
@@ -33,13 +36,17 @@ export interface ApiUser {
   phone?: string;
   location?: string;
   created_at?: string;
+  cpf?: string;
+  country?: string;
 }
 
 export interface UpdateUserRequest {
-  name?: string;
-  email?: string;
-  phone?: string;
-  location?: string;
+  name?: string
+  email?: string
+  phone?: string
+  location?: string
+  cpf?: string
+  country?: string
 }
 
 // Tipos para os dados da API
