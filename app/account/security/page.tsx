@@ -25,6 +25,11 @@ export default function SecurityPage() {
   const [activities, setActivities] = useState<any[]>([])
   const [qrCode, setQrCode] = useState("")
   const [secret, setSecret] = useState("")
+  
+  // Estados para saldo
+  const [realBalance, setRealBalance] = useState(0)
+  const [realPendingBalance, setRealPendingBalance] = useState(0)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -59,6 +64,59 @@ export default function SecurityPage() {
     }
     fetchActivities()
   }, [])
+
+  // Carregar dados de saldo
+  useEffect(() => {
+    const loadBalanceData = async () => {
+      if (!user?.id) return
+      
+      setLoading(true)
+      
+      try {
+        const apiRequest = async (endpoint: string) => {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
+            headers: {
+              'Authorization': `Token ${localStorage.getItem('authToken')}`,
+              'Content-Type': 'application/json',
+            },
+          })
+          return response
+        }
+
+        // Carregar vendas (tickets à venda pelo usuário - sem comprador)
+        const salesResponse = await apiRequest(`/ticket_app/tickets?user=${parseInt(user?.id || '0')}&buyer__isnull=true`)
+        if (salesResponse.ok) {
+          const salesData = await salesResponse.json()
+          
+          // Calcular saldo pendente baseado nos tickets à venda
+          const totalPendingBalance = salesData.Ticket?.reduce((sum: number, ticket: any) => {
+            return sum + (parseFloat(ticket.price) * ticket.quantity)
+          }, 0) || 0
+          
+          setRealPendingBalance(totalPendingBalance)
+        }
+
+        // Carregar tickets vendidos (com comprador)
+        const soldResponse = await apiRequest(`/ticket_app/tickets/sold`)
+        if (soldResponse.ok) {
+          const soldData = await soldResponse.json()
+          
+          // Calcular saldo disponível baseado nos tickets vendidos efetivamente
+          const totalSoldBalance = soldData.Ticket?.reduce((sum: number, ticket: any) => {
+            return sum + (parseFloat(ticket.price) * ticket.quantity)
+          }, 0) || 0
+          
+          setRealBalance(totalSoldBalance)
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados de saldo:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadBalanceData()
+  }, [user])
 
   const handleToggle2FA = async () => {
     if (is2FAEnabled) {
@@ -260,7 +318,7 @@ export default function SecurityPage() {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar */}
           <div className="md:w-1/4">
-            <AccountSidebar />
+            <AccountSidebar balance={realBalance} pendingBalance={realPendingBalance} />
           </div>
 
           {/* Main Content */}

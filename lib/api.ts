@@ -188,12 +188,23 @@ export const eventsApi = {
     ticket_type?: string;
     description?: string;
   }): Promise<{ success: boolean; message: string; total_tickets?: number }> => {
-    // Obter user_id do localStorage
-    const userId = typeof window !== 'undefined' ? localStorage.getItem('user_id') : null;
+    // Obter user_id do localStorage (mesmo padrão usado em purchaseTickets)
+    let userId = 1; // Default fallback
+    if (typeof window !== 'undefined') {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          userId = parseInt(user.id) || 1;
+        } catch (e) {
+          console.warn('Failed to parse user from localStorage:', e);
+        }
+      }
+    }
     
     const requestData = {
       ...ticketData,
-      user_id: userId ? parseInt(userId) : null
+      user_id: userId
     };
 
     return apiRequestJson<{ success: boolean; message: string; total_tickets?: number }>(`/event_app/events/${eventId}/sell/`, {

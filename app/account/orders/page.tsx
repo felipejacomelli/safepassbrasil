@@ -77,14 +77,13 @@ import {
   QrCode,
   Landmark,
   CreditCard,
-  Wallet,
   User,
 } from "lucide-react"
 
 export default function OrdersPage() {
   const router = useRouter()
   const { user, isLoading, logout } = useAuth()
-  const [activeTab, setActiveTab] = useState("transactions")
+  const [activeTab, setActiveTab] = useState("purchases")
   const [withdrawalAmount, setWithdrawalAmount] = useState("")
   const [showWithdrawalForm, setShowWithdrawalForm] = useState(false)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null)
@@ -97,12 +96,14 @@ export default function OrdersPage() {
 
   // Estados para dados reais
   const [orders, setOrders] = useState<Order[]>([])
-  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [tickets, setTickets] = useState<Ticket[]>([])
   const [sales, setSales] = useState<Sale[]>([])
+  const [soldTickets, setSoldTickets] = useState<Sale[]>([])
   const [purchasedTickets, setPurchasedTickets] = useState<Ticket[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [realBalance, setRealBalance] = useState(0)
   const [realPendingBalance, setRealPendingBalance] = useState(0)
+  const [activeSalesTab, setActiveSalesTab] = useState("for-sale")
 
   useEffect(() => {
     if (!user && !isLoading) {
@@ -118,12 +119,11 @@ export default function OrdersPage() {
         
         // Função auxiliar para fazer requisições autenticadas
         const apiRequest = async (endpoint: string) => {
-          const token = localStorage.getItem('authToken')
-          const response = await fetch(`http://localhost:8000${endpoint}`, {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
             headers: {
+              'Authorization': `Token ${localStorage.getItem('authToken')}`,
               'Content-Type': 'application/json',
-              ...(token && { 'Authorization': `Token ${token}` })
-            }
+            },
           })
           return response
         }
@@ -136,35 +136,32 @@ export default function OrdersPage() {
           setOrders(ordersData.orders || [])
         }
 
-        // Carregar transações do usuário
-        const transactionFilter = encodeURIComponent(JSON.stringify({"user": parseInt(user?.id || '0')}))
-        const transactionsResponse = await apiRequest(`/transaction_app/transactions/by/?filter_by=${transactionFilter}`)
-        if (transactionsResponse.ok) {
-          const transactionsData = await transactionsResponse.json()
-          setTransactions(transactionsData.Transaction || [])
-          
-          // Calcular saldo baseado APENAS nas transações de VENDA
-          const completedSales = transactionsData.Transaction?.filter((t: any) => t.status === 2 && t.transaction_type === 'sale') || []
-          const pendingSales = transactionsData.Transaction?.filter((t: any) => t.status === 1 && t.transaction_type === 'sale') || []
-          
-          // Saldo = apenas receita de vendas (valores positivos)
-          const totalBalance = completedSales.reduce((sum: number, t: any) => {
-            return sum + parseFloat(t.amount)
-          }, 0)
-          
-          const totalPending = pendingSales.reduce((sum: number, t: any) => {
-            return sum + parseFloat(t.amount)
-          }, 0)
-          
-          setRealBalance(totalBalance)
-          setRealPendingBalance(totalPending)
-        }
-
-        // Carregar vendas (tickets vendidos pelo usuário)
-        const salesResponse = await apiRequest(`/ticket_app/tickets?user=${parseInt(user?.id || '0')}&buyer__isnull=false`)
+        // Carregar vendas (tickets à venda pelo usuário - sem comprador)
+        const salesResponse = await apiRequest(`/ticket_app/tickets?user=${parseInt(user?.id || '0')}&buyer__isnull=true`)
         if (salesResponse.ok) {
           const salesData = await salesResponse.json()
-          setSales(salesData.tickets || [])
+          setSales(salesData.Ticket || [])
+          
+          // Calcular saldo pendente baseado nos tickets à venda
+          const totalPendingBalance = salesData.Ticket?.reduce((sum: number, ticket: any) => {
+            return sum + (parseFloat(ticket.price) * ticket.quantity)
+          }, 0) || 0
+          
+          setRealPendingBalance(totalPendingBalance)
+        }
+
+        // Carregar tickets vendidos (com comprador)
+        const soldResponse = await apiRequest(`/ticket_app/tickets/sold`)
+        if (soldResponse.ok) {
+          const soldData = await soldResponse.json()
+          setSoldTickets(soldData.Ticket || [])
+          
+          // Calcular saldo disponível baseado nos tickets vendidos efetivamente
+          const totalSoldBalance = soldData.Ticket?.reduce((sum: number, ticket: any) => {
+            return sum + (parseFloat(ticket.price) * ticket.quantity)
+          }, 0) || 0
+          
+          setRealBalance(totalSoldBalance)
         }
 
         // Carregar tickets comprados pelo usuário
@@ -186,9 +183,9 @@ export default function OrdersPage() {
     }
   }, [user])
 
-  // Filter transactions based on selected filters
-  const filteredTransactions = transactions.filter((transaction) => {
-    if (statusFilter !== "all" && transaction.status.toString() !== statusFilter) return false
+  // Filter purchases based on selected filters
+  const filteredPurchases = purchasedTickets.filter((ticket) => {
+    if (statusFilter !== "all" && ticket.status.toString() !== statusFilter) return false
     return true
   })
 
@@ -199,6 +196,11 @@ export default function OrdersPage() {
 
   const filteredSales = sales.filter((sale) => {
     if (statusFilter !== "all" && sale.status.toString() !== statusFilter) return false
+    return true
+  })
+
+  const filteredSoldTickets = soldTickets.filter((ticket) => {
+    if (statusFilter !== "all" && ticket.status.toString() !== statusFilter) return false
     return true
   })
 
@@ -354,9 +356,6 @@ export default function OrdersPage() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex justify-between items-center mb-6">
               <TabsList className="bg-zinc-900 border border-zinc-800">
-                <TabsTrigger value="transactions" className="data-[state=active]:bg-zinc-700">
-                  Transações
-                </TabsTrigger>
                 <TabsTrigger value="purchases" className="data-[state=active]:bg-zinc-700">
                   Compras
                 </TabsTrigger>
@@ -388,72 +387,6 @@ export default function OrdersPage() {
                 </Button>
               </div>
             </div>
-
-            {/* Transactions Tab */}
-            <TabsContent value="transactions" className="space-y-4">
-              {filteredTransactions.length === 0 ? (
-                <div className="text-center py-12">
-                  <Wallet className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-400">Nenhuma transação encontrada</p>
-                </div>
-              ) : (
-                filteredTransactions.map((transaction) => (
-                  <div
-                    key={transaction.id}
-                    className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center">
-                          {transaction.transaction_type === 'purchase' && (
-                            <ArrowUpFromLine className="w-5 h-5 text-red-500 mr-2" />
-                          )}
-                          {transaction.transaction_type === 'sale' && (
-                            <ArrowDownToLine className="w-5 h-5 text-green-500 mr-2" />
-                          )}
-                          <h3 className="text-white font-medium">
-                            {transaction.transaction_type === 'purchase' ? "Compra" : "Venda"}
-                          </h3>
-                        </div>
-                        <p className="text-gray-300 mt-1">Transação #{transaction.external_id}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className={`font-bold ${transaction.transaction_type === 'sale' ? "text-green-500" : "text-red-500"}`}>
-                          {transaction.transaction_type === 'sale' ? "+" : "-"}
-                          {formatCurrency(parseFloat(transaction.amount))}
-                        </p>
-                        <div className="flex items-center justify-end mt-1">
-                          <Calendar className="w-3 h-3 text-gray-400 mr-1" />
-                          <p className="text-gray-400 text-xs">{new Date(transaction.created_at).toLocaleDateString()}</p>
-                        </div>
-                        <span
-                          className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
-                            transaction.status === 2
-                              ? "bg-green-900 bg-opacity-20 text-green-500"
-                              : transaction.status === 1
-                                ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
-                                : "bg-red-900 bg-opacity-20 text-red-500"
-                          }`}
-                        >
-                          {transaction.status === 2
-                            ? "Concluído"
-                            : transaction.status === 1
-                              ? "Pendente"
-                              : "Cancelado"}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
-                      <p className="text-gray-400 text-xs">ID: {transaction.id}</p>
-                      <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
-                        <ExternalLink className="w-4 h-4 mr-1" />
-                        Detalhes
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </TabsContent>
 
             {/* Purchases Tab */}
             <TabsContent value="purchases" className="space-y-4">
@@ -515,61 +448,124 @@ export default function OrdersPage() {
 
             {/* Sales Tab */}
             <TabsContent value="sales" className="space-y-4">
-              {filteredSales.length === 0 ? (
-                <div className="text-center py-12">
-                  <ArrowDownToLine className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-400">Nenhuma venda encontrada</p>
-                </div>
-              ) : (
-                filteredSales.map((sale) => (
-                  <div
-                    key={sale.id}
-                    className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center">
-                          <ArrowDownToLine className="w-5 h-5 text-green-500 mr-2" />
-                          <h3 className="text-white font-medium">{sale.name}</h3>
-                        </div>
-                        <p className="text-gray-300 mt-1">Evento #{sale.event}</p>
-                        <p className="text-gray-400 text-sm">Quantidade: {sale.quantity}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-green-500">
-                          +{formatCurrency(parseFloat(sale.price))}
-                        </p>
-                        <div className="flex items-center justify-end mt-1">
-                          <Calendar className="w-3 h-3 text-gray-400 mr-1" />
-                          <p className="text-gray-400 text-xs">{new Date(sale.created_at).toLocaleDateString()}</p>
-                        </div>
-                        <span
-                          className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
-                            sale.status === 2
-                              ? "bg-green-900 bg-opacity-20 text-green-500"
-                              : sale.status === 1
-                                ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
-                                : "bg-red-900 bg-opacity-20 text-red-500"
-                          }`}
-                        >
-                          {sale.status === 2
-                            ? "Ativo"
-                            : sale.status === 1
-                              ? "Usado"
-                              : "Expirado"}
-                        </span>
-                      </div>
+              {/* Sub-tabs for Sales */}
+              <Tabs value={activeSalesTab} onValueChange={setActiveSalesTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 bg-zinc-900 border border-zinc-800">
+                  <TabsTrigger value="for-sale" className="data-[state=active]:bg-zinc-800">
+                    À Venda
+                  </TabsTrigger>
+                  <TabsTrigger value="sold" className="data-[state=active]:bg-zinc-800">
+                    Vendas Efetivadas
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* Tickets à venda */}
+                <TabsContent value="for-sale" className="space-y-4 mt-4">
+                  {filteredSales.length === 0 ? (
+                    <div className="text-center py-12">
+                      <ArrowDownToLine className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-400">Nenhum ticket à venda encontrado</p>
                     </div>
-                    <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
-                      <p className="text-gray-400 text-xs">ID: {sale.id}</p>
-                      <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
-                        <ExternalLink className="w-4 h-4 mr-1" />
-                        Detalhes
-                      </Button>
+                  ) : (
+                    filteredSales.map((sale) => (
+                      <div
+                        key={sale.id}
+                        className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="flex items-center">
+                              <ArrowDownToLine className="w-5 h-5 text-blue-500 mr-2" />
+                              <h3 className="text-white font-medium">{sale.name}</h3>
+                            </div>
+                            <p className="text-gray-300 mt-1">Evento #{sale.event}</p>
+                            <p className="text-gray-400 text-sm">Quantidade: {sale.quantity}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-blue-500">
+                              {formatCurrency(parseFloat(sale.price))}
+                            </p>
+                            <div className="flex items-center justify-end mt-1">
+                              <Calendar className="w-3 h-3 text-gray-400 mr-1" />
+                              <p className="text-gray-400 text-xs">{new Date(sale.created_at).toLocaleDateString()}</p>
+                            </div>
+                            <span
+                              className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
+                                sale.status === 2
+                                  ? "bg-green-900 bg-opacity-20 text-green-500"
+                                  : sale.status === 1
+                                    ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
+                                    : "bg-red-900 bg-opacity-20 text-red-500"
+                              }`}
+                            >
+                              {sale.status === 2
+                                ? "Ativo"
+                                : sale.status === 1
+                                  ? "Usado"
+                                  : "Expirado"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
+                          <p className="text-gray-400 text-xs">ID: {sale.id}</p>
+                          <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
+                            <ExternalLink className="w-4 h-4 mr-1" />
+                            Detalhes
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </TabsContent>
+
+                {/* Vendas efetivadas */}
+                 <TabsContent value="sold" className="space-y-4 mt-4">
+                   {filteredSoldTickets.length === 0 ? (
+                    <div className="text-center py-12">
+                      <ArrowDownToLine className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-400">Nenhuma venda efetivada encontrada</p>
                     </div>
-                  </div>
-                ))
-              )}
+                  ) : (
+                     filteredSoldTickets.map((ticket) => (
+                      <div
+                        key={ticket.id}
+                        className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="flex items-center">
+                              <ArrowDownToLine className="w-5 h-5 text-green-500 mr-2" />
+                              <h3 className="text-white font-medium">{ticket.name}</h3>
+                            </div>
+                            <p className="text-gray-300 mt-1">Evento #{ticket.event}</p>
+                            <p className="text-gray-400 text-sm">Quantidade: {ticket.quantity}</p>
+                            <p className="text-gray-400 text-sm">Comprador: #{ticket.buyer}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-green-500">
+                              +{formatCurrency(parseFloat(ticket.price))}
+                            </p>
+                            <div className="flex items-center justify-end mt-1">
+                              <Calendar className="w-3 h-3 text-gray-400 mr-1" />
+                              <p className="text-gray-400 text-xs">{new Date(ticket.created_at).toLocaleDateString()}</p>
+                            </div>
+                            <span className="inline-block mt-2 px-2 py-1 rounded-full text-xs bg-green-900 bg-opacity-20 text-green-500">
+                              Vendido
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
+                          <p className="text-gray-400 text-xs">ID: {ticket.id}</p>
+                          <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
+                            <ExternalLink className="w-4 h-4 mr-1" />
+                            Detalhes
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </TabsContent>
+              </Tabs>
             </TabsContent>
           </Tabs>
         </div>
