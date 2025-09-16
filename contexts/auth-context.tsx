@@ -76,6 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const storedUser = localStorage.getItem("user")
       const storedToken = localStorage.getItem("authToken")
       
+      console.log('AuthContext Init - storedUser:', !!storedUser, 'storedToken:', !!storedToken)
+      
       if (storedUser) {
         setUser(JSON.parse(storedUser))
       }
@@ -83,18 +85,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Se há token, tentar obter dados atualizados do perfil
       if (storedToken) {
         tryAutoLogin('')
-      }
-      
-      // Se não há token mas há usuário, significa que é um usuário mockado
-      // Vamos tentar fazer login automático para obter um token válido
-      if (storedUser && !storedToken) {
+      } else if (storedUser && !storedToken) {
+        // Se não há token mas há usuário, significa que é um usuário mockado
+        // Vamos tentar fazer login automático para obter um token válido
         const user = JSON.parse(storedUser)
         // Tentar fazer login silencioso para obter token
         tryAutoLogin(user.email)
+      } else {
+        // Não há usuário nem token, pode finalizar o loading
+        setIsLoading(false)
       }
+    } else {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }, [])
+
+  // Debug effect para monitorar mudanças no estado de autenticação
+  useEffect(() => {
+    if (mounted) {
+      console.log('AuthContext Debug - mounted:', mounted, 'user:', user, 'isAuthenticated:', mounted ? !!user : false, 'isLoading:', !mounted || isLoading)
+    }
+  }, [mounted, user, isLoading])
 
   // Função para tentar login automático e obter token
   const tryAutoLogin = async (email: string) => {
@@ -128,6 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.log('Nenhuma sessão válida encontrada, usando dados locais')
+    } finally {
+      // Sempre finalizar o loading após tentar verificar
+      setIsLoading(false)
     }
   }
 
@@ -315,7 +329,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: mounted ? !!user : false,
+        isAuthenticated: !!user, // Simplificado: se há usuário, está autenticado
         isLoading: !mounted || isLoading,
         transactions,
         orders,

@@ -9,7 +9,7 @@ export function middleware(request: NextRequest) {
   
   // Apenas redireciona se explicitamente não autenticado via cookie
   // (para casos onde o token é definido via cookie em login SSR)
-  if (pathname.startsWith('/admin') || pathname.startsWith('/account')) {
+  if (pathname.startsWith('/admin') || pathname.startsWith('/account') || pathname.startsWith('/sell') || pathname.includes('/sell')) {
     const cookieToken = request.cookies.get('authToken')?.value
     const authHeader = request.headers.get('authorization')?.replace('Bearer ', '')
     
@@ -26,5 +26,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/account/:path*', '/login']
+  matcher: ['/admin/:path*', '/account/:path*', '/login', '/sell/:path*', '/event/:path*/sell']
 }

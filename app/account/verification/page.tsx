@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/auth-context"
 
 export default function VerificationPage() {
   const router = useRouter()
-  const { user, isLoading, startVerification, cancelVerification } = useAuth()
+  const { user, isLoading } = useAuth()
 
   // State
   const [idFile, setIdFile] = useState<File | null>(null)
@@ -49,7 +49,8 @@ export default function VerificationPage() {
     setIsSubmitting(true)
 
     try {
-      await startVerification()
+      // Simular envio de verificação
+      console.log("Enviando documentos para verificação...")
       setSuccess(true)
     } catch (err) {
       setError("Ocorreu um erro ao enviar os documentos. Tente novamente.")
@@ -63,7 +64,8 @@ export default function VerificationPage() {
     setIsSubmitting(true)
 
     try {
-      await cancelVerification()
+      // Simular cancelamento de verificação
+      console.log("Cancelando verificação...")
       setIdFile(null)
       setSelfieFile(null)
       setAddressFile(null)
@@ -147,7 +149,7 @@ export default function VerificationPage() {
                 </div>
               </div>
 
-              {user?.verificationStatus === "none" && !success && (
+              {!user?.verificationStatus && !success && (
                 <>
                   <p className="text-gray-300 mb-6">
                     Para se tornar um vendedor verificado, precisamos confirmar sua identidade. Por favor, envie os

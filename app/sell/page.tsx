@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Check, AlertCircle, Plus, Minus } from "lucide-react"
 import { eventsApi, transformEventForFrontend, Event } from "@/lib/api"
+import { useAuth } from "@/contexts/auth-context"
 
 // Interface para eventos na página de venda
 interface SellEvent {
@@ -77,6 +78,7 @@ const validateContactInfo = (contact: string): { isValid: boolean; message: stri
 export default function SellTicketsPage() {
   const [isDesktop, setIsDesktop] = useState(false)
   const router = useRouter()
+  const { user, isAuthenticated, isLoading } = useAuth()
 
   // Events state
   const [availableEvents, setAvailableEvents] = useState<SellEvent[]>([])
@@ -98,6 +100,14 @@ export default function SellTicketsPage() {
   // Proof upload state
   const [proofFile, setProofFile] = useState<File | null>(null)
   const [proofPreview, setProofPreview] = useState<string | null>(null)
+
+  // Verificar autenticação
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/login?redirect=/sell')
+      return
+    }
+  }, [isAuthenticated, isLoading, router])
 
   // Load events from API
   useEffect(() => {
@@ -301,6 +311,42 @@ export default function SellTicketsPage() {
         </div>
       </div>
     )
+  }
+
+  // Mostrar loading enquanto verifica autenticação
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          backgroundColor: "black",
+          color: "white",
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              width: "32px",
+              height: "32px",
+              border: "2px solid #3B82F6",
+              borderTop: "2px solid transparent",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto 16px auto",
+            }}
+          ></div>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Se não está autenticado, não renderiza nada (será redirecionado)
+  if (!isAuthenticated) {
+    return null
   }
 
   return (

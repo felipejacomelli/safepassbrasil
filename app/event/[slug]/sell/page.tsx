@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import { eventsApi } from "@/lib/api"
+import { useAuth } from "@/contexts/auth-context"
 
 // Contact validation functions
 const validateEmail = (email: string): boolean => {
@@ -53,11 +54,13 @@ const validateContactInfo = (contact: string): { isValid: boolean; message: stri
   return { isValid: false, message: "Por favor, insira um email, telefone ou WhatsApp válido" }
 }
 
-export default function SellTicketPage({ params }: { params: { slug: string } }) {
+export default function SellTicketPage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = use(params)
   const [isDesktop, setIsDesktop] = useState(false)
   const [event, setEvent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const { user, isAuthenticated, isLoading } = useAuth()
 
   // State for form
   const [ticketType, setTicketType] = useState("pista-premium")
@@ -74,6 +77,31 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
   const [proofFile, setProofFile] = useState<File | null>(null)
   const [proofPreview, setProofPreview] = useState<string | null>(null)
 
+  // Verificar autenticação
+  useEffect(() => {
+    console.log('🔍 Verificação de autenticação:', {
+      isLoading,
+      isAuthenticated,
+      user: !!user,
+      userName: user?.name
+    })
+    
+    // Aguardar o loading terminar antes de tomar qualquer decisão
+    if (isLoading) {
+      console.log('⏳ Ainda carregando contexto de autenticação...')
+      return
+    }
+    
+    // Só redireciona se não está carregando E não está autenticado
+    if (!isAuthenticated) {
+      console.log('❌ Usuário não autenticado, redirecionando para login')
+      router.push(`/login?redirect=/event/${resolvedParams.slug}/sell`)
+      return
+    }
+    
+    console.log('✅ Usuário autenticado:', user?.name)
+  }, [isAuthenticated, isLoading, router, resolvedParams.slug, user])
+
   // Initialize form values from URL params after hydration
   useEffect(() => {
     // Set desktop state after client mount to avoid hydration mismatch
@@ -89,7 +117,7 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
     // Fetch event data from API
     const fetchEvent = async () => {
       try {
-        const eventData = await eventsApi.getBySlug(params.slug)
+        const eventData = await eventsApi.getBySlug(resolvedParams.slug)
         setEvent(eventData)
       } catch (error) {
         console.error("Error fetching event:", error)
@@ -101,7 +129,7 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
     }
 
     fetchEvent()
-  }, [params.slug, router])
+  }, [resolvedParams.slug, router])
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -188,6 +216,42 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
         </div>
       </div>
     )
+  }
+
+  // Mostrar loading enquanto verifica autenticação
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          backgroundColor: "black",
+          color: "white",
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              width: "32px",
+              height: "32px",
+              border: "2px solid #3B82F6",
+              borderTop: "2px solid transparent",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto 16px auto",
+            }}
+          ></div>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Se não está autenticado, não renderiza nada (será redirecionado)
+  if (!isAuthenticated) {
+    return null
   }
 
   // Show error if event not found
@@ -330,34 +394,86 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                 </a>
               </>
             )}
-            <button
-              style={{
-                backgroundColor: "transparent",
-                border: "1px solid #3B82F6",
-                color: "white",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "bold",
-              }}
-            >
-              Cadastrar
-            </button>
-            <button
-              style={{
-                backgroundColor: "transparent",
-                border: "1px solid #3B82F6",
-                color: "white",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "bold",
-              }}
-            >
-              Acessar
-            </button>
+            
+            {/* Renderização condicional baseada no estado de autenticação */}
+            {isAuthenticated && user ? (
+              // Usuário logado - mostrar menu do usuário
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                }}
+              >
+                <button
+                  onClick={() => router.push("/account")}
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "1px solid #3B82F6",
+                    color: "white",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      borderRadius: "50%",
+                      backgroundColor: "#3B82F6",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  {user.name}
+                </button>
+              </div>
+            ) : (
+              // Usuário não logado - mostrar botões de Cadastrar/Acessar
+              <>
+                <button
+                  onClick={() => router.push("/register")}
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "1px solid #3B82F6",
+                    color: "white",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Cadastrar
+                </button>
+                <button
+                  onClick={() => router.push("/login")}
+                  style={{
+                    backgroundColor: "transparent",
+                    border: "1px solid #3B82F6",
+                    color: "white",
+                    padding: "8px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Acessar
+                </button>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -603,7 +719,7 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                     Publicar Outro Ingresso
                   </button>
                   <button
-                    onClick={() => router.push(`/event/${params.slug}`)}
+                    onClick={() => router.push(`/event/${resolvedParams.slug}`)}
                     style={{
                       backgroundColor: "#6B7280",
                       color: "white",
