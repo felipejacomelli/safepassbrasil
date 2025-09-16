@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useAuth } from "@/hooks/useAuth"
+import { useState, useEffect } from "react"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,33 +9,105 @@ import { AccountSidebar } from "@/components/AccountSidebar"
 import { CheckCircle, Clock, Edit, Mail, Phone, MapPin, Shield, User, CreditCard, Bell, Lock } from "lucide-react"
 
 export default function AccountPage() {
-  const { user, logout } = useAuth()
+  const { user, logout, updateUser } = useAuth()
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
-    phone: user?.phone || "",
-    address: user?.address || "",
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
   })
+  const [phoneError, setPhoneError] = useState("")
+  const [saveMessage, setSaveMessage] = useState("")
+  const [saveError, setSaveError] = useState("")
+
+  // Atualizar formData quando o usuário for carregado
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        address: user.address || "",
+      })
+    }
+  }, [user])
 
   const handleLogout = () => {
     logout()
     setShowUserMenu(false)
   }
 
-  const handleSave = () => {
-    // Save logic here
-    setIsEditing(false)
+  const validatePhone = (phone: string) => {
+    // Remove todos os caracteres não numéricos
+    const cleanPhone = phone.replace(/\D/g, '')
+    
+    // Verifica se tem 10 ou 11 dígitos (formato brasileiro)
+    if (cleanPhone.length < 10 || cleanPhone.length > 11) {
+      return "Telefone deve ter 10 ou 11 dígitos"
+    }
+    
+    // Verifica se é um número válido (não todos iguais)
+    if (/^(\d)\1+$/.test(cleanPhone)) {
+      return "Número de telefone inválido"
+    }
+    
+    return ""
+  }
+
+  const handleSave = async () => {
+    // Limpar mensagens anteriores
+    setSaveMessage("")
+    setSaveError("")
+    
+    // Validar telefone antes de salvar
+    const phoneValidationError = validatePhone(formData.phone)
+    if (phoneValidationError) {
+      setPhoneError(phoneValidationError)
+      return
+    }
+    
+    setPhoneError("")
+    
+    // Atualizar perfil usando a API
+    try {
+      const result = await updateUser({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+      })
+      
+      if (result.success) {
+        setIsEditing(false)
+        setSaveMessage(result.message || 'Perfil atualizado com sucesso!')
+        // Limpar mensagem após 3 segundos
+        setTimeout(() => setSaveMessage(""), 3000)
+      } else {
+        setSaveError(result.message || 'Erro ao atualizar perfil')
+      }
+    } catch (error) {
+      console.error('Erro ao salvar:', error)
+      setSaveError('Erro inesperado ao salvar. Tente novamente.')
+    }
   }
 
   const handleCancel = () => {
-    setFormData({
-      name: user?.name || "",
-      email: user?.email || "",
-      phone: user?.phone || "",
-      address: user?.address || "",
-    })
+    // Limpar mensagens de erro/sucesso
+    setSaveMessage("")
+    setSaveError("")
+    setPhoneError("")
+    
+    // Restaurar dados originais do usuário
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        address: user.address || "",
+      })
+    }
     setIsEditing(false)
   }
 
@@ -404,12 +476,22 @@ export default function AccountPage() {
                       Telefone
                     </Label>
                     {isEditing ? (
-                      <Input
-                        id="phone"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="bg-zinc-800 border-zinc-700 text-white"
-                      />
+                      <div>
+                        <Input
+                          id="phone"
+                          value={formData.phone}
+                          onChange={(e) => {
+                            setFormData({ ...formData, phone: e.target.value })
+                            // Limpar erro quando o usuário começar a digitar
+                            if (phoneError) setPhoneError("")
+                          }}
+                          className={`bg-zinc-800 border-zinc-700 text-white ${phoneError ? 'border-red-500' : ''}`}
+                          placeholder="(11) 99999-9999"
+                        />
+                        {phoneError && (
+                          <p className="text-red-500 text-sm mt-1">{phoneError}</p>
+                        )}
+                      </div>
                     ) : (
                       <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded-md">
                         <Phone className="w-5 h-5 text-primary" />
@@ -460,26 +542,44 @@ export default function AccountPage() {
                 )}
               </div>
 
-              <div className="mt-6 pt-6 border-t border-zinc-800 flex gap-4">
-                {isEditing ? (
-                  <>
-                    <Button onClick={handleSave} className="bg-primary hover:bg-blue-600 text-black">
-                      Salvar Alterações
-                    </Button>
-                    <Button
-                      onClick={handleCancel}
-                      variant="outline"
-                      className="border-zinc-700 text-white bg-transparent"
-                    >
-                      Cancelar
-                    </Button>
-                  </>
-                ) : (
-                  <Button onClick={() => setIsEditing(true)} className="bg-primary hover:bg-blue-600 text-black">
-                    <Edit className="w-4 h-4 mr-2" />
-                    Editar Perfil
-                  </Button>
+              <div className="mt-6 pt-6 border-t border-zinc-800">
+                {/* Mensagens de feedback */}
+                {saveMessage && (
+                  <div className="mb-4 p-3 bg-green-900 bg-opacity-20 border border-green-800 rounded-md">
+                    <p className="text-green-400 text-sm">{saveMessage}</p>
+                  </div>
                 )}
+                
+                {saveError && (
+                  <div className="mb-4 p-3 bg-red-900 bg-opacity-20 border border-red-800 rounded-md">
+                    <p className="text-red-400 text-sm">{saveError}</p>
+                  </div>
+                )}
+                
+                <div className="flex gap-4">
+                  {isEditing ? (
+                    <>
+                      <Button onClick={handleSave} className="bg-primary hover:bg-blue-600 text-black">
+                        Salvar Alterações
+                      </Button>
+                      <Button
+                        onClick={handleCancel}
+                        variant="outline"
+                        className="border-zinc-700 text-white bg-transparent"
+                      >
+                        Cancelar
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      onClick={() => setIsEditing(true)}
+                      className="bg-primary hover:bg-blue-600 text-black"
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Editar Perfil
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
 

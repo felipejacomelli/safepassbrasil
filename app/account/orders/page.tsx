@@ -1,5 +1,57 @@
 "use client"
 
+// Interfaces para tipagem
+interface Order {
+  id: number
+  total_amount: string
+  status: number
+  created_at: string
+  updated_at: string
+  transaction: number
+  user: number
+}
+
+interface Transaction {
+  id: number
+  amount: string
+  status: number
+  created_at: string
+  updated_at: string
+  external_id: string
+  payment_method?: number
+  user: number
+  transaction_type?: string
+}
+
+interface Ticket {
+  id: number
+  name: string
+  quantity: number
+  price: string
+  status: number
+  event: number
+  event_name?: string
+  order?: number
+  created_at: string
+  updated_at: string
+  user: number
+  buyer?: number
+}
+
+interface Sale {
+  id: number
+  name: string
+  quantity: number
+  price: string
+  status: number
+  event: number
+  order?: number
+  created_at: string
+  updated_at: string
+  user: number
+  buyer?: number
+}
+
 interface PaymentMethod {
   method: "pix" | "bank" | "card"
   details: {
@@ -10,7 +62,7 @@ interface PaymentMethod {
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { AccountSidebar } from "@/components/account-sidebar"
+import { AccountSidebar } from "@/components/AccountSidebar"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/contexts/auth-context"
@@ -29,534 +81,497 @@ import {
   User,
 } from "lucide-react"
 
-// Mock data
-const mockOrders = [
-  {
-    id: "ORD123456",
-    event: { name: "Rock in Rio 2025" },
-    ticketType: "Pista Premium",
-    quantity: 2,
-    total: 1500.0,
-    status: "completed",
-    date: "2025-04-22T14:30:00",
-  },
-  {
-    id: "ORD123457",
-    event: { name: "Lollapalooza 2025" },
-    ticketType: "Pista",
-    quantity: 1,
-    total: 450.0,
-    status: "completed",
-    date: "2025-04-21T10:15:00",
-  },
-]
-
-const mockTransactions = [
-  {
-    id: "TXN001",
-    type: "purchase",
-    eventName: "Rock in Rio 2025",
-    ticketType: "Pista Premium",
-    amount: -1500.0,
-    status: "completed",
-    date: "22/04/2025",
-  },
-  {
-    id: "TXN002",
-    type: "sale",
-    eventName: "Lollapalooza 2025",
-    ticketType: "VIP",
-    amount: 800.0,
-    status: "completed",
-    date: "21/04/2025",
-  },
-]
-
-const mockSales = [
-  {
-    id: "SALE001",
-    event: { name: "Festival de Verão 2025" },
-    ticketType: "VIP",
-    quantity: 1,
-    total: 800.0,
-    status: "completed",
-    date: "2025-04-20T16:30:00",
-    user: { name: "Maria Silva" },
-  },
-]
-
 export default function OrdersPage() {
   const router = useRouter()
-  const { user, transactions = [], orders = [], sales = [], isLoading, logout } = useAuth()
+  const { user, isLoading, logout } = useAuth()
   const [activeTab, setActiveTab] = useState("transactions")
   const [withdrawalAmount, setWithdrawalAmount] = useState("")
   const [showWithdrawalForm, setShowWithdrawalForm] = useState(false)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null)
   const [statusFilter, setStatusFilter] = useState("all")
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>({
+    method: "pix",
+    details: {}
+  })
 
-  const handleLogout = () => {
-    logout()
-    setShowUserMenu(false)
-  }
+  // Estados para dados reais
+  const [orders, setOrders] = useState<Order[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [sales, setSales] = useState<Sale[]>([])
+  const [purchasedTickets, setPurchasedTickets] = useState<Ticket[]>([])
+  const [loading, setLoading] = useState(false)
+  const [realBalance, setRealBalance] = useState(0)
+  const [realPendingBalance, setRealPendingBalance] = useState(0)
 
-  // Redirect if not logged in
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!user && !isLoading) {
       router.push("/login")
     }
   }, [user, isLoading, router])
 
+  // Carregar dados reais da API
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true)
+        
+        // Função auxiliar para fazer requisições autenticadas
+        const apiRequest = async (endpoint: string) => {
+          const token = localStorage.getItem('authToken')
+          const response = await fetch(`http://localhost:8000${endpoint}`, {
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token && { 'Authorization': `Token ${token}` })
+            }
+          })
+          return response
+        }
+        
+        // Carregar pedidos do usuário
+        const orderFilter = encodeURIComponent(JSON.stringify({"user": parseInt(user?.id || '0')}))
+        const ordersResponse = await apiRequest(`/order_app/orders/by/?filter_by=${orderFilter}`)
+        if (ordersResponse.ok) {
+          const ordersData = await ordersResponse.json()
+          setOrders(ordersData.orders || [])
+        }
+
+        // Carregar transações do usuário
+        const transactionFilter = encodeURIComponent(JSON.stringify({"user": parseInt(user?.id || '0')}))
+        const transactionsResponse = await apiRequest(`/transaction_app/transactions/by/?filter_by=${transactionFilter}`)
+        if (transactionsResponse.ok) {
+          const transactionsData = await transactionsResponse.json()
+          setTransactions(transactionsData.Transaction || [])
+          
+          // Calcular saldo baseado APENAS nas transações de VENDA
+          const completedSales = transactionsData.Transaction?.filter((t: any) => t.status === 2 && t.transaction_type === 'sale') || []
+          const pendingSales = transactionsData.Transaction?.filter((t: any) => t.status === 1 && t.transaction_type === 'sale') || []
+          
+          // Saldo = apenas receita de vendas (valores positivos)
+          const totalBalance = completedSales.reduce((sum: number, t: any) => {
+            return sum + parseFloat(t.amount)
+          }, 0)
+          
+          const totalPending = pendingSales.reduce((sum: number, t: any) => {
+            return sum + parseFloat(t.amount)
+          }, 0)
+          
+          setRealBalance(totalBalance)
+          setRealPendingBalance(totalPending)
+        }
+
+        // Carregar vendas (tickets vendidos pelo usuário)
+        const salesResponse = await apiRequest(`/ticket_app/tickets?user=${parseInt(user?.id || '0')}&buyer__isnull=false`)
+        if (salesResponse.ok) {
+          const salesData = await salesResponse.json()
+          setSales(salesData.tickets || [])
+        }
+
+        // Carregar tickets comprados pelo usuário
+        const purchasedFilter = encodeURIComponent(JSON.stringify({"buyer": parseInt(user?.id || '0')}))
+        const purchasedResponse = await apiRequest(`/ticket_app/tickets/by/?filter_by=${purchasedFilter}`)
+        if (purchasedResponse.ok) {
+          const purchasedData = await purchasedResponse.json()
+          setPurchasedTickets(purchasedData.Ticket || [])
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (user?.id) {
+      loadData()
+    }
+  }, [user])
+
   // Filter transactions based on selected filters
-  const filteredTransactions =
-    transactions?.filter((transaction) => {
-      if (statusFilter !== "all" && transaction.status !== statusFilter) return false
-      return true
-    }) || []
+  const filteredTransactions = transactions.filter((transaction) => {
+    if (statusFilter !== "all" && transaction.status.toString() !== statusFilter) return false
+    return true
+  })
 
-  const filteredOrders =
-    orders?.filter((order) => {
-      if (statusFilter !== "all" && order.status !== statusFilter) return false
-      return true
-    }) || []
+  const filteredOrders = orders.filter((order) => {
+    if (statusFilter !== "all" && order.status.toString() !== statusFilter) return false
+    return true
+  })
 
-  const filteredSales =
-    sales?.filter((sale) => {
-      if (statusFilter !== "all" && sale.status !== statusFilter) return false
-      return true
-    }) || []
+  const filteredSales = sales.filter((sale) => {
+    if (statusFilter !== "all" && sale.status.toString() !== statusFilter) return false
+    return true
+  })
 
-  // Calculate balance
-  const balance = user?.balance || 2500.0
-  const pendingBalance = user?.pendingBalance || 500.0
+  // Calculate balance from real data
+  const balance = realBalance
+  const pendingBalance = realPendingBalance
 
   const handleWithdrawal = () => {
-    // Add withdrawal logic here
+    console.log("Withdrawal requested:", withdrawalAmount, selectedPaymentMethod)
     setShowWithdrawalForm(false)
     setWithdrawalAmount("")
   }
 
-  if (isLoading) {
+  if (isLoading || loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="text-white">Carregando...</div>
       </div>
     )
   }
 
+  if (!user) {
+    return null
+  }
+
   return (
-    <div className="min-h-screen bg-black">
-      {/* Header/Navigation */}
-      <header className="bg-black sticky top-0 z-10 border-b border-zinc-800">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          {/* Logo */}
-          <a href="/" className="flex items-center gap-2">
-            <div className="bg-primary p-1.5 rounded">
-              <div className="w-6 h-6 bg-black rounded"></div>
+    <div className="min-h-screen bg-black text-white">
+      <div className="flex">
+        <AccountSidebar balance={realBalance} pendingBalance={realPendingBalance} />
+        
+        <div className="flex-1 p-8">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-white">Meus Pedidos</h1>
+              <p className="text-gray-400 mt-2">Gerencie seus pedidos, transações e saldo</p>
             </div>
-            <span className="text-white text-2xl font-bold">reticket</span>
-          </a>
-
-          {/* Navigation Links */}
-          <nav className="flex items-center gap-4">
-            <a href="/#como-funciona" className="text-white text-sm">
-              Como Funciona
-            </a>
-            <a href="#" className="text-white text-sm">
-              WhatsApp
-            </a>
-
-            {user && (
-              <div className="relative">
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="bg-transparent border border-primary text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-bold"
-                >
-                  <User className="w-4 h-4" />
-                  {user.name.split(" ")[0]}
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={showUserMenu ? "transform rotate-180" : ""}
-                  >
-                    <path
-                      d="M6 9L12 15L18 9"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-
-                {showUserMenu && (
-                  <div className="absolute top-full right-0 mt-2 bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg min-w-[200px] z-50">
-                    <div className="p-3 border-b border-zinc-700">
-                      <p className="font-medium text-white">{user.name}</p>
-                      <p className="text-sm text-gray-400">{user.email}</p>
-                    </div>
-
-                    <a href="/account" className="block px-3 py-2 text-white hover:bg-zinc-800 text-sm">
-                      Minha Conta
-                    </a>
-
-                    <a href="/account/orders" className="block px-3 py-2 text-white hover:bg-zinc-800 text-sm">
-                      Meus Pedidos
-                    </a>
-
-                    {user.isAdmin && (
-                      <a href="/admin" className="block px-3 py-2 text-blue-500 hover:bg-zinc-800 text-sm">
-                        Painel Admin
-                      </a>
-                    )}
-
-                    <div className="border-t border-zinc-700 mt-1">
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full px-3 py-2 text-red-500 hover:bg-zinc-800 text-left text-sm"
-                      >
-                        Sair
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </nav>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Sidebar */}
-          <div className="md:w-1/4">
-            <AccountSidebar />
-          </div>
-
-          {/* Main Content */}
-          <div className="md:w-3/4">
-            <h1 className="text-3xl font-bold text-white mb-6">Meus Pedidos</h1>
-
-            {/* Balance Card */}
-            <div className="bg-zinc-900 rounded-lg p-6 mb-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-                <div>
-                  <h2 className="text-xl font-bold text-white mb-1">Saldo Disponível</h2>
-                  <p className="text-3xl font-bold text-primary">{formatCurrency(balance)}</p>
-                  {pendingBalance > 0 && (
-                    <p className="text-gray-400 text-sm mt-1">+ {formatCurrency(pendingBalance)} pendente</p>
-                  )}
-                </div>
-
-                {balance > 0 && (
-                  <div className="mt-4 md:mt-0">
-                    {!showWithdrawalForm ? (
-                      <Button
-                        onClick={() => setShowWithdrawalForm(true)}
-                        className="bg-primary hover:bg-blue-600 text-black"
-                      >
-                        <Wallet className="w-4 h-4 mr-2" />
-                        Sacar Saldo
-                      </Button>
-                    ) : (
-                      <div className="space-y-3">
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={withdrawalAmount}
-                            onChange={(e) => setWithdrawalAmount(e.target.value)}
-                            placeholder="Valor do saque"
-                            className="bg-zinc-800 border border-zinc-700 rounded-md p-2 text-white"
-                          />
-                          <Button
-                            onClick={handleWithdrawal}
-                            className="bg-primary hover:bg-blue-600 text-black"
-                            disabled={!withdrawalAmount || !selectedPaymentMethod}
-                          >
-                            Sacar
-                          </Button>
-                        </div>
-
-                        {!selectedPaymentMethod ? (
-                          <div className="flex justify-between items-center p-2 bg-zinc-800 rounded-md">
-                            <span className="text-sm text-white">Nenhum método de pagamento selecionado</span>
-                            <Button variant="outline" size="sm" className="border-zinc-700 text-white bg-transparent">
-                              Selecionar Método
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex justify-between items-center p-2 bg-zinc-800 rounded-md">
-                            <div className="flex items-center">
-                              {selectedPaymentMethod.method === "pix" && (
-                                <QrCode className="w-4 h-4 mr-2 text-primary" />
-                              )}
-                              {selectedPaymentMethod.method === "bank" && (
-                                <Landmark className="w-4 h-4 mr-2 text-primary" />
-                              )}
-                              {selectedPaymentMethod.method === "card" && (
-                                <CreditCard className="w-4 h-4 mr-2 text-primary" />
-                              )}
-                              <span className="text-sm text-white">
-                                {selectedPaymentMethod.method === "pix"
-                                  ? `PIX: ${selectedPaymentMethod.details.pixKey}`
-                                  : selectedPaymentMethod.method === "bank"
-                                    ? `Banco: ${selectedPaymentMethod.details.bankName}`
-                                    : "Cartão de Crédito"}
-                              </span>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setSelectedPaymentMethod(null)}
-                              className="text-gray-400 hover:text-white"
-                            >
-                              Alterar
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Tabs */}
-            <Tabs defaultValue="purchases" className="mb-6" onValueChange={setActiveTab}>
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                <TabsList className="bg-zinc-900 border-b border-zinc-800 rounded-none p-0">
-                  <TabsTrigger
-                    value="transactions"
-                    className={`rounded-none border-b-2 px-4 py-2 ${
-                      activeTab === "transactions" ? "border-primary text-primary" : "border-transparent text-gray-400"
-                    }`}
-                  >
-                    Transações
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="purchases"
-                    className={`rounded-none border-b-2 px-4 py-2 ${
-                      activeTab === "purchases" ? "border-primary text-primary" : "border-transparent text-gray-400"
-                    }`}
-                  >
-                    Compras
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="sales"
-                    className={`rounded-none border-b-2 px-4 py-2 ${
-                      activeTab === "sales" ? "border-primary text-primary" : "border-transparent text-gray-400"
-                    }`}
-                  >
-                    Vendas
-                  </TabsTrigger>
-                </TabsList>
-
-                <div className="mt-4 md:mt-0 flex items-center">
+            
+            <div className="relative">
+              <Button
+                variant="ghost"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center space-x-2 text-white hover:bg-zinc-800"
+              >
+                <User className="w-5 h-5" />
+                <span>{user.name}</span>
+              </Button>
+              
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-zinc-900 rounded-lg shadow-lg border border-zinc-800 z-10">
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-zinc-700 text-white bg-transparent hover:bg-zinc-800"
+                    variant="ghost"
+                    onClick={logout}
+                    className="w-full text-left text-red-400 hover:bg-zinc-800 hover:text-red-300"
                   >
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filtrar
+                    Sair
                   </Button>
                 </div>
-              </div>
-
-              <TabsContent value="transactions" className="pt-4">
-                <div className="space-y-4">
-                  {mockTransactions.length > 0 ? (
-                    mockTransactions.map((transaction) => (
-                      <div
-                        key={transaction.id}
-                        className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="flex items-center">
-                              {transaction.type === "purchase" && (
-                                <ArrowUpFromLine className="w-5 h-5 text-red-500 mr-2" />
-                              )}
-                              {transaction.type === "sale" && (
-                                <ArrowDownToLine className="w-5 h-5 text-green-500 mr-2" />
-                              )}
-                              <h3 className="text-white font-medium">
-                                {transaction.type === "purchase" ? "Compra" : "Venda"}
-                              </h3>
-                            </div>
-                            {transaction.eventName && <p className="text-gray-300 mt-1">{transaction.eventName}</p>}
-                            {transaction.ticketType && (
-                              <p className="text-gray-400 text-sm">{transaction.ticketType}</p>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <p className={`font-bold ${transaction.amount > 0 ? "text-green-500" : "text-red-500"}`}>
-                              {transaction.amount > 0 ? "+" : ""}
-                              {formatCurrency(Math.abs(transaction.amount))}
-                            </p>
-                            <div className="flex items-center justify-end mt-1">
-                              <Calendar className="w-3 h-3 text-gray-400 mr-1" />
-                              <p className="text-gray-400 text-xs">{transaction.date}</p>
-                            </div>
-                            <span
-                              className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
-                                transaction.status === "completed"
-                                  ? "bg-green-900 bg-opacity-20 text-green-500"
-                                  : transaction.status === "pending"
-                                    ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
-                                    : "bg-red-900 bg-opacity-20 text-red-500"
-                              }`}
-                            >
-                              {transaction.status === "completed"
-                                ? "Concluído"
-                                : transaction.status === "pending"
-                                  ? "Pendente"
-                                  : "Cancelado"}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
-                          <p className="text-gray-400 text-xs">ID: {transaction.id}</p>
-                          <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
-                            <ExternalLink className="w-4 h-4 mr-1" />
-                            Detalhes
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="bg-zinc-900 rounded-lg p-8 text-center">
-                      <p className="text-gray-400">Nenhuma transação encontrada.</p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="purchases" className="pt-4">
-                <div className="space-y-4">
-                  {mockOrders.length > 0 ? (
-                    mockOrders.map((order) => (
-                      <div
-                        key={order.id}
-                        className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="text-white font-medium">{order.event.name}</h3>
-                            <p className="text-gray-400 text-sm">{order.ticketType}</p>
-                            <p className="text-gray-400 text-sm mt-1">Quantidade: {order.quantity}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-white">{formatCurrency(order.total)}</p>
-                            <div className="flex items-center justify-end mt-1">
-                              <Calendar className="w-3 h-3 text-gray-400 mr-1" />
-                              <p className="text-gray-400 text-xs">
-                                {new Date(order.date).toLocaleDateString("pt-BR")}
-                              </p>
-                            </div>
-                            <span
-                              className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
-                                order.status === "completed"
-                                  ? "bg-green-900 bg-opacity-20 text-green-500"
-                                  : order.status === "pending"
-                                    ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
-                                    : "bg-red-900 bg-opacity-20 text-red-500"
-                              }`}
-                            >
-                              {order.status === "completed"
-                                ? "Concluído"
-                                : order.status === "pending"
-                                  ? "Pendente"
-                                  : "Falha"}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
-                          <p className="text-gray-400 text-xs">Pedido: {order.id}</p>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-zinc-700 text-white bg-transparent hover:bg-zinc-800"
-                            >
-                              <Download className="w-4 h-4 mr-1" />
-                              Baixar Ingresso
-                            </Button>
-                            <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
-                              <ExternalLink className="w-4 h-4 mr-1" />
-                              Detalhes
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="bg-zinc-900 rounded-lg p-8 text-center">
-                      <p className="text-gray-400">Nenhuma compra encontrada.</p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="sales" className="pt-4">
-                <div className="space-y-4">
-                  {mockSales.length > 0 ? (
-                    mockSales.map((sale) => (
-                      <div
-                        key={sale.id}
-                        className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="text-white font-medium">{sale.event.name}</h3>
-                            <p className="text-gray-400 text-sm">{sale.ticketType}</p>
-                            <p className="text-gray-400 text-sm mt-1">Quantidade: {sale.quantity}</p>
-                            <p className="text-gray-400 text-sm">Comprador: {sale.user.name}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-green-500">+{formatCurrency(sale.total)}</p>
-                            <div className="flex items-center justify-end mt-1">
-                              <Calendar className="w-3 h-3 text-gray-400 mr-1" />
-                              <p className="text-gray-400 text-xs">{new Date(sale.date).toLocaleDateString("pt-BR")}</p>
-                            </div>
-                            <span
-                              className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
-                                sale.status === "completed"
-                                  ? "bg-green-900 bg-opacity-20 text-green-500"
-                                  : sale.status === "pending"
-                                    ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
-                                    : "bg-red-900 bg-opacity-20 text-red-500"
-                              }`}
-                            >
-                              {sale.status === "completed"
-                                ? "Concluído"
-                                : sale.status === "pending"
-                                  ? "Pendente"
-                                  : "Cancelado"}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
-                          <p className="text-gray-400 text-xs">Venda: {sale.id}</p>
-                          <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
-                            <ExternalLink className="w-4 h-4 mr-1" />
-                            Detalhes
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="bg-zinc-900 rounded-lg p-8 text-center">
-                      <p className="text-gray-400">Nenhuma venda encontrada.</p>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
+              )}
+            </div>
           </div>
+
+          {/* Balance Section */}
+          <div className="bg-blue-600 rounded-lg p-6 mb-8">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-semibold text-white mb-2">Saldo Disponível</h2>
+                <p className="text-3xl font-bold text-white">{formatCurrency(balance)}</p>
+                <p className="text-gray-300 mt-1">
+                  Pendente: {formatCurrency(pendingBalance)}
+                </p>
+              </div>
+              
+              <div className="flex space-x-3">
+                <Button
+                  onClick={() => setShowWithdrawalForm(true)}
+                  className="bg-white text-black hover:bg-gray-200"
+                >
+                  <ArrowUpFromLine className="w-4 h-4 mr-2" />
+                  Sacar
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Withdrawal Form */}
+          {showWithdrawalForm && (
+            <div className="bg-zinc-900 rounded-lg p-6 mb-8 border border-zinc-800">
+              <h3 className="text-lg font-semibold text-white mb-4">Solicitar Saque</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Valor do Saque
+                  </label>
+                  <input
+                    type="number"
+                    value={withdrawalAmount}
+                    onChange={(e) => setWithdrawalAmount(e.target.value)}
+                    placeholder="0,00"
+                    className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Método de Pagamento
+                  </label>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => setPaymentMethod({ method: "pix", details: {} })}
+                      className={`w-full flex items-center p-3 rounded-lg border ${
+                        paymentMethod.method === "pix"
+                          ? "border-blue-500 bg-blue-900 bg-opacity-20"
+                          : "border-zinc-700 bg-zinc-800"
+                      }`}
+                    >
+                      <QrCode className="w-5 h-5 mr-3" />
+                      <span>PIX</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => setPaymentMethod({ method: "bank", details: {} })}
+                      className={`w-full flex items-center p-3 rounded-lg border ${
+                        paymentMethod.method === "bank"
+                          ? "border-blue-500 bg-blue-900 bg-opacity-20"
+                          : "border-zinc-700 bg-zinc-800"
+                      }`}
+                    >
+                      <Landmark className="w-5 h-5 mr-3" />
+                      <span>Transferência Bancária</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex space-x-3 mt-6">
+                <Button onClick={handleWithdrawal} className="bg-blue-600 hover:bg-blue-700">
+                  Confirmar Saque
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowWithdrawalForm(false)}
+                  className="border-zinc-700 text-white hover:bg-zinc-800"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="flex justify-between items-center mb-6">
+              <TabsList className="bg-zinc-900 border border-zinc-800">
+                <TabsTrigger value="transactions" className="data-[state=active]:bg-zinc-700">
+                  Transações
+                </TabsTrigger>
+                <TabsTrigger value="purchases" className="data-[state=active]:bg-zinc-700">
+                  Compras
+                </TabsTrigger>
+                <TabsTrigger value="sales" className="data-[state=active]:bg-zinc-700">
+                  Vendas
+                </TabsTrigger>
+              </TabsList>
+              
+              <div className="flex items-center space-x-3">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="all">Todos os Status</option>
+                  <option value="1">Pendente</option>
+                  <option value="2">Concluído</option>
+                  <option value="3">Cancelado</option>
+                </select>
+                
+                <Button variant="outline" size="sm" className="border-zinc-700 text-white hover:bg-zinc-800">
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filtros
+                </Button>
+                
+                <Button variant="outline" size="sm" className="border-zinc-700 text-white hover:bg-zinc-800">
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar
+                </Button>
+              </div>
+            </div>
+
+            {/* Transactions Tab */}
+            <TabsContent value="transactions" className="space-y-4">
+              {filteredTransactions.length === 0 ? (
+                <div className="text-center py-12">
+                  <Wallet className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-400">Nenhuma transação encontrada</p>
+                </div>
+              ) : (
+                filteredTransactions.map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center">
+                          {transaction.transaction_type === 'purchase' && (
+                            <ArrowUpFromLine className="w-5 h-5 text-red-500 mr-2" />
+                          )}
+                          {transaction.transaction_type === 'sale' && (
+                            <ArrowDownToLine className="w-5 h-5 text-green-500 mr-2" />
+                          )}
+                          <h3 className="text-white font-medium">
+                            {transaction.transaction_type === 'purchase' ? "Compra" : "Venda"}
+                          </h3>
+                        </div>
+                        <p className="text-gray-300 mt-1">Transação #{transaction.external_id}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className={`font-bold ${transaction.transaction_type === 'sale' ? "text-green-500" : "text-red-500"}`}>
+                          {transaction.transaction_type === 'sale' ? "+" : "-"}
+                          {formatCurrency(parseFloat(transaction.amount))}
+                        </p>
+                        <div className="flex items-center justify-end mt-1">
+                          <Calendar className="w-3 h-3 text-gray-400 mr-1" />
+                          <p className="text-gray-400 text-xs">{new Date(transaction.created_at).toLocaleDateString()}</p>
+                        </div>
+                        <span
+                          className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
+                            transaction.status === 2
+                              ? "bg-green-900 bg-opacity-20 text-green-500"
+                              : transaction.status === 1
+                                ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
+                                : "bg-red-900 bg-opacity-20 text-red-500"
+                          }`}
+                        >
+                          {transaction.status === 2
+                            ? "Concluído"
+                            : transaction.status === 1
+                              ? "Pendente"
+                              : "Cancelado"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
+                      <p className="text-gray-400 text-xs">ID: {transaction.id}</p>
+                      <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
+                        <ExternalLink className="w-4 h-4 mr-1" />
+                        Detalhes
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </TabsContent>
+
+            {/* Purchases Tab */}
+            <TabsContent value="purchases" className="space-y-4">
+              {purchasedTickets.length === 0 ? (
+                <div className="text-center py-12">
+                  <ArrowUpFromLine className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-400">Nenhuma compra encontrada</p>
+                </div>
+              ) : (
+                purchasedTickets.map((ticket) => (
+                  <div
+                    key={ticket.id}
+                    className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center">
+                          <ArrowUpFromLine className="w-5 h-5 text-red-500 mr-2" />
+                          <h3 className="text-white font-medium">{ticket.name}</h3>
+                        </div>
+                        <p className="text-gray-300 mt-1">Quantidade: {ticket.quantity}</p>
+                        <p className="text-gray-300">Evento ID: {ticket.event}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-red-500 font-semibold text-lg">
+                          -{formatCurrency(parseFloat(ticket.price))}
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          {new Date(ticket.created_at).toLocaleDateString('pt-BR')}
+                        </p>
+                        <span
+                          className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
+                            ticket.status === 2
+                              ? "bg-green-900 bg-opacity-20 text-green-500"
+                              : ticket.status === 1
+                                ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
+                                : "bg-red-900 bg-opacity-20 text-red-500"
+                          }`}
+                        >
+                          {ticket.status === 2
+                            ? "Ativo"
+                            : ticket.status === 1
+                              ? "Pendente"
+                              : "Cancelado"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
+                      <p className="text-gray-400 text-xs">ID: {ticket.id}</p>
+                      <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
+                        <ExternalLink className="w-4 h-4 mr-1" />
+                        Detalhes
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </TabsContent>
+
+            {/* Sales Tab */}
+            <TabsContent value="sales" className="space-y-4">
+              {filteredSales.length === 0 ? (
+                <div className="text-center py-12">
+                  <ArrowDownToLine className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-400">Nenhuma venda encontrada</p>
+                </div>
+              ) : (
+                filteredSales.map((sale) => (
+                  <div
+                    key={sale.id}
+                    className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex items-center">
+                          <ArrowDownToLine className="w-5 h-5 text-green-500 mr-2" />
+                          <h3 className="text-white font-medium">{sale.name}</h3>
+                        </div>
+                        <p className="text-gray-300 mt-1">Evento #{sale.event}</p>
+                        <p className="text-gray-400 text-sm">Quantidade: {sale.quantity}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-green-500">
+                          +{formatCurrency(parseFloat(sale.price))}
+                        </p>
+                        <div className="flex items-center justify-end mt-1">
+                          <Calendar className="w-3 h-3 text-gray-400 mr-1" />
+                          <p className="text-gray-400 text-xs">{new Date(sale.created_at).toLocaleDateString()}</p>
+                        </div>
+                        <span
+                          className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
+                            sale.status === 2
+                              ? "bg-green-900 bg-opacity-20 text-green-500"
+                              : sale.status === 1
+                                ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
+                                : "bg-red-900 bg-opacity-20 text-red-500"
+                          }`}
+                        >
+                          {sale.status === 2
+                            ? "Ativo"
+                            : sale.status === 1
+                              ? "Usado"
+                              : "Expirado"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
+                      <p className="text-gray-400 text-xs">ID: {sale.id}</p>
+                      <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
+                        <ExternalLink className="w-4 h-4 mr-1" />
+                        Detalhes
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

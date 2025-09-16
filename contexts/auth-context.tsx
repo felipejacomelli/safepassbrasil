@@ -1,77 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-
-// Update the mockUser and add an admin user
-
-// Mock user data
-const mockUsers = [
-  {
-    id: "1",
-    name: "Felipe Jacomelli",
-    email: "felipejacomelli@gmail.com",
-    password: "teste123", // In a real app, this would never be stored in plain text
-    has2FA: false,
-    isVerified: false,
-    isAdmin: false,
-    balance: 1250.75,
-    pendingBalance: 450.25,
-    transactions: [
-      {
-        id: "1",
-        type: "purchase" as const,
-        amount: -350.0,
-        date: "2025-04-20",
-        status: "completed" as const,
-        description: "Ingresso Rock in Rio - Metallica",
-      },
-      {
-        id: "2",
-        type: "sale" as const,
-        amount: 420.5,
-        date: "2025-04-18",
-        status: "completed" as const,
-        description: "Ingresso Lollapalooza - Arctic Monkeys",
-      },
-      {
-        id: "3",
-        type: "withdrawal" as const,
-        amount: -500.0,
-        date: "2025-04-15",
-        status: "completed" as const,
-        description: "Saque para conta bancária",
-      },
-      {
-        id: "4",
-        type: "sale" as const,
-        amount: 650.0,
-        date: "2025-04-10",
-        status: "pending" as const,
-        description: "Ingresso Festival de Verão - Caetano Veloso",
-      },
-      {
-        id: "5",
-        type: "purchase" as const,
-        amount: -220.0,
-        date: "2025-04-05",
-        status: "completed" as const,
-        description: "Ingresso Show Charlie Brown Jr.",
-      },
-    ] as Transaction[],
-  },
-  {
-    id: "2",
-    name: "Administrador",
-    email: "admin@admin.com",
-    password: "admin",
-    has2FA: false,
-    isVerified: true,
-    isAdmin: true,
-    balance: 0,
-    pendingBalance: 0,
-    transactions: [],
-  },
-]
+import { authApi, type LoginResponse, type ApiUser } from "@/lib/api"
 
 // Update the User type to include isAdmin
 type User = {
@@ -84,6 +14,12 @@ type User = {
   balance: number
   pendingBalance: number
   transactions: Transaction[]
+  phone?: string
+  address?: string
+  profileImage?: string
+  verificationStatus?: 'pending' | 'verified' | 'rejected'
+  memberSince?: string
+  twoFactorEnabled?: boolean
 }
 
 type Transaction = {
@@ -103,9 +39,10 @@ type AuthContextType = {
   orders: any[]
   sales: any[]
   login: (email: string, password: string) => Promise<{ success: boolean; requires2FA?: boolean; isAdmin?: boolean }>
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; message?: string }>
   verifyTwoFactor: (email: string, code: string, isBackupCode?: boolean) => Promise<boolean>
   logout: () => void
-  updateUser: (data: Partial<User>) => void
+  updateUser: (data: Partial<User>) => Promise<{ success: boolean; message?: string }>
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -116,9 +53,10 @@ export const AuthContext = createContext<AuthContextType>({
   orders: [],
   sales: [],
   login: (email, password) => Promise.resolve({ success: false }),
+  register: (name, email, password) => Promise.resolve({ success: false }),
   verifyTwoFactor: (email, code, isBackupCode) => Promise.resolve(false),
   logout: () => {},
-  updateUser: (data) => {},
+  updateUser: (data) => Promise.resolve({ success: false }),
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -134,48 +72,141 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check if user is logged in from localStorage
     if (typeof window !== 'undefined') {
       const storedUser = localStorage.getItem("user")
+      const storedToken = localStorage.getItem("authToken")
+      
       if (storedUser) {
         setUser(JSON.parse(storedUser))
+      }
+      
+      // Se há token, tentar obter dados atualizados do perfil
+      if (storedToken) {
+        tryAutoLogin('')
+      }
+      
+      // Se não há token mas há usuário, significa que é um usuário mockado
+      // Vamos tentar fazer login automático para obter um token válido
+      if (storedUser && !storedToken) {
+        const user = JSON.parse(storedUser)
+        // Tentar fazer login silencioso para obter token
+        tryAutoLogin(user.email)
       }
     }
     setIsLoading(false)
   }, [])
 
-  // Update the login function to check both users
-  const login = async (email: string, password: string) => {
-    // In a real app, this would be an API call
-    const user = mockUsers.find((u) => u.email === email && u.password === password)
-
-    if (user) {
-      // Check if 2FA is enabled
-      if (user.has2FA) {
-        return { success: true, requires2FA: true, isAdmin: user.isAdmin }
+  // Função para tentar login automático e obter token
+  const tryAutoLogin = async (email: string) => {
+    try {
+      // Tentar obter perfil com a API para verificar se há sessão ativa
+      const profile = await authApi.getProfile()
+      // Se conseguiu obter o perfil, significa que há uma sessão válida
+      console.log('Sessão válida encontrada:', profile)
+      
+      // Atualizar o usuário com os dados da API, incluindo memberSince
+      const updatedUser: User = {
+        id: profile.id,
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        address: profile.location,
+        has2FA: false,
+        isVerified: true,
+        isAdmin: false,
+        balance: 0,
+        pendingBalance: 0,
+        transactions: [],
+        memberSince: profile.created_at ? new Date(profile.created_at).getFullYear().toString() : '',
+        verificationStatus: 'verified' as const
       }
-
-      // If no 2FA, log in directly
-      const loggedInUser = { ...user }
-      setUser(loggedInUser)
+      
+      setUser(updatedUser)
       if (typeof window !== 'undefined') {
-        localStorage.setItem("user", JSON.stringify(loggedInUser))
+        localStorage.setItem("user", JSON.stringify(updatedUser))
       }
-      return { success: true, isAdmin: user.isAdmin }
+    } catch (error) {
+      console.log('Nenhuma sessão válida encontrada, usando dados locais')
     }
+  }
 
-    return { success: false }
+  // Update the login function to use only real API
+  const login = async (email: string, password: string) => {
+    try {
+      // Fazer login com a API real
+      const response = await authApi.login({ email, password });
+      
+      // Salvar token no localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('authToken', response.token);
+      }
+
+      // Criar objeto de usuário compatível com o frontend
+      const loggedInUser: User = {
+        id: response.id,
+        name: response.name,
+        email: response.email,
+        phone: response.phone,
+        has2FA: false, // Por enquanto, assumir que não tem 2FA
+        isVerified: true,
+        isAdmin: false, // Verificar se é admin baseado no email ou outro campo
+        balance: 0,
+        pendingBalance: 0,
+        transactions: [],
+        memberSince: response.created_at ? new Date(response.created_at).getFullYear().toString() : '',
+        verificationStatus: 'verified' as const
+      };
+
+      setUser(loggedInUser);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("user", JSON.stringify(loggedInUser));
+      }
+
+      return { success: true, isAdmin: loggedInUser.isAdmin };
+    } catch (error) {
+      console.error('Erro no login:', error);
+      return { success: false };
+    }
+  }
+
+  const register = async (name: string, email: string, password: string) => {
+    try {
+      // Tentar fazer registro com a API real
+      const response = await authApi.register({ name, email, password });
+      
+      // Salvar token no localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('authToken', response.token);
+      }
+
+      // Criar objeto de usuário compatível com o frontend
+      const registeredUser: User = {
+        id: response.id,
+        name: response.name,
+        email: response.email,
+        phone: response.phone,
+        has2FA: false,
+        isVerified: true,
+        isAdmin: false,
+        balance: 0,
+        pendingBalance: 0,
+        transactions: [],
+        memberSince: response.created_at ? new Date(response.created_at).getFullYear().toString() : ''
+      };
+
+      setUser(registeredUser);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("user", JSON.stringify(registeredUser));
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Erro no registro:', error);
+      return { success: false, message: 'Erro ao criar conta. Tente novamente.' };
+    }
   }
 
   const verifyTwoFactor = async (email: string, code: string, isBackupCode = false) => {
-    // In a real app, this would verify the code with the server
-    // For demo purposes, we'll accept any valid format
-    if (email === mockUsers[0].email) {
-      const loggedInUser = { ...mockUsers[0] }
-      setUser(loggedInUser)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem("user", JSON.stringify(loggedInUser))
-      }
-      return true
-    }
-
+    // Em uma aplicação real, isso verificaria o código com o servidor
+    // Por enquanto, retornamos false pois não temos 2FA implementado
     return false
   }
 
@@ -183,16 +214,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
     if (typeof window !== 'undefined') {
       localStorage.removeItem("user")
+      localStorage.removeItem("authToken") // Remover token também
     }
   }
 
-  const updateUser = (data: Partial<User>) => {
-    if (user) {
-      const updatedUser = { ...user, ...data }
-      setUser(updatedUser)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem("user", JSON.stringify(updatedUser))
+  const updateUser = async (data: Partial<User>): Promise<{ success: boolean; message?: string }> => {
+    try {
+      // Verificar se há token de autenticação
+      const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+      
+      if (!token) {
+        return { success: false, message: 'Token de autenticação não encontrado. Faça login novamente.' };
       }
+
+      // Atualizar com a API real
+      const response = await authApi.updateProfile({
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        location: data.address, // Mapear address para location
+      });
+
+      // Atualizar o usuário local com os dados retornados da API
+      const updatedUser: User = {
+        ...user!,
+        name: response.name,
+        email: response.email,
+        phone: response.phone,
+        address: response.location, // Mapear location para address
+      };
+
+      setUser(updatedUser);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      }
+
+      return { success: true, message: 'Perfil atualizado com sucesso!' };
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      return { success: false, message: 'Erro ao atualizar perfil. Tente novamente.' };
     }
   }
 
@@ -206,6 +266,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         orders,
         sales,
         login,
+        register,
         verifyTwoFactor,
         logout,
         updateUser,

@@ -26,26 +26,26 @@ export function AccountSidebar() {
 
   return (
     <div className="w-full md:w-64 flex-shrink-0">
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-4 border-b">
+      <div className="bg-zinc-900 rounded-lg shadow-lg border border-zinc-800 overflow-hidden">
+        <div className="p-4 border-b border-zinc-800">
           <div className="flex items-center">
-            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
+            <div className="h-10 w-10 rounded-full bg-zinc-700 flex items-center justify-center text-white">
               {user?.name.charAt(0)}
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium">{user?.name}</p>
-              <p className="text-xs text-gray-500">{user?.email}</p>
+              <p className="text-sm font-medium text-white">{user?.name}</p>
+              <p className="text-xs text-gray-400">{user?.email}</p>
             </div>
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-2">
-            <div className="bg-gray-50 p-2 rounded">
-              <p className="text-xs text-gray-500">Saldo</p>
-              <p className="font-medium">R$ {user?.balance.toFixed(2)}</p>
+            <div className="bg-zinc-800 p-2 rounded">
+              <p className="text-xs text-gray-400">Saldo</p>
+              <p className="font-medium text-white">R$ {user?.balance.toFixed(2)}</p>
             </div>
-            <div className="bg-gray-50 p-2 rounded">
-              <p className="text-xs text-gray-500">Pendente</p>
-              <p className="font-medium">R$ {user?.pendingBalance.toFixed(2)}</p>
+            <div className="bg-zinc-800 p-2 rounded">
+              <p className="text-xs text-gray-400">Pendente</p>
+              <p className="font-medium text-white">R$ {user?.pendingBalance.toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -57,7 +57,7 @@ export function AccountSidebar() {
               href={item.href}
               className={cn(
                 "flex items-center px-3 py-2 text-sm font-medium rounded-md my-1",
-                pathname === item.href ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100",
+                pathname === item.href ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-zinc-800 hover:text-white",
               )}
             >
               <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
@@ -66,7 +66,7 @@ export function AccountSidebar() {
                 <span
                   className={cn(
                     "ml-auto inline-flex items-center rounded-full px-2 py-0.5 text-xs",
-                    item.status === "verified" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800",
+                    item.status === "verified" ? "bg-green-900 text-green-300" : "bg-yellow-900 text-yellow-300",
                   )}
                 >
                   {item.status === "verified" ? "Verificado" : "Pendente"}
@@ -76,10 +76,10 @@ export function AccountSidebar() {
           ))}
         </nav>
 
-        <div className="p-4 border-t">
+        <div className="p-4 border-t border-zinc-800">
           <button
             onClick={logout}
-            className="flex w-full items-center px-3 py-2 text-sm font-medium text-red-600 rounded-md hover:bg-red-50"
+            className="flex w-full items-center px-3 py-2 text-sm font-medium text-red-400 rounded-md hover:bg-zinc-800 hover:text-red-300"
           >
             <LogOut className="mr-3 h-5 w-5 flex-shrink-0" />
             Sair

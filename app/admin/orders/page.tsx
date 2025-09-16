@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Download, Filter, ExternalLink, Calendar, UserIcon, Search, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useAuth } from "@/hooks/useAuth"
+import { useAuth } from "@/contexts/auth-context"
 import { formatCurrency } from "@/utils/formatCurrency"
 
 // Mock orders data

@@ -2,11 +2,16 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useAuth } from "@/hooks/useAuth"
+import { useAuth } from "@/contexts/auth-context"
 import { cn } from "@/lib/utils"
 import { User, Package, Shield, BadgeCheck, LogOut, Settings } from "lucide-react"
 
-export function AccountSidebar() {
+interface AccountSidebarProps {
+  balance?: number
+  pendingBalance?: number
+}
+
+export function AccountSidebar({ balance, pendingBalance }: AccountSidebarProps = {}) {
   const pathname = usePathname()
   const { user, logout } = useAuth()
 
@@ -42,11 +47,11 @@ export function AccountSidebar() {
           <div className="mt-4 grid grid-cols-2 gap-2">
             <div className="bg-zinc-800 p-2 rounded">
               <p className="text-xs text-gray-400">Saldo</p>
-              <p className="font-medium text-white">R$ {user?.balance?.toFixed(2) || "0,00"}</p>
+              <p className="font-medium text-white">R$ {(balance !== undefined ? balance : user?.balance || 0).toFixed(2)}</p>
             </div>
             <div className="bg-zinc-800 p-2 rounded">
               <p className="text-xs text-gray-400">Pendente</p>
-              <p className="font-medium text-white">R$ {user?.pendingBalance?.toFixed(2) || "0,00"}</p>
+              <p className="font-medium text-white">R$ {(pendingBalance !== undefined ? pendingBalance : user?.pendingBalance || 0).toFixed(2)}</p>
             </div>
           </div>
         </div>

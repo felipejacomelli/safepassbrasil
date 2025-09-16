@@ -16,79 +16,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
-// Mock events data
-const mockEvents = [
-  {
-    id: "rock-in-rio-2025",
-    name: "Rock in Rio 2025",
-    date: "19-28 de Setembro, 2025",
-    location: "Cidade do Rock, Rio de Janeiro",
-    status: "active",
-    ticketsSold: 12500,
-    totalTickets: 25000,
-    revenue: 9375000,
-    image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    id: "lollapalooza-2025",
-    name: "Lollapalooza 2025",
-    date: "28-30 de Março, 2025",
-    location: "Autódromo de Interlagos, São Paulo",
-    status: "active",
-    ticketsSold: 8750,
-    totalTickets: 20000,
-    revenue: 5250000,
-    image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    id: "festival-de-verao-2025",
-    name: "Festival de Verão 2025",
-    date: "18-19 de Janeiro, 2025",
-    location: "Parque de Exposições, Salvador",
-    status: "upcoming",
-    ticketsSold: 5000,
-    totalTickets: 15000,
-    revenue: 2500000,
-    image: "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    id: "show-metallica-2025",
-    name: "Show Metallica",
-    date: "25 de Maio, 2025",
-    location: "Estádio do Morumbi, São Paulo",
-    status: "upcoming",
-    ticketsSold: 3500,
-    totalTickets: 10000,
-    revenue: 1925000,
-    image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    id: "show-bruno-mars-2025",
-    name: "Show Bruno Mars",
-    date: "10 de Junho, 2025",
-    location: "Allianz Parque, São Paulo",
-    status: "upcoming",
-    ticketsSold: 4200,
-    totalTickets: 12000,
-    revenue: 2730000,
-    image: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=800&auto=format&fit=crop&q=60",
-  },
-  {
-    id: "tomorrowland-brasil-2024",
-    name: "Tomorrowland Brasil 2024",
-    date: "11-13 de Outubro, 2024",
-    location: "Parque Maeda, Itu",
-    status: "completed",
-    ticketsSold: 18000,
-    totalTickets: 18000,
-    revenue: 14400000,
-    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&auto=format&fit=crop&q=60",
-  },
-]
+// Interface para tipagem dos eventos
+interface Event {
+  id: string
+  name: string
+  date: string
+  location: string
+  status: "active" | "upcoming" | "completed"
+  ticketsSold: number
+  totalTickets: number
+  revenue: number
+  image?: string
+}
 
 export default function AdminEventsPage() {
   const router = useRouter()
-  const [events, setEvents] = useState(mockEvents)
+  const [events, setEvents] = useState<Event[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [sortField, setSortField] = useState("name")
@@ -242,91 +185,101 @@ export default function AdminEventsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredEvents.map((event) => (
-                  <tr key={event.id} className="border-b border-zinc-800">
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-md overflow-hidden">
-                          <img
-                            src={event.image || "/placeholder.svg"}
-                            alt={event.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <span className="font-medium">{event.name}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <Calendar size={16} className="text-gray-400" />
-                        {event.date}
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <MapPin size={16} className="text-gray-400" />
-                        {event.location}
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          event.status === "active"
-                            ? "bg-green-900 bg-opacity-20 text-green-500"
-                            : event.status === "upcoming"
-                              ? "bg-blue-900 bg-opacity-20 text-blue-500"
-                              : "bg-gray-900 bg-opacity-20 text-gray-500"
-                        }`}
-                      >
-                        {event.status === "active" ? "Ativo" : event.status === "upcoming" ? "Próximo" : "Concluído"}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <Users size={16} className="text-gray-400" />
-                        {event.ticketsSold.toLocaleString()} / {event.totalTickets.toLocaleString()}
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      R$ {(event.revenue / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-zinc-800 border-zinc-700 text-white">
-                          <DropdownMenuItem
-                            className="cursor-pointer hover:bg-zinc-700"
-                            onClick={() => router.push(`/admin/events/${event.id}`)}
-                          >
-                            <Edit className="mr-2 h-4 w-4" />
-                            <span>Editar</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="cursor-pointer hover:bg-zinc-700"
-                            onClick={() => router.push(`/event/${event.id}`)}
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            <span>Visualizar</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="cursor-pointer text-red-500 hover:bg-zinc-700 hover:text-red-500"
-                            onClick={() => {
-                              setEventToDelete(event.id)
-                              setDeleteDialogOpen(true)
-                            }}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Excluir</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                {filteredEvents.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-8 px-6 text-center text-gray-400">
+                      {searchTerm || statusFilter !== "all" 
+                        ? "Nenhum evento encontrado com os filtros aplicados." 
+                        : "Nenhum evento cadastrado ainda."}
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredEvents.map((event) => (
+                    <tr key={event.id} className="border-b border-zinc-800">
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-md overflow-hidden">
+                            <img
+                              src={event.image || "/placeholder.svg"}
+                              alt={event.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <span className="font-medium">{event.name}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-2">
+                          <Calendar size={16} className="text-gray-400" />
+                          {event.date}
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-2">
+                          <MapPin size={16} className="text-gray-400" />
+                          {event.location}
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            event.status === "active"
+                              ? "bg-green-900 bg-opacity-20 text-green-500"
+                              : event.status === "upcoming"
+                                ? "bg-blue-900 bg-opacity-20 text-blue-500"
+                                : "bg-gray-900 bg-opacity-20 text-gray-500"
+                          }`}
+                        >
+                          {event.status === "active" ? "Ativo" : event.status === "upcoming" ? "Próximo" : "Concluído"}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-2">
+                          <Users size={16} className="text-gray-400" />
+                          {event.ticketsSold.toLocaleString()} / {event.totalTickets.toLocaleString()}
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        R$ {(event.revenue / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="py-4 px-6 text-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-zinc-800 border-zinc-700 text-white">
+                            <DropdownMenuItem
+                              className="cursor-pointer hover:bg-zinc-700"
+                              onClick={() => router.push(`/admin/events/${event.id}`)}
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              <span>Editar</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="cursor-pointer hover:bg-zinc-700"
+                              onClick={() => router.push(`/event/${event.id}`)}
+                            >
+                              <Eye className="mr-2 h-4 w-4" />
+                              <span>Visualizar</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="cursor-pointer text-red-500 hover:bg-zinc-700 hover:text-red-500"
+                              onClick={() => {
+                                setEventToDelete(event.id)
+                                setDeleteDialogOpen(true)
+                              }}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              <span>Excluir</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
