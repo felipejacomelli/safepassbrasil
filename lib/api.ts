@@ -22,6 +22,8 @@ export interface RegisterRequest {
   email: string;
   password: string;
   phone?: string;
+  country?: string;
+  cpf?: string;
 }
 
 export interface ApiUser {

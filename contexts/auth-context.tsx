@@ -39,7 +39,7 @@ type AuthContextType = {
   orders: any[]
   sales: any[]
   login: (email: string, password: string) => Promise<{ success: boolean; requires2FA?: boolean; isAdmin?: boolean }>
-  register: (name: string, email: string, password: string) => Promise<{ success: boolean; message?: string }>
+  register: (userData: { name: string; email: string; password: string; phone?: string; country?: string; cpf?: string }) => Promise<{ success: boolean; message?: string }>
   verifyTwoFactor: (email: string, code: string, isBackupCode?: boolean) => Promise<boolean>
   logout: () => void
   updateUser: (data: Partial<User>) => Promise<{ success: boolean; message?: string }>
@@ -53,7 +53,7 @@ export const AuthContext = createContext<AuthContextType>({
   orders: [],
   sales: [],
   login: (email, password) => Promise.resolve({ success: false }),
-  register: (name, email, password) => Promise.resolve({ success: false }),
+  register: (userData: { name: string; email: string; password: string; phone?: string; country?: string; cpf?: string }) => Promise.resolve({ success: false }),
   verifyTwoFactor: (email, code, isBackupCode) => Promise.resolve(false),
   logout: () => {},
   updateUser: (data) => Promise.resolve({ success: false }),
@@ -167,10 +167,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (userData: { name: string; email: string; password: string; phone?: string; country?: string; cpf?: string }) => {
     try {
       // Tentar fazer registro com a API real
-      const response = await authApi.register({ name, email, password });
+      const response = await authApi.register(userData);
       
       // Salvar token no localStorage
       if (typeof window !== 'undefined') {
@@ -227,12 +227,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, message: 'Token de autenticação não encontrado. Faça login novamente.' };
       }
 
-      // Atualizar com a API real
+      // Atualizar com a API real - mapear address do frontend para location do backend
       const response = await authApi.updateProfile({
         name: data.name,
         email: data.email,
         phone: data.phone,
-        location: data.address, // Mapear address para location
+        location: data.address, // Frontend usa address, backend espera location
       });
 
       // Atualizar o usuário local com os dados retornados da API

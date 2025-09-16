@@ -21,6 +21,17 @@ export default function LoginPage() {
     password: "",
     name: "",
     confirmPassword: "",
+    phone: "",
+    country: "",
+    cpf: "",
+  })
+  
+  const [fieldErrors, setFieldErrors] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    cpf: "",
+    country: ""
   })
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -33,9 +44,102 @@ export default function LoginPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
+    
+    let formattedValue = value
+    
+    // Formatação automática do CPF
+    if (name === 'cpf') {
+      const numbers = value.replace(/\D/g, '')
+      if (numbers.length <= 11) {
+        if (numbers.length <= 3) {
+          formattedValue = numbers
+        } else if (numbers.length <= 6) {
+          formattedValue = `${numbers.slice(0, 3)}.${numbers.slice(3)}`
+        } else if (numbers.length <= 9) {
+          formattedValue = `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6)}`
+        } else {
+          formattedValue = `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6, 9)}-${numbers.slice(9, 11)}`
+        }
+      }
+    }
+    
+    // Formatação automática do celular
+    if (name === 'phone') {
+      const numbers = value.replace(/\D/g, '')
+      if (numbers.length === 0) {
+        formattedValue = ''
+      } else if (numbers.length <= 2) {
+        formattedValue = numbers
+      } else if (numbers.length <= 6) {
+        formattedValue = `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`
+      } else if (numbers.length <= 10) {
+        formattedValue = `(${numbers.slice(0, 2)}) ${numbers.slice(2, 6)}-${numbers.slice(6)}`
+      } else {
+        formattedValue = `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`
+      }
+    }
+    
+    setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: formattedValue
+    }))
+    
+    // Validação em tempo real
+    validateField(name, formattedValue)
+  }
+  
+  const validateField = (fieldName: string, value: string) => {
+    let error = ""
+    
+    switch (fieldName) {
+      case 'name':
+        if (!value.trim()) {
+          error = "Nome é obrigatório"
+        } else {
+          const names = value.trim().split(/\s+/)
+          if (names.length < 2) {
+            error = "Digite pelo menos nome e sobrenome"
+          } else if (names.some(name => name.length < 2)) {
+            error = "Cada nome deve ter pelo menos 2 caracteres"
+          }
+        }
+        break
+        
+      case 'email':
+        if (!value.trim()) {
+          error = "Email é obrigatório"
+        } else {
+          const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+          if (!emailRegex.test(value)) {
+            error = "Digite um email válido"
+          }
+        }
+        break
+        
+      case 'phone':
+        const phoneNumbers = value.replace(/\D/g, '')
+        if (phoneNumbers.length > 0 && phoneNumbers.length < 10) {
+          error = "Celular deve ter 10 ou 11 dígitos"
+        }
+        break
+        
+      case 'cpf':
+        const cpfNumbers = value.replace(/\D/g, '')
+        if (cpfNumbers.length > 0 && cpfNumbers.length !== 11) {
+          error = "CPF deve ter 11 dígitos"
+        }
+        break
+        
+      case 'country':
+        if (!value.trim()) {
+          error = "País é obrigatório"
+        }
+        break
+    }
+    
+    setFieldErrors(prev => ({
+      ...prev,
+      [fieldName]: error
     }))
   }
 
@@ -73,6 +177,41 @@ export default function LoginPage() {
       }
     } else {
       // Register logic
+      // Validação completa antes do envio
+      const validationErrors = {
+        name: !formData.name.trim() ? "Nome é obrigatório" : "",
+        email: !formData.email.trim() ? "Email é obrigatório" : "",
+        country: !formData.country.trim() ? "País é obrigatório" : "",
+        phone: formData.phone.replace(/\D/g, '').length < 10 ? "Celular deve ter 10 ou 11 dígitos" : "",
+        cpf: formData.cpf.replace(/\D/g, '').length !== 11 ? "CPF deve ter 11 dígitos" : ""
+      }
+      
+      // Validações específicas
+      if (formData.name.trim()) {
+        const names = formData.name.trim().split(/\s+/)
+        if (names.length < 2) {
+          validationErrors.name = "Digite pelo menos nome e sobrenome"
+        } else if (names.some(name => name.length < 2)) {
+          validationErrors.name = "Cada nome deve ter pelo menos 2 caracteres"
+        }
+      }
+      
+      if (formData.email.trim()) {
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+        if (!emailRegex.test(formData.email)) {
+          validationErrors.email = "Digite um email válido"
+        }
+      }
+      
+      setFieldErrors(validationErrors)
+      
+      // Verifica se há algum erro
+      const hasErrors = Object.values(validationErrors).some(error => error !== "")
+      if (hasErrors) {
+        setError("Por favor, corrija os erros no formulário")
+        return
+      }
+      
       if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
         setError("Por favor, preencha todos os campos")
         return
@@ -91,7 +230,14 @@ export default function LoginPage() {
       setIsLoading(true)
 
       try {
-        const result = await register(formData.name, formData.email, formData.password)
+        const result = await register({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          phone: formData.phone,
+          country: formData.country,
+          cpf: formData.cpf
+        })
 
         if (result.success) {
           router.push("/account")
@@ -114,6 +260,16 @@ export default function LoginPage() {
       password: "",
       name: "",
       confirmPassword: "",
+      phone: "",
+      country: "",
+      cpf: "",
+    })
+    setFieldErrors({
+      name: "",
+      email: "",
+      phone: "",
+      cpf: "",
+      country: ""
     })
   }
 
@@ -149,21 +305,82 @@ export default function LoginPage() {
         <div className="bg-gray-900 shadow rounded-lg p-6 border border-gray-800">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLoginMode && (
-              <div>
-                <Label htmlFor="name" className="text-white">
-                  Nome completo
-                </Label>
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  required={!isLoginMode}
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="mt-1 bg-gray-800 border-gray-700 text-white"
-                />
-              </div>
+              <>
+                <div>
+                  <Label htmlFor="name" className="text-white">
+                    Nome completo
+                  </Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    autoComplete="name"
+                    required={!isLoginMode}
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className={`mt-1 bg-gray-800 border-gray-700 text-white ${fieldErrors.name ? 'border-red-500' : ''}`}
+                  />
+                  {fieldErrors.name && (
+                    <p className="mt-1 text-sm text-red-400">{fieldErrors.name}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="phone" className="text-white">
+                    Celular
+                  </Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className={`mt-1 bg-gray-800 border-gray-700 text-white ${fieldErrors.phone ? 'border-red-500' : ''}`}
+                    placeholder="(11) 99999-9999"
+                  />
+                  {fieldErrors.phone && (
+                    <p className="mt-1 text-sm text-red-400">{fieldErrors.phone}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="cpf" className="text-white">
+                    CPF
+                  </Label>
+                  <Input
+                    id="cpf"
+                    name="cpf"
+                    type="text"
+                    value={formData.cpf}
+                    onChange={handleInputChange}
+                    className={`mt-1 bg-gray-800 border-gray-700 text-white ${fieldErrors.cpf ? 'border-red-500' : ''}`}
+                    placeholder="000.000.000-00"
+                    maxLength={14}
+                  />
+                  {fieldErrors.cpf && (
+                    <p className="mt-1 text-sm text-red-400">{fieldErrors.cpf}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="country" className="text-white">
+                    País
+                  </Label>
+                  <Input
+                    id="country"
+                    name="country"
+                    type="text"
+                    value={formData.country}
+                    onChange={handleInputChange}
+                    className={`mt-1 bg-gray-800 border-gray-700 text-white ${fieldErrors.country ? 'border-red-500' : ''}`}
+                    placeholder="Ex: Brasil"
+                  />
+                  {fieldErrors.country && (
+                    <p className="mt-1 text-sm text-red-400">{fieldErrors.country}</p>
+                  )}
+                </div>
+              </>
             )}
 
             <div>
@@ -178,8 +395,11 @@ export default function LoginPage() {
                 required
                 value={formData.email}
                 onChange={handleInputChange}
-                className="mt-1 bg-gray-800 border-gray-700 text-white"
+                className={`mt-1 bg-gray-800 border-gray-700 text-white ${fieldErrors.email ? 'border-red-500' : ''}`}
               />
+              {fieldErrors.email && (
+                <p className="mt-1 text-sm text-red-400">{fieldErrors.email}</p>
+              )}
             </div>
 
             <div>
