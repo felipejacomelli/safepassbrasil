@@ -775,7 +775,7 @@ export default function Page() {
             }}
           >
             <Plus size={20} />
-            Vender Ingresso
+            Vender Ingressos
           </button>
         </div>
 
