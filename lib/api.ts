@@ -106,7 +106,26 @@ async function apiRequestJson<T>(
   const response = await apiRequest(endpoint, options);
   
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    let errorMessage = `HTTP error! status: ${response.status}`;
+    
+    // Tentar extrair detalhes do erro da resposta
+    try {
+      const errorData = await response.json();
+      if (errorData.detail) {
+        errorMessage = errorData.detail;
+      } else if (errorData.error) {
+        errorMessage = errorData.error;
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    } catch (parseError) {
+      // Se não conseguir fazer parse, usar a mensagem padrão
+    }
+    
+    const error = new Error(errorMessage);
+    (error as any).response = response;
+    (error as any).status = response.status;
+    throw error;
   }
   
   const result = await response.json();

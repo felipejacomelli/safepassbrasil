@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertTriangle } from "lucide-react"
+import { validateCpfWithMessage } from "@/utils/cpf"
 
 export default function LoginPage() {
   const { login, register, isAuthenticated } = useAuth()
@@ -124,9 +125,9 @@ export default function LoginPage() {
         break
         
       case 'cpf':
-        const cpfNumbers = value.replace(/\D/g, '')
-        if (cpfNumbers.length > 0 && cpfNumbers.length !== 11) {
-          error = "CPF deve ter 11 dígitos"
+        if (value.trim()) {
+          const cpfValidation = validateCpfWithMessage(value)
+          error = cpfValidation.message
         }
         break
         

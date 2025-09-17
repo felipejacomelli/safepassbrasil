@@ -82,17 +82,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(JSON.parse(storedUser))
       }
       
-      // Se há token, tentar obter dados atualizados do perfil
-      if (storedToken) {
+      // Se há token válido, tentar obter dados atualizados do perfil
+      if (storedToken && storedToken !== 'null' && storedToken !== 'undefined') {
         tryAutoLogin('')
-      } else if (storedUser && !storedToken) {
-        // Se não há token mas há usuário, significa que é um usuário mockado
-        // Vamos tentar fazer login automático para obter um token válido
-        const user = JSON.parse(storedUser)
-        // Tentar fazer login silencioso para obter token
-        tryAutoLogin(user.email)
       } else {
-        // Não há usuário nem token, pode finalizar o loading
+        // Se não há token válido, limpar dados antigos e finalizar loading
+        if (storedUser) {
+          console.log('Removendo dados de usuário sem token válido');
+          localStorage.removeItem('user');
+          setUser(null);
+        }
         setIsLoading(false)
       }
     } else {
@@ -110,6 +109,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Função para tentar login automático e obter token
   const tryAutoLogin = async (email: string) => {
     try {
+      // Verificar se há token válido antes de fazer a chamada
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+      
+      if (!storedToken) {
+        console.log('Nenhum token encontrado, pulando verificação de sessão');
+        setIsLoading(false);
+        return;
+      }
+
       // Tentar obter perfil com a API para verificar se há sessão ativa
       const profile = await authApi.getProfile()
       // Se conseguiu obter o perfil, significa que há uma sessão válida
@@ -137,8 +145,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (typeof window !== 'undefined') {
         localStorage.setItem("user", JSON.stringify(updatedUser))
       }
-    } catch (error) {
-      console.log('Nenhuma sessão válida encontrada, usando dados locais')
+    } catch (error: any) {
+      console.log('Erro ao verificar sessão:', error.message || error);
+      
+      // Se o erro for de token inválido, limpar dados de autenticação
+      if (error.message && (error.message.includes('Invalid token') || error.message.includes('401') || error.message.includes('Unauthorized'))) {
+        console.log('Token inválido detectado, limpando dados de autenticação');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+        }
+        setUser(null);
+      }
     } finally {
       // Sempre finalizar o loading após tentar verificar
       setIsLoading(false)
@@ -223,9 +241,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro no registro:', error);
-      return { success: false, message: 'Erro ao criar conta. Tente novamente.' };
+      
+      // Tentar extrair informações específicas do erro
+      let errorMessage = 'Erro ao criar conta. Tente novamente.';
+      
+      if (error.message) {
+        // Verificar se é erro de CPF duplicado
+        if (error.message.includes('duplicate key') && error.message.includes('cpf')) {
+          errorMessage = 'Este CPF já está cadastrado no sistema';
+        }
+        // Verificar se é erro de email duplicado
+        else if (error.message.includes('duplicate key') && error.message.includes('email')) {
+          errorMessage = 'Este email já está cadastrado no sistema';
+        }
+        // Verificar se é erro de validação
+        else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+          errorMessage = 'Dados inválidos. Verifique as informações e tente novamente.';
+        }
+      }
+      
+      // Tentar fazer parse da resposta de erro se disponível
+      try {
+        if (error.response) {
+          const errorData = await error.response.json();
+          if (errorData.detail) {
+            errorMessage = errorData.detail;
+          } else if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        }
+      } catch (parseError) {
+        // Se não conseguir fazer parse, usar a mensagem padrão
+      }
+      
+      return { success: false, message: errorMessage };
     }
   }
 

@@ -4,15 +4,19 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
+import { formatCpf, validateCpfWithMessage } from "@/utils/cpf"
 
 export default function RegisterPage() {
   const [isDesktop, setIsDesktop] = useState(false)
   const router = useRouter()
+  const { register } = useAuth()
 
   // Form state
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
+  const [cpf, setCpf] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -24,8 +28,15 @@ export default function RegisterPage() {
     setIsDesktop(window.matchMedia("(min-width: 640px)").matches)
   }, [])
 
+  // Handle CPF formatting
+  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    const formattedCpf = formatCpf(value)
+    setCpf(formattedCpf)
+  }
+
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     // Reset errors
@@ -42,6 +53,15 @@ export default function RegisterPage() {
       newErrors.email = "Email é obrigatório"
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = "Email inválido"
+    }
+
+    if (!cpf.trim()) {
+      newErrors.cpf = "CPF é obrigatório"
+    } else {
+      const cpfValidation = validateCpfWithMessage(cpf)
+      if (!cpfValidation.isValid) {
+        newErrors.cpf = cpfValidation.message
+      }
     }
 
     if (!password) {
@@ -62,16 +82,46 @@ export default function RegisterPage() {
     // Submit form
     setIsSubmitting(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
-      setSuccess(true)
+    try {
+      const result = await register({
+        name,
+        email,
+        password,
+        phone: phone || undefined,
+        cpf: cpf.replace(/\D/g, ''), // Remove formatação antes de enviar
+      })
 
-      // Redirect after success
-      setTimeout(() => {
-        router.push("/")
-      }, 3000)
-    }, 1500)
+      if (result.success) {
+        setSuccess(true)
+        // Redirect after success
+        setTimeout(() => {
+          router.push("/")
+        }, 3000)
+      } else {
+        // Tratar diferentes tipos de erro
+        if (result.message?.includes('CPF') || result.message?.includes('duplicate key')) {
+          setErrors({ cpf: "Este CPF já está cadastrado no sistema" })
+        } else if (result.message?.includes('email')) {
+          setErrors({ email: "Este email já está cadastrado no sistema" })
+        } else {
+          setErrors({ general: result.message || "Erro ao criar conta. Tente novamente." })
+        }
+      }
+    } catch (error: any) {
+      console.error('Erro no registro:', error)
+      
+      // Tratar erros específicos baseados na resposta da API
+      if (error.message?.includes('400')) {
+        // Erro de validação - tentar extrair detalhes
+        setErrors({ general: "Dados inválidos. Verifique as informações e tente novamente." })
+      } else if (error.message?.includes('CPF') || error.message?.includes('duplicate')) {
+        setErrors({ cpf: "Este CPF já está cadastrado no sistema" })
+      } else {
+        setErrors({ general: "Erro ao criar conta. Tente novamente." })
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -327,6 +377,29 @@ export default function RegisterPage() {
                     marginBottom: "24px",
                   }}
                 >
+                  {/* General Error */}
+                  {errors.general && (
+                    <div
+                      style={{
+                        backgroundColor: "rgba(239, 68, 68, 0.1)",
+                        border: "1px solid #EF4444",
+                        borderRadius: "8px",
+                        padding: "12px",
+                        marginBottom: "16px",
+                      }}
+                    >
+                      <p
+                        style={{
+                          color: "#EF4444",
+                          fontSize: "14px",
+                          margin: 0,
+                        }}
+                      >
+                        {errors.general}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Name Field */}
                   <div
                     style={{
@@ -411,6 +484,52 @@ export default function RegisterPage() {
                         }}
                       >
                         {errors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* CPF Field */}
+                  <div
+                    style={{
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <label
+                      htmlFor="cpf"
+                      style={{
+                        display: "block",
+                        marginBottom: "8px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      CPF
+                    </label>
+                    <input
+                      id="cpf"
+                      type="text"
+                      value={cpf}
+                      onChange={handleCpfChange}
+                      placeholder="000.000.000-00"
+                      maxLength={14}
+                      style={{
+                        width: "100%",
+                        backgroundColor: "#27272A",
+                        color: "white",
+                        padding: "12px",
+                        borderRadius: "8px",
+                        border: errors.cpf ? "1px solid #EF4444" : "1px solid #3F3F46",
+                        fontSize: "16px",
+                      }}
+                    />
+                    {errors.cpf && (
+                      <p
+                        style={{
+                          color: "#EF4444",
+                          fontSize: "14px",
+                          marginTop: "4px",
+                        }}
+                      >
+                        {errors.cpf}
                       </p>
                     )}
                   </div>

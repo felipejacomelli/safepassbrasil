@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AccountSidebar } from "@/components/AccountSidebar"
 import { CheckCircle, Clock, Edit, Mail, Phone, MapPin, Shield, User, CreditCard, Bell, Lock } from "lucide-react"
-import { formatCpf } from "@/utils/formatCpf"
+import { formatCpf } from "@/utils/cpf"
 
 export default function AccountPage() {
   const { user, logout, updateUser, isAuthenticated, isLoading } = useAuth()
