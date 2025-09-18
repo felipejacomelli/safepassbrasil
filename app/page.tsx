@@ -1580,6 +1580,11 @@ interface EventCardProps {
 function EventCard({ image, title, date, location, price, slug, ticketCount }: EventCardProps) {
   // Function to format date for calendar display
   const formatDateForCalendar = (dateString: string) => {
+    // Check if dateString is null or undefined
+    if (!dateString) {
+      return { day: "15", month: "JUN" }
+    }
+    
     // Extract the first date from ranges like "19-28 de Setembro, 2025"
     const dateMatch = dateString.match(/(\d{1,2})\s*(?:-\d{1,2})?\s*de\s*(\w+)/)
     if (dateMatch) {

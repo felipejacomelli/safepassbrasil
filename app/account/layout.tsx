@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import Link from "next/link"
 
 interface AccountLayoutProps {
   children: ReactNode
@@ -15,12 +16,12 @@ export default function AccountLayout({ children }: AccountLayoutProps) {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
-              <a href="/" className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2">
                 <div className="bg-primary p-1.5 rounded">
                   <div className="w-6 h-6 bg-black rounded" />
                 </div>
                 <span className="text-white text-xl font-bold">reticket</span>
-              </a>
+              </Link>
             </div>
             <div className="text-center md:text-right">
               <p className="text-gray-400 text-sm">© 2023 ReTicket. Todos os direitos reservados.</p>

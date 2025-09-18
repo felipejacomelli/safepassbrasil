@@ -2,15 +2,53 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LayoutDashboard, Ticket, ShoppingCart, Users, Settings, BarChart3, LogOut, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { user, isAuthenticated, isLoading, logout } = useAuth()
+  const router = useRouter()
+
+  // Verificação de permissões de admin
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        router.push('/login?redirect=' + encodeURIComponent(pathname))
+        return
+      }
+
+      if (!user?.isAdmin) {
+        router.push('/unauthorized')
+        return
+      }
+    }
+  }, [user, isAuthenticated, isLoading, router, pathname])
+
+  // Mostrar loading enquanto verifica autenticação
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white">Carregando...</div>
+      </div>
+    )
+  }
+
+  // Não renderizar nada se não estiver autenticado ou não for admin
+  if (!isAuthenticated || !user?.isAdmin) {
+    return null
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/login')
+  }
 
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -71,13 +109,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-zinc-800">
-          <Link
-            href="/login"
-            className="flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors w-full text-left"
           >
             <LogOut size={20} />
             <span>Sair</span>
-          </Link>
+          </button>
         </div>
       </div>
 

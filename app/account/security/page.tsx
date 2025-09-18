@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { authApi } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
@@ -203,7 +204,7 @@ export default function SecurityPage() {
           }}
         >
           {/* Logo */}
-          <a
+          <Link
             href="/"
             style={{
               display: "flex",
@@ -240,7 +241,7 @@ export default function SecurityPage() {
             >
               reticket
             </span>
-          </a>
+          </Link>
 
           {/* Navigation Links */}
           <nav

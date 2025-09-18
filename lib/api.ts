@@ -18,6 +18,8 @@ export interface LoginResponse {
   cpf?: string;
   country?: string;
   location?: string;
+  is_staff?: boolean;
+  is_superuser?: boolean;
 }
 
 export interface RegisterRequest {
@@ -38,6 +40,8 @@ export interface ApiUser {
   created_at?: string;
   cpf?: string;
   country?: string;
+  is_staff?: boolean;
+  is_superuser?: boolean;
 }
 
 export interface UpdateUserRequest {
@@ -110,16 +114,20 @@ async function apiRequestJson<T>(
     
     // Tentar extrair detalhes do erro da resposta
     try {
-      const errorData = await response.json();
-      if (errorData.detail) {
-        errorMessage = errorData.detail;
-      } else if (errorData.error) {
-        errorMessage = errorData.error;
-      } else if (errorData.message) {
-        errorMessage = errorData.message;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const errorData = await response.json();
+        if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
       }
     } catch (parseError) {
       // Se não conseguir fazer parse, usar a mensagem padrão
+      console.warn('Erro ao fazer parse da resposta de erro:', parseError);
     }
     
     const error = new Error(errorMessage);
@@ -128,8 +136,32 @@ async function apiRequestJson<T>(
     throw error;
   }
   
-  const result = await response.json();
-  return result;
+  // Verificar se a resposta tem conteúdo JSON
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    // Se não é JSON, retornar um objeto vazio ou a resposta como texto
+    const text = await response.text();
+    if (!text.trim()) {
+      // Resposta vazia - retornar objeto vazio para POST/PUT que podem não retornar dados
+      return {} as T;
+    }
+    // Tentar fazer parse mesmo assim, caso o content-type esteja incorreto
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      // Se falhar, retornar como objeto com a resposta de texto
+      return { success: true, message: text } as T;
+    }
+  }
+  
+  try {
+    const result = await response.json();
+    return result;
+  } catch (parseError) {
+    console.error('Erro ao fazer parse do JSON da resposta:', parseError);
+    // Se falhar ao fazer parse, retornar um objeto indicando sucesso
+    return { success: true, message: 'Operação realizada com sucesso' } as T;
+  }
 }
 
 // Interface para a resposta da API de eventos
@@ -293,6 +325,215 @@ export const authApi = {
 
   regenerateBackupCodes: async (): Promise<{backup_codes: string[]}> => {
     return apiRequestJson<{backup_codes: string[]}>('/user_app/user/2fa/backup_codes', { method: 'POST' });
+  },
+
+  logout: async (): Promise<{success: boolean}> => {
+    return apiRequestJson<{success: boolean}>('/user_app/user/logout', { method: 'POST' });
+  },
+};
+
+// Tipos para Admin APIs
+export interface AdminUser extends ApiUser {
+  status: 'active' | 'inactive';
+  role: 'admin' | 'user' | 'moderator';
+  last_login?: string;
+  is_active: boolean;
+  active: boolean; // Campo adicional do backend
+  date_joined: string;
+  created_at: string; // Campo adicional do backend
+}
+
+export interface AdminOrder {
+  id: number;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    phone?: string;
+    cpf?: string;
+    location?: string;
+    country?: string;
+  };
+  total_amount: string;
+  status: number;
+  created_at: string;
+  updated_at: string;
+  transaction: {
+    id: number;
+    status: string;
+    payment_method: string;
+  };
+}
+
+export interface AdminDashboardStats {
+  total_users: number;
+  total_events: number;
+  total_orders: number;
+  total_revenue: string;
+  orders_by_status: Record<string, number>;
+  revenue_by_status: Record<string, string>;
+}
+
+export interface AdminEventFormData {
+  name: string;
+  description?: string;
+  location?: string;
+  date?: string;
+  price?: string;
+  category?: string;
+  image?: string;
+  ticket_count?: number;
+  status: 'open' | 'closed';
+  active: boolean;
+}
+
+// APIs Administrativas
+export const adminApi = {
+  // Dashboard
+  getDashboardStats: async (): Promise<AdminDashboardStats> => {
+    const [orderSummary, eventCount, userCount] = await Promise.all([
+      apiRequestJson<AdminDashboardStats>('/order_app/orders/summary/'),
+      apiRequestJson<{count: number}>('/event_app/events'),
+      apiRequestJson<{count: number}>('/user_app/users')
+    ]);
+    
+    return {
+      ...orderSummary,
+      total_events: eventCount.count,
+      total_users: userCount.count,
+    };
+  },
+
+  // Settings
+  settings: {
+    get: async () => {
+      return await apiRequest('/settings_app/');
+    },
+    update: async (type: string, data: any) => {
+      return await apiRequestJson('/settings_app/', {
+        method: 'PUT',
+        body: JSON.stringify({ type, data })
+      });
+    },
+    testEmail: async (email?: string) => {
+      return await apiRequestJson('/settings_app/test-email/', {
+        method: 'POST',
+        body: JSON.stringify({ email })
+      });
+    },
+    backup: async () => {
+      return await apiRequest('/settings_app/backup/');
+    }
+  },
+
+  // Usuários
+  users: {
+    getAll: async (params?: Record<string, string>): Promise<{users: AdminUser[], count: number}> => {
+      const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+      return apiRequestJson<{users: AdminUser[], count: number}>(`/user_app/users${queryString}`);
+    },
+
+    getById: async (id: number): Promise<AdminUser> => {
+      return apiRequestJson<AdminUser>(`/user_app/user/${id}`);
+    },
+
+    create: async (userData: Partial<AdminUser>): Promise<AdminUser> => {
+      return apiRequestJson<AdminUser>('/user_app/user', {
+        method: 'POST',
+        body: JSON.stringify(userData),
+      });
+    },
+
+    update: async (id: number, userData: Partial<AdminUser>): Promise<AdminUser> => {
+      return apiRequestJson<AdminUser>(`/user_app/user/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(userData),
+      });
+    },
+
+    delete: async (id: number): Promise<void> => {
+      await apiRequest(`/user_app/user/${id}`, { method: 'DELETE' });
+    },
+  },
+
+  // Eventos
+  events: {
+    getAll: async (params?: Record<string, string>): Promise<{events: ApiEvent[], count: number}> => {
+      const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+      return apiRequestJson<{events: ApiEvent[], count: number}>(`/event_app/events${queryString}`);
+    },
+
+    getById: async (id: number): Promise<ApiEvent> => {
+      return apiRequestJson<ApiEvent>(`/event_app/event?id=${id}`);
+    },
+
+    create: async (eventData: AdminEventFormData): Promise<ApiEvent> => {
+      return apiRequestJson<ApiEvent>('/event_app/event', {
+        method: 'POST',
+        body: JSON.stringify(eventData),
+      });
+    },
+
+    update: async (id: number, eventData: Partial<AdminEventFormData>): Promise<ApiEvent> => {
+      return apiRequestJson<ApiEvent>(`/event_app/event/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(eventData),
+      });
+    },
+
+    delete: async (id: number): Promise<void> => {
+      await apiRequest(`/event_app/event/${id}`, { method: 'DELETE' });
+    },
+  },
+
+  // Pedidos
+  orders: {
+    getAll: async (params?: Record<string, string>): Promise<{orders: AdminOrder[], count: number}> => {
+      const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+      return apiRequestJson<{orders: AdminOrder[], count: number}>(`/order_app/orders${queryString}`);
+    },
+
+    getById: async (id: number): Promise<AdminOrder> => {
+      return apiRequestJson<AdminOrder>(`/order_app/order?id=${id}`);
+    },
+
+    getDetails: async (id: number): Promise<{order: AdminOrder, transaction: any, tickets: any[], total_tickets: number}> => {
+      return apiRequestJson<{order: AdminOrder, transaction: any, tickets: any[], total_tickets: number}>(`/order_app/orders/${id}/details/`);
+    },
+
+    cancel: async (id: number): Promise<{success: boolean, message: string}> => {
+      return apiRequestJson<{success: boolean, message: string}>(`/order_app/orders/${id}/cancel/`, {
+        method: 'POST',
+      });
+    },
+
+    getSummary: async (): Promise<AdminDashboardStats> => {
+      return apiRequestJson<AdminDashboardStats>('/order_app/orders/summary/');
+    },
+  },
+
+  // Transações
+  transactions: {
+    getAll: async (params?: Record<string, string>): Promise<{Transaction: any[], count?: number}> => {
+      const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+      return apiRequestJson<{Transaction: any[], count?: number}>(`/transaction_app/transactions${queryString}`);
+    },
+
+    getById: async (id: number): Promise<any> => {
+      return apiRequestJson<any>(`/transaction_app/transaction?id=${id}`);
+    },
+  },
+
+  // Tickets
+  tickets: {
+    getAll: async (params?: Record<string, string>): Promise<{Ticket: any[]}> => {
+      const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+      return apiRequestJson<{Ticket: any[]}>(`/ticket_app/tickets${queryString}`);
+    },
+
+    getSold: async (): Promise<{Ticket: any[]}> => {
+      return apiRequestJson<{Ticket: any[]}>('/ticket_app/tickets/sold');
+    },
   },
 };
 

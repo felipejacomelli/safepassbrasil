@@ -1,110 +1,43 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Download, Filter, ExternalLink, Calendar, UserIcon, Search, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/auth-context"
 import { formatCurrency } from "@/utils/formatCurrency"
+import { adminApi, AdminOrder } from "@/lib/api"
 
-// Mock orders data
-const mockOrders = [
-  {
-    id: "ORD123456",
-    user: {
-      id: "1",
-      name: "João Silva",
-      email: "joao.silva@example.com",
-    },
-    event: {
-      id: "rock-in-rio-2025",
-      name: "Rock in Rio 2025",
-    },
-    ticketType: "Pista Premium",
-    quantity: 2,
-    total: 1500.0,
-    status: "completed",
-    paymentMethod: "credit-card",
-    date: "2025-04-22T14:30:00",
-  },
-  {
-    id: "ORD123457",
-    user: {
-      id: "2",
-      name: "Maria Oliveira",
-      email: "maria.oliveira@example.com",
-    },
-    event: {
-      id: "lollapalooza-2025",
-      name: "Lollapalooza 2025",
-    },
-    ticketType: "Pista",
-    quantity: 1,
-    total: 450.0,
-    status: "completed",
-    paymentMethod: "pix",
-    date: "2025-04-21T10:15:00",
-  },
-  {
-    id: "ORD123458",
-    user: {
-      id: "3",
-      name: "Pedro Santos",
-      email: "pedro.santos@example.com",
-    },
-    event: {
-      id: "festival-de-verao-2025",
-      name: "Festival de Verão 2025",
-    },
-    ticketType: "VIP",
-    quantity: 2,
-    total: 700.0,
-    status: "pending",
-    paymentMethod: "bank-transfer",
-    date: "2025-04-21T16:45:00",
-  },
-  {
-    id: "ORD123459",
-    user: {
-      id: "4",
-      name: "Ana Costa",
-      email: "ana.costa@example.com",
-    },
-    event: {
-      id: "show-metallica-2025",
-      name: "Show Metallica",
-    },
-    ticketType: "Camarote",
-    quantity: 1,
-    total: 550.0,
-    status: "completed",
-    paymentMethod: "credit-card",
-    date: "2025-04-20T09:30:00",
-  },
-  {
-    id: "ORD123460",
-    user: {
-      id: "5",
-      name: "Lucas Ferreira",
-      email: "lucas.ferreira@example.com",
-    },
-    event: {
-      id: "show-bruno-mars-2025",
-      name: "Show Bruno Mars",
-    },
-    ticketType: "Pista",
-    quantity: 3,
-    total: 1950.0,
-    status: "failed",
-    paymentMethod: "credit-card",
-    date: "2025-04-20T11:20:00",
-  },
-]
+interface Order {
+  id: string
+  user: {
+    id: string
+    name: string
+    email: string
+    phone?: string
+    cpf?: string
+    location?: string
+    country?: string
+  }
+  event: {
+    id: string
+    name: string
+  }
+  ticketType: string
+  quantity: number
+  total: number
+  status: "completed" | "pending" | "failed"
+  paymentMethod: string
+  date: string
+}
 
 export default function AdminOrdersPage() {
-  const [orders] = useState(mockOrders)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [ordersCache, setOrdersCache] = useState<{data: Order[], timestamp: number} | null>(null)
+  const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
   const [sortField, setSortField] = useState("date")
   const [sortDirection, setSortDirection] = useState("desc")
   const [showUserMenu, setShowUserMenu] = useState(false)
@@ -113,6 +46,106 @@ export default function AdminOrdersPage() {
   const handleLogout = () => {
     logout()
     setShowUserMenu(false)
+  }
+
+  // Load orders from API
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        setLoading(true)
+        
+        // Verificar se há cache válido
+        if (ordersCache && (Date.now() - ordersCache.timestamp) < CACHE_DURATION) {
+          console.log('Usando dados do cache')
+          setOrders(ordersCache.data)
+          setLoading(false)
+          return
+        }
+        
+        console.log('Carregando pedidos da API...')
+        const response = await adminApi.orders.getAll()
+        
+        // Como agora o serializer já inclui dados completos do usuário,
+        // não precisamos fazer chamadas adicionais para detalhes
+        const ordersWithDetails = response.orders.map((apiOrder: AdminOrder) => {
+          // Extrair informações básicas do pedido
+          const userName = apiOrder.user?.name || "Usuário não encontrado"
+          const userEmail = apiOrder.user?.email || "email@exemplo.com"
+          const userPhone = apiOrder.user?.phone || ""
+          const userCpf = apiOrder.user?.cpf || ""
+          const userLocation = apiOrder.user?.location || ""
+          const userCountry = apiOrder.user?.country || ""
+          
+          return {
+            id: apiOrder.id.toString(),
+            user: {
+              id: apiOrder.user?.id?.toString() || "N/A",
+              name: userName,
+              email: userEmail,
+              phone: userPhone,
+              cpf: userCpf,
+              location: userLocation,
+              country: userCountry
+            },
+            event: {
+              id: "N/A", // Será preenchido quando tivermos dados do evento
+              name: "Evento não especificado"
+            },
+            ticketType: "Ingresso Padrão",
+            quantity: 1, // Será atualizado quando tivermos dados dos tickets
+            total: parseFloat(apiOrder.total_amount),
+            status: getOrderStatus(apiOrder.status),
+            paymentMethod: getPaymentMethod(apiOrder.transaction?.payment_method || "1"),
+            date: apiOrder.created_at
+          }
+        })
+        
+        // Atualizar cache
+        setOrdersCache({
+          data: ordersWithDetails,
+          timestamp: Date.now()
+        })
+        
+        setOrders(ordersWithDetails)
+      } catch (error) {
+        console.error('Erro ao carregar pedidos:', error)
+        setOrders([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadOrders()
+  }, [])
+
+  // Helper functions to transform API data
+  const getOrderStatus = (status: number): "completed" | "pending" | "failed" => {
+    switch (status) {
+      case 1:
+        return "pending"
+      case 2:
+        return "completed"
+      case 3:
+        return "failed"
+      default:
+        return "pending"
+    }
+  }
+
+  const getPaymentMethod = (method: number | string): string => {
+    const methodNum = typeof method === 'string' ? parseInt(method) : method
+    switch (methodNum) {
+      case 1:
+        return "Cartão de Crédito"
+      case 2:
+        return "Cartão de Débito"
+      case 3:
+        return "PIX"
+      case 4:
+        return "Boleto"
+      default:
+        return "Não especificado"
+    }
   }
 
   // Filter and sort orders
@@ -144,6 +177,14 @@ export default function AdminOrdersPage() {
       setSortField(field)
       setSortDirection("asc")
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white">Carregando pedidos...</div>
+      </div>
+    )
   }
 
   return (
@@ -330,7 +371,7 @@ export default function AdminOrdersPage() {
                   {filteredOrders.map((order) => (
                     <tr key={order.id} className="hover:bg-zinc-800 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-white">{order.id}</div>
+                        <div className="text-sm font-medium text-white">#{order.id}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -396,7 +437,7 @@ export default function AdminOrdersPage() {
               </table>
             </div>
 
-            {filteredOrders.length === 0 && (
+            {filteredOrders.length === 0 && !loading && (
               <div className="p-8 text-center">
                 <p className="text-gray-400">Nenhum pedido encontrado com os filtros aplicados.</p>
               </div>

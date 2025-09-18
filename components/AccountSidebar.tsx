@@ -32,8 +32,8 @@ export function AccountSidebar({ balance, pendingBalance }: AccountSidebarProps 
 
   return (
     <div className="w-full md:w-64 flex-shrink-0">
-      <div className="bg-zinc-900 rounded-lg overflow-hidden">
-        <div className="p-4 border-b border-zinc-800">
+      <div className="bg-zinc-900 border-r border-zinc-800 overflow-hidden relative h-full">
+        <div className="p-6 border-b border-zinc-800">
           <div className="flex items-center">
             <div className="h-12 w-12 rounded-full bg-zinc-800 flex items-center justify-center text-white font-bold">
               {user?.name?.charAt(0) || "U"}
@@ -56,17 +56,19 @@ export function AccountSidebar({ balance, pendingBalance }: AccountSidebarProps 
           </div>
         </div>
 
-        <nav className="p-2">
+        <nav className="p-4 space-y-1">
           {navigation.map((item) => (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center px-3 py-2 text-sm font-medium rounded-md my-1 transition-colors",
-                pathname === item.href ? "bg-primary text-black" : "text-gray-300 hover:bg-zinc-800 hover:text-white",
+                "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                pathname === item.href
+                  ? "bg-blue-900 bg-opacity-20 text-primary"
+                  : "text-gray-400 hover:text-white hover:bg-zinc-800",
               )}
             >
-              <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+              <item.icon size={20} />
               <span>{item.name}</span>
               {item.status && (
                 <span
@@ -84,13 +86,13 @@ export function AccountSidebar({ balance, pendingBalance }: AccountSidebarProps 
           ))}
         </nav>
 
-        <div className="p-4 border-t border-zinc-800">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-zinc-800">
           <button
             onClick={logout}
-            className="flex w-full items-center px-3 py-2 text-sm font-medium text-red-500 rounded-md hover:bg-zinc-800 transition-colors"
+            className="flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors w-full text-left"
           >
-            <LogOut className="mr-3 h-5 w-5 flex-shrink-0" />
-            Sair
+            <LogOut size={20} />
+            <span>Sair</span>
           </button>
         </div>
       </div>

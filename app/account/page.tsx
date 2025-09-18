@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -218,7 +219,7 @@ export default function AccountPage() {
           }}
         >
           {/* Logo */}
-          <a
+          <Link
             href="/"
             style={{
               display: "flex",
@@ -255,7 +256,7 @@ export default function AccountPage() {
             >
               reticket
             </span>
-          </a>
+          </Link>
 
           {/* Navigation Links */}
           <nav
@@ -370,7 +371,7 @@ export default function AccountPage() {
                       <p style={{ fontSize: "14px", color: "#A1A1AA" }}>{user.email}</p>
                     </div>
 
-                    <a
+                    <Link
                       href="/account"
                       style={{
                         display: "block",
@@ -387,9 +388,9 @@ export default function AccountPage() {
                       }}
                     >
                       Minha Conta
-                    </a>
+                    </Link>
 
-                    <a
+                    <Link
                       href="/account/orders"
                       style={{
                         display: "block",
@@ -406,10 +407,10 @@ export default function AccountPage() {
                       }}
                     >
                       Meus Pedidos
-                    </a>
+                    </Link>
 
                     {user.isAdmin && (
-                      <a
+                      <Link
                         href="/admin"
                         style={{
                           display: "block",
@@ -426,7 +427,7 @@ export default function AccountPage() {
                         }}
                       >
                         Painel Admin
-                      </a>
+                      </Link>
                     )}
 
                     <div

@@ -2,19 +2,47 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // Para aplicações client-side que usam localStorage, o middleware não pode
-  // verificar diretamente o token. Vamos permitir o acesso e deixar que
-  // os componentes React façam a verificação de autenticação
   const { pathname } = request.nextUrl
   
-  // Apenas redireciona se explicitamente não autenticado via cookie
-  // (para casos onde o token é definido via cookie em login SSR)
-  if (pathname.startsWith('/admin') || pathname.startsWith('/account') || pathname.startsWith('/sell') || pathname.includes('/sell')) {
+  // Verificação específica para rotas de admin
+  if (pathname.startsWith('/admin')) {
     const cookieToken = request.cookies.get('authToken')?.value
-    const authHeader = request.headers.get('authorization')?.replace('Bearer ', '')
+    
+    // Redireciona para login se não há token
+    if (!cookieToken || cookieToken === 'null' || cookieToken === 'undefined') {
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+    
+    // Para rotas admin, verificamos se o usuário tem permissões de admin
+    // Como não podemos acessar localStorage no middleware, vamos criar uma
+    // página de verificação que fará essa validação no client-side
+    const userDataCookie = request.cookies.get('userData')?.value
+    
+    if (userDataCookie) {
+      try {
+        const userData = JSON.parse(userDataCookie)
+        // Se o usuário não é admin, redireciona para página não autorizada
+        if (!userData.isAdmin) {
+          return NextResponse.redirect(new URL('/unauthorized', request.url))
+        }
+      } catch (error) {
+        // Se não conseguir fazer parse dos dados do usuário, redireciona para login
+        const loginUrl = new URL('/login', request.url)
+        loginUrl.searchParams.set('redirect', pathname)
+        return NextResponse.redirect(loginUrl)
+      }
+    }
+    // Se não há dados do usuário no cookie, permite acesso mas o componente
+    // React fará a verificação final
+  }
+  
+  // Verificação para outras rotas protegidas
+  if (pathname.startsWith('/account') || pathname.startsWith('/sell') || pathname.includes('/sell')) {
+    const cookieToken = request.cookies.get('authToken')?.value
     
     // Só redireciona se tiver certeza de que não há autenticação
-    // Como usamos localStorage, vamos ser mais permissivos aqui
     if (cookieToken === 'null' || cookieToken === 'undefined') {
       const loginUrl = new URL('/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)

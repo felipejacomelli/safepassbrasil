@@ -123,6 +123,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Se conseguiu obter o perfil, significa que há uma sessão válida
       console.log('Sessão válida encontrada:', profile)
       
+      // Determine if user is admin based on backend fields
+      const isAdmin = profile.is_staff || profile.is_superuser || false
+      
       // Atualizar o usuário com os dados da API, incluindo memberSince
       const updatedUser: User = {
         id: profile.id,
@@ -134,16 +137,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         country: profile.country,
         has2FA: false,
         isVerified: true,
-        isAdmin: false,
+        isAdmin: isAdmin, // Use real admin status from backend
         balance: 0,
         pendingBalance: 0,
         transactions: [],
         memberSince: profile.created_at ? new Date(profile.created_at).getFullYear().toString() : ''
       }
       
+      console.log('Auto-login - isAdmin:', isAdmin, 'is_staff:', profile.is_staff, 'is_superuser:', profile.is_superuser)
+      
       setUser(updatedUser)
       if (typeof window !== 'undefined') {
         localStorage.setItem("user", JSON.stringify(updatedUser))
+        
+        // Sincronizar dados com cookies para o middleware
+        document.cookie = `authToken=${storedToken}; path=/; max-age=${7 * 24 * 60 * 60}`; // 7 dias
+        document.cookie = `userData=${JSON.stringify(updatedUser)}; path=/; max-age=${7 * 24 * 60 * 60}`; // 7 dias
       }
     } catch (error: any) {
       console.log('Erro ao verificar sessão:', error.message || error);
@@ -154,6 +163,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');
+          
+          // Limpar cookies também
+          document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          document.cookie = 'userData=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         }
         setUser(null);
       }
@@ -177,6 +190,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Buscar dados completos do perfil após login bem-sucedido
       const profile = await authApi.getProfile();
 
+      // Determine if user is admin based on backend fields
+      const isAdmin = profile.is_staff || profile.is_superuser || false;
+
       // Criar objeto de usuário compatível com o frontend usando dados completos do perfil
       const loggedInUser: User = {
         id: profile.id,
@@ -188,7 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         address: profile.location,
         has2FA: false,
         isVerified: true,
-        isAdmin: false,
+        isAdmin: isAdmin,
         balance: 0,
         pendingBalance: 0,
         transactions: [],
@@ -198,7 +214,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(loggedInUser);
       if (typeof window !== 'undefined') {
         localStorage.setItem("user", JSON.stringify(loggedInUser));
+        
+        // Sincronizar dados com cookies para o middleware
+        document.cookie = `authToken=${response.token}; path=/; max-age=${7 * 24 * 60 * 60}`; // 7 dias
+        document.cookie = `userData=${JSON.stringify(loggedInUser)}; path=/; max-age=${7 * 24 * 60 * 60}`; // 7 dias
       }
+
+      console.log('Login successful - isAdmin:', isAdmin, 'is_staff:', profile.is_staff, 'is_superuser:', profile.is_superuser);
 
       return { success: true, isAdmin: loggedInUser.isAdmin };
     } catch (error) {
@@ -217,6 +239,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('authToken', response.token);
       }
 
+      // Determine if user is admin based on backend fields
+      const isAdmin = response.is_staff || response.is_superuser || false
+
       // Criar objeto de usuário compatível com o frontend
       const registeredUser: User = {
         id: response.id,
@@ -228,12 +253,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         address: response.location,
         has2FA: false,
         isVerified: true,
-        isAdmin: false,
+        isAdmin: isAdmin, // Use real admin status from backend
         balance: 0,
         pendingBalance: 0,
         transactions: [],
         memberSince: response.created_at ? new Date(response.created_at).getFullYear().toString() : ''
-      };
+      }
+
+      console.log('Register - isAdmin:', isAdmin, 'is_staff:', response.is_staff, 'is_superuser:', response.is_superuser);
 
       setUser(registeredUser);
       if (typeof window !== 'undefined') {
@@ -288,26 +315,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      // Chama o endpoint de logout no backend para invalidar o token
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user_app/user/logout`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-      }
+      // Chama a API de logout do backend
+      await authApi.logout();
     } catch (error) {
-      console.error('Erro ao fazer logout no backend:', error);
-      // Continua com o logout local mesmo se houver erro no backend
+      console.error('Erro ao fazer logout:', error);
     } finally {
-      // Limpa o estado local independentemente do resultado do backend
+      // Remove o token e limpa o estado independentemente do resultado da API
       setUser(null);
       if (typeof window !== 'undefined') {
         localStorage.removeItem('user');
         localStorage.removeItem('authToken');
+        
+        // Limpar cookies também
+        document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'userData=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       }
     }
   };
