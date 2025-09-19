@@ -56,9 +56,9 @@ export default function AdminEventsPage() {
       const transformedEvents: Event[] = response.events.map((apiEvent: ApiEvent) => ({
         id: apiEvent.id,
         name: apiEvent.name,
-        date: new Date(apiEvent.date).toLocaleDateString('pt-BR'),
+        date: apiEvent.date || 'Data não informada', // Use the date string directly as it's already formatted
         location: apiEvent.location,
-        status: getEventStatus(apiEvent.date),
+        status: getEventStatus(apiEvent.created_at), // Use created_at for status calculation since date is a formatted string
         ticketsSold: Math.max(0, (apiEvent.ticket_count || 0) - (apiEvent.ticket_count || 0)), // Placeholder
         totalTickets: apiEvent.ticket_count || 0,
         revenue: parseFloat(apiEvent.price?.replace(/[^\d,]/g, '').replace(',', '.') || '0') * 100, // Convert to cents
