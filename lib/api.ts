@@ -84,6 +84,50 @@ export interface Event {
   ticket_count: number;
 }
 
+// Tipos para Occurrences
+export interface ApiOccurrence {
+  id: number;
+  event_id: number;
+  start_at: string;
+  end_at?: string;
+  venue_id?: number;
+  venue_name?: string;
+  venue_address?: string;
+  max_capacity?: number;
+  available_tickets: number;
+  status: 'active' | 'inactive' | 'sold_out';
+  created_at: string;
+  updated_at: string;
+}
+
+// Tipos para Ticket Types
+export interface ApiTicketType {
+  id: number;
+  occurrence_id: number;
+  name: string;
+  description?: string;
+  price: string;
+  quantity_available: number;
+  quantity_sold: number;
+  max_per_order?: number;
+  sale_start_date?: string;
+  sale_end_date?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Tipo para evento com occurrences
+export interface ApiEventWithOccurrences extends ApiEvent {
+  occurrences: ApiOccurrence[];
+}
+
+// Tipo para occurrence com ticket types
+export interface ApiOccurrenceWithTickets extends ApiOccurrence {
+  ticket_types: ApiTicketType[];
+  event: ApiEvent;
+}
+
 // Função para fazer requisições HTTP
 export const apiRequest = async (endpoint: string, options: RequestInit = {}): Promise<Response> => {
   const token = localStorage.getItem('authToken');
@@ -187,6 +231,11 @@ export const eventsApi = {
     return apiRequestJson<ApiEvent>(`/event_app/event/${slug}/`);
   },
   
+  // Buscar evento com suas occurrences
+  getWithOccurrences: (eventId: number): Promise<ApiEventWithOccurrences> => {
+    return apiRequestJson<ApiEventWithOccurrences>(`/event_app/events/${eventId}/occurrences/`);
+  },
+  
   // Buscar eventos filtrados
   getFiltered: (filters: Record<string, string>): Promise<ApiEvent[]> => {
     const queryParams = new URLSearchParams(filters).toString();
@@ -263,6 +312,40 @@ export const eventsApi = {
       body: JSON.stringify(requestData),
     });
   }
+};
+
+// API para Occurrences
+export const occurrencesApi = {
+  // Buscar occurrence com ticket types
+  getWithTickets: (occurrenceId: number): Promise<ApiOccurrenceWithTickets> => {
+    return apiRequestJson<ApiOccurrenceWithTickets>(`/occurrence_app/occurrences/${occurrenceId}/tickets/`);
+  },
+
+  // Buscar occurrences de um evento
+  getByEvent: (eventId: number): Promise<ApiOccurrence[]> => {
+    return apiRequestJson<ApiOccurrence[]>(`/event_app/events/${eventId}/occurrences/`);
+  },
+
+  // Reservar ingressos para uma occurrence
+  reserveTickets: async (occurrenceId: number, ticketTypeId: number, quantity: number): Promise<{ success: boolean; message: string; reservation_id?: string }> => {
+    try {
+      const response = await apiRequestJson<{ success: boolean; message: string; reservation_id?: string }>(`/occurrence_app/occurrences/${occurrenceId}/reserve/`, {
+        method: 'POST',
+        body: JSON.stringify({
+          ticket_type_id: ticketTypeId,
+          quantity: quantity
+        })
+      });
+      
+      return response;
+    } catch (error) {
+      console.error('Erro ao reservar ingressos:', error);
+      return {
+        success: false,
+        message: 'Erro interno do servidor'
+      };
+    }
+  },
 };
 
 // API de autenticação

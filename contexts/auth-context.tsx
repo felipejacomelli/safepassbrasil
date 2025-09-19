@@ -33,6 +33,13 @@ type Transaction = {
   description: string
 }
 
+type OccurrenceContext = {
+  eventId: string
+  occurrenceId: string
+  selectedTickets?: any[]
+  returnUrl: string
+}
+
 type AuthContextType = {
   user: User | null
   isAuthenticated: boolean
@@ -45,6 +52,10 @@ type AuthContextType = {
   verifyTwoFactor: (email: string, code: string, isBackupCode?: boolean) => Promise<boolean>
   logout: () => void
   updateUser: (data: Partial<User>) => Promise<{ success: boolean; message?: string }>
+  // Funções para gerenciar contexto de ocorrência
+  saveOccurrenceContext: (context: OccurrenceContext) => void
+  getOccurrenceContext: () => OccurrenceContext | null
+  clearOccurrenceContext: () => void
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -59,6 +70,10 @@ export const AuthContext = createContext<AuthContextType>({
   verifyTwoFactor: (email, code, isBackupCode) => Promise.resolve(false),
   logout: () => {},
   updateUser: (data) => Promise.resolve({ success: false }),
+  // Funções padrão para contexto de ocorrência
+  saveOccurrenceContext: (context) => {},
+  getOccurrenceContext: () => null,
+  clearOccurrenceContext: () => {},
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -397,6 +412,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Funções para gerenciar contexto de ocorrência
+  const saveOccurrenceContext = (context: OccurrenceContext) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pendingOccurrenceContext', JSON.stringify(context))
+    }
+  }
+
+  const getOccurrenceContext = (): OccurrenceContext | null => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('pendingOccurrenceContext')
+      if (stored) {
+        try {
+          return JSON.parse(stored)
+        } catch (error) {
+          console.error('Erro ao recuperar contexto de ocorrência:', error)
+          localStorage.removeItem('pendingOccurrenceContext')
+        }
+      }
+    }
+    return null
+  }
+
+  const clearOccurrenceContext = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('pendingOccurrenceContext')
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -411,6 +454,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         verifyTwoFactor,
         logout,
         updateUser,
+        // Funções de contexto de ocorrência
+        saveOccurrenceContext,
+        getOccurrenceContext,
+        clearOccurrenceContext,
       }}
     >
       {children}
