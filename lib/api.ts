@@ -551,3 +551,76 @@ export function transformEventForFrontend(apiEvent: ApiEvent): Event {
     ticket_count: apiEvent.ticket_count || 0
   };
 }
+
+// Tipos para Mercado Pago
+export interface MercadoPagoConfig {
+  enabled: boolean;
+  public_key: string;
+  sandbox_mode: boolean;
+}
+
+export interface PaymentRequest {
+  amount: number;
+  description: string;
+  payment_method_id?: string;
+  token?: string;
+  installments?: number;
+  issuer_id?: string;
+  payer?: {
+    email: string;
+    identification?: {
+      type: string;
+      number: string;
+    };
+  };
+}
+
+export interface PaymentResponse {
+  id: number;
+  status: string;
+  status_detail: string;
+  payment_method_id: string;
+  payment_type_id: string;
+  transaction_amount: number;
+  date_created: string;
+}
+
+// API do Mercado Pago
+export const mercadoPagoApi = {
+  // Obter configurações do Mercado Pago
+  getConfig: async (): Promise<MercadoPagoConfig> => {
+    return apiRequestJson<MercadoPagoConfig>('/api/payment/mercadopago/config/');
+  },
+
+  // Processar pagamento
+  processPayment: async (paymentData: PaymentRequest): Promise<PaymentResponse> => {
+    return apiRequestJson<PaymentResponse>('/api/payment/mercadopago/process/', {
+      method: 'POST',
+      body: JSON.stringify(paymentData),
+    });
+  },
+
+  // Obter métodos de pagamento disponíveis
+  getPaymentMethods: async (): Promise<any[]> => {
+    return apiRequestJson<any[]>('/api/payment/mercadopago/payment-methods/');
+  },
+
+  // Obter bancos emissores para um método de pagamento
+  getIssuers: async (paymentMethodId: string): Promise<any[]> => {
+    return apiRequestJson<any[]>(`/api/payment/mercadopago/issuers/?payment_method_id=${paymentMethodId}`);
+  },
+
+  // Calcular parcelas
+  getInstallments: async (amount: number, paymentMethodId: string, issuerId?: string): Promise<any[]> => {
+    const params = new URLSearchParams({
+      amount: amount.toString(),
+      payment_method_id: paymentMethodId,
+    });
+    
+    if (issuerId) {
+      params.append('issuer_id', issuerId);
+    }
+    
+    return apiRequestJson<any[]>(`/api/payment/mercadopago/installments/?${params.toString()}`);
+  },
+};
