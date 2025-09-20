@@ -4,11 +4,12 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
-import { MapPin, User, ShoppingCart, Plus } from "lucide-react"
+import { MapPin, User, ShoppingCart, Plus, ChevronLeft, ChevronRight } from "lucide-react"
 import { eventsApi, transformEventForFrontend, Event } from "@/lib/api"
 
 // Interface para eventos do frontend
 interface FrontendEvent {
+  id: string;
   image: string;
   title: string;
   date: string;
@@ -22,7 +23,7 @@ interface FrontendEvent {
 
 // Interface para categorias da API
 interface ApiCategory {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   image: string | null;
@@ -33,7 +34,7 @@ interface ApiCategory {
 
 // Interface para localizações da API
 interface ApiLocation {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   image: string | null;
@@ -119,6 +120,10 @@ export default function Page() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [dataLoaded, setDataLoaded] = useState(false)
+  
+  // Estado para paginação dos eventos
+  const [currentPage, setCurrentPage] = useState(1)
+  const eventsPerPage = 4
 
   // Ensure client-side rendering to avoid hydration mismatch
   useEffect(() => {
@@ -148,6 +153,7 @@ export default function Page() {
         ])
         
         const transformedEvents: FrontendEvent[] = apiEvents.map((event: any) => ({
+          id: event.id,
           image: event.image,
           title: event.name,
           date: event.date,
@@ -200,10 +206,16 @@ export default function Page() {
     }
   }, [])
   
+  // Cálculos para paginação
+  const totalPages = Math.ceil(events.length / eventsPerPage)
+  const startIndex = (currentPage - 1) * eventsPerPage
+  const endIndex = startIndex + eventsPerPage
+  const currentEvents = events.slice(startIndex, endIndex)
+  
   // Funções para buscar dados da API
   const loadCategoryCounts = async (): Promise<FrontendCategory[]> => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/category_app/categories/counts/`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001'}/category_app/categories/counts/`)
       if (!response.ok) throw new Error('Erro ao carregar contadores de categorias')
       const apiCategoryCounts = await response.json()
       
@@ -234,7 +246,7 @@ export default function Page() {
 
   const loadLocationCounts = async (): Promise<FrontendLocation[]> => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/category_app/locations/counts/`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001'}/category_app/locations/counts/`)
       if (!response.ok) throw new Error('Erro ao carregar contadores de localizações')
       const apiLocationCounts = await response.json()
       
@@ -836,11 +848,95 @@ export default function Page() {
                 <p>Nenhum evento encontrado.</p>
               </div>
             ) : (
-              events.map((event, index) => (
+              currentEvents.map((event, index) => (
                 <EventCard key={index} {...event} />
               ))
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "12px",
+                marginTop: "32px",
+              }}
+            >
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "8px",
+                  border: "1px solid #3F3F46",
+                  backgroundColor: currentPage === 1 ? "#27272A" : "#18181B",
+                  color: currentPage === 1 ? "#71717A" : "white",
+                  cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                }}
+              >
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "8px",
+                      border: "1px solid #3F3F46",
+                      backgroundColor: currentPage === page ? "#3B82F6" : "#18181B",
+                      color: currentPage === page ? "black" : "white",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "8px",
+                  border: "1px solid #3F3F46",
+                  backgroundColor: currentPage === totalPages ? "#27272A" : "#18181B",
+                  color: currentPage === totalPages ? "#71717A" : "white",
+                  cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1573,11 +1669,11 @@ interface EventCardProps {
   date: string;
   location: string;
   price: string;
-  slug: string;
+  id: string;
   ticketCount: number;
 }
 
-function EventCard({ image, title, date, location, price, slug, ticketCount }: EventCardProps) {
+function EventCard({ image, title, date, location, price, id, ticketCount }: EventCardProps) {
   // Function to format date for calendar display
   const formatDateForCalendar = (dateString: string) => {
     // Check if dateString is null or undefined
@@ -1627,12 +1723,12 @@ function EventCard({ image, title, date, location, price, slug, ticketCount }: E
       }}
     >
       <a
-        href={`/event/${slug}`}
-        style={{
-          textDecoration: "none",
-          color: "inherit",
-        }}
-      >
+          href={`/event/${id}`}
+          style={{
+            textDecoration: "none",
+            color: "inherit",
+          }}
+        >
         <div
           style={{
             position: "relative",
@@ -1781,12 +1877,12 @@ function EventCard({ image, title, date, location, price, slug, ticketCount }: E
           }}
         >
           <a
-            href={`/event/${slug}`}
-            style={{
-              textDecoration: "none",
-              flex: "1",
-            }}
-          >
+              href={`/event/${id}`}
+              style={{
+                textDecoration: "none",
+                flex: "1",
+              }}
+            >
             <button
               style={{
                 backgroundColor: "#3B82F6",

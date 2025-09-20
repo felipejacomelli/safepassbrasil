@@ -53,7 +53,7 @@ export default function UserEditPage() {
     try {
       setLoading(true);
       setError(null);
-      const userData = await adminApi.users.getById(Number(userId));
+      const userData = await adminApi.users.getById(userId);
       setUser(userData);
       
       // Preencher o formulário com os dados do usuário
@@ -138,7 +138,7 @@ export default function UserEditPage() {
       setSaving(true);
       setError(null);
       
-      await adminApi.users.update(Number(userId), formData);
+      await adminApi.users.update(userId, formData);
       
       alert('Usuário atualizado com sucesso!');
       router.push(`/admin/users/${userId}`);

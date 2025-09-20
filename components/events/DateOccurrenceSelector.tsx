@@ -12,7 +12,7 @@ import { ApiOccurrence } from "@/lib/api"
 interface DateOccurrenceSelectorProps {
   eventId: string
   occurrences: ApiOccurrence[]
-  selectedOccurrenceId?: number
+  selectedOccurrenceId?: string
   onOccurrenceSelect?: (occurrence: ApiOccurrence) => void
   className?: string
 }
@@ -25,7 +25,7 @@ export function DateOccurrenceSelector({
   className
 }: DateOccurrenceSelectorProps) {
   const router = useRouter()
-  const [selectedId, setSelectedId] = useState<number | undefined>(selectedOccurrenceId)
+  const [selectedId, setSelectedId] = useState<string | undefined>(selectedOccurrenceId)
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)

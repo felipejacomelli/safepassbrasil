@@ -1,6 +1,6 @@
 // Configuração da API para integração com o backend Django
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
 
 // Tipos para autenticação
 export interface LoginRequest {
@@ -55,7 +55,7 @@ export interface UpdateUserRequest {
 
 // Tipos para os dados da API
 export interface ApiEvent {
-  id: number;
+  id: string;
   name: string;
   image: string;
   date: string;
@@ -73,6 +73,7 @@ export interface ApiEvent {
 
 // Interface para o frontend
 export interface Event {
+  id: string;
   image: string;
   title: string;
   date: string;
@@ -86,8 +87,8 @@ export interface Event {
 
 // Tipos para Occurrences
 export interface ApiOccurrence {
-  id: number;
-  event_id: number;
+  id: string;
+  event_id: string;
   start_at: string;
   end_at?: string;
   venue_id?: number;
@@ -102,8 +103,8 @@ export interface ApiOccurrence {
 
 // Tipos para Ticket Types
 export interface ApiTicketType {
-  id: number;
-  occurrence_id: number;
+  id: string;
+  occurrence_id: string;
   name: string;
   description?: string;
   price: string;
@@ -223,16 +224,12 @@ export const eventsApi = {
   },
   
   // Buscar evento por ID
-  getById: (id: number): Promise<ApiEvent> => {
-    return apiRequestJson<ApiEvent>(`/event_app/event?id=${id}`);
-  },
-
-  getBySlug: (slug: string): Promise<ApiEvent> => {
-    return apiRequestJson<ApiEvent>(`/event_app/event/${slug}/`);
+  getById: (id: string): Promise<ApiEvent> => {
+    return apiRequestJson<ApiEvent>(`/event_app/events/${id}/`);
   },
   
   // Buscar evento com suas occurrences
-  getWithOccurrences: (eventId: number): Promise<ApiEventWithOccurrences> => {
+  getWithOccurrences: (eventId: string): Promise<ApiEventWithOccurrences> => {
     return apiRequestJson<ApiEventWithOccurrences>(`/event_app/events/${eventId}/occurrences/`);
   },
   
@@ -316,18 +313,18 @@ export const eventsApi = {
 
 // API para Occurrences
 export const occurrencesApi = {
-  // Buscar occurrence com ticket types
-  getWithTickets: (occurrenceId: number): Promise<ApiOccurrenceWithTickets> => {
-    return apiRequestJson<ApiOccurrenceWithTickets>(`/occurrence_app/occurrences/${occurrenceId}/tickets/`);
+  // Buscar occurrence com tickets
+  getWithTickets: (occurrenceId: string): Promise<ApiOccurrenceWithTickets> => {
+    return apiRequestJson<ApiOccurrenceWithTickets>(`/event_app/occurrences/${occurrenceId}/tickets/`);
   },
 
-  // Buscar occurrences de um evento
-  getByEvent: (eventId: number): Promise<ApiOccurrence[]> => {
+  // Buscar occurrences por evento
+  getByEvent: (eventId: string): Promise<ApiOccurrence[]> => {
     return apiRequestJson<ApiOccurrence[]>(`/event_app/events/${eventId}/occurrences/`);
   },
 
   // Reservar ingressos para uma occurrence
-  reserveTickets: async (occurrenceId: number, ticketTypeId: number, quantity: number): Promise<{ success: boolean; message: string; reservation_id?: string }> => {
+  reserveTickets: async (occurrenceId: string, ticketTypeId: string, quantity: number): Promise<{ success: boolean; message: string; reservation_id?: string }> => {
     try {
       const response = await apiRequestJson<{ success: boolean; message: string; reservation_id?: string }>(`/occurrence_app/occurrences/${occurrenceId}/reserve/`, {
         method: 'POST',
@@ -427,9 +424,9 @@ export interface AdminUser extends ApiUser {
 }
 
 export interface AdminOrder {
-  id: number;
+  id: string;
   user: {
-    id: number;
+    id: string;
     name: string;
     email: string;
     phone?: string;
@@ -442,7 +439,7 @@ export interface AdminOrder {
   created_at: string;
   updated_at: string;
   transaction: {
-    id: number;
+    id: string;
     status: string;
     payment_method: string;
   };
@@ -516,7 +513,7 @@ export const adminApi = {
       return apiRequestJson<{users: AdminUser[], count: number}>(`/user_app/users${queryString}`);
     },
 
-    getById: async (id: number): Promise<AdminUser> => {
+    getById: async (id: string): Promise<AdminUser> => {
       return apiRequestJson<AdminUser>(`/user_app/user/${id}`);
     },
 
@@ -527,14 +524,14 @@ export const adminApi = {
       });
     },
 
-    update: async (id: number, userData: Partial<AdminUser>): Promise<AdminUser> => {
+    update: async (id: string, userData: Partial<AdminUser>): Promise<AdminUser> => {
       return apiRequestJson<AdminUser>(`/user_app/user/${id}`, {
         method: 'PUT',
         body: JSON.stringify(userData),
       });
     },
 
-    delete: async (id: number): Promise<void> => {
+    delete: async (id: string): Promise<void> => {
       await apiRequest(`/user_app/user/${id}`, { method: 'DELETE' });
     },
   },
@@ -546,7 +543,7 @@ export const adminApi = {
       return apiRequestJson<{events: ApiEvent[], count: number}>(`/event_app/events${queryString}`);
     },
 
-    getById: async (id: number): Promise<ApiEvent> => {
+    getById: async (id: string): Promise<ApiEvent> => {
       return apiRequestJson<ApiEvent>(`/event_app/event?id=${id}`);
     },
 
@@ -557,14 +554,14 @@ export const adminApi = {
       });
     },
 
-    update: async (id: number, eventData: Partial<AdminEventFormData>): Promise<ApiEvent> => {
+    update: async (id: string, eventData: Partial<AdminEventFormData>): Promise<ApiEvent> => {
       return apiRequestJson<ApiEvent>(`/event_app/event/${id}`, {
         method: 'PUT',
         body: JSON.stringify(eventData),
       });
     },
 
-    delete: async (id: number): Promise<void> => {
+    delete: async (id: string): Promise<void> => {
       await apiRequest(`/event_app/event/${id}`, { method: 'DELETE' });
     },
   },
@@ -576,15 +573,15 @@ export const adminApi = {
       return apiRequestJson<{orders: AdminOrder[], count: number}>(`/order_app/orders${queryString}`);
     },
 
-    getById: async (id: number): Promise<AdminOrder> => {
+    getById: async (id: string): Promise<AdminOrder> => {
       return apiRequestJson<AdminOrder>(`/order_app/order?id=${id}`);
     },
 
-    getDetails: async (id: number): Promise<{order: AdminOrder, transaction: any, tickets: any[], total_tickets: number}> => {
+    getDetails: async (id: string): Promise<{order: AdminOrder, transaction: any, tickets: any[], total_tickets: number}> => {
       return apiRequestJson<{order: AdminOrder, transaction: any, tickets: any[], total_tickets: number}>(`/order_app/orders/${id}/details/`);
     },
 
-    cancel: async (id: number): Promise<{success: boolean, message: string}> => {
+    cancel: async (id: string): Promise<{success: boolean, message: string}> => {
       return apiRequestJson<{success: boolean, message: string}>(`/order_app/orders/${id}/cancel/`, {
         method: 'POST',
       });
@@ -602,7 +599,7 @@ export const adminApi = {
       return apiRequestJson<{Transaction: any[], count?: number}>(`/transaction_app/transactions${queryString}`);
     },
 
-    getById: async (id: number): Promise<any> => {
+    getById: async (id: string): Promise<any> => {
       return apiRequestJson<any>(`/transaction_app/transaction?id=${id}`);
     },
   },
@@ -623,6 +620,7 @@ export const adminApi = {
 // Função para transformar dados da API para o formato esperado pelo frontend
 export function transformEventForFrontend(apiEvent: ApiEvent): Event {
   return {
+    id: apiEvent.id,
     image: apiEvent.image || '',
     title: apiEvent.name || '',
     date: apiEvent.date || '',
@@ -659,7 +657,7 @@ export interface PaymentRequest {
 }
 
 export interface PaymentResponse {
-  id: number;
+  id: string;
   status: string;
   status_detail: string;
   payment_method_id: string;

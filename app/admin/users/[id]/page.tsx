@@ -27,7 +27,7 @@ export default function UserViewPage() {
     try {
       setLoading(true);
       setError(null);
-      const userData = await adminApi.users.getById(Number(userId));
+      const userData = await adminApi.users.getById(userId);
       setUser(userData);
     } catch (error) {
       console.error('Erro ao carregar usuário:', error);
@@ -45,7 +45,7 @@ export default function UserViewPage() {
     if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
     
     try {
-      await adminApi.users.delete(Number(userId));
+      await adminApi.users.delete(userId);
       router.push('/admin/users');
     } catch (error) {
       console.error('Erro ao excluir usuário:', error);

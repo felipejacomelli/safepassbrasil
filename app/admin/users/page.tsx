@@ -84,7 +84,7 @@ export default function UsersPage() {
     setCurrentPage(1);
   };
 
-  const handleDeleteUser = async (userId: number) => {
+  const handleDeleteUser = async (userId: string) => {
     if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
     
     try {
@@ -96,11 +96,11 @@ export default function UsersPage() {
     }
   };
 
-  const handleViewUser = (userId: number) => {
+  const handleViewUser = (userId: string) => {
     router.push(`/admin/users/${userId}`);
   };
 
-  const handleEditUser = (userId: number) => {
+  const handleEditUser = (userId: string) => {
     router.push(`/admin/users/${userId}/edit`);
   };
 
@@ -267,14 +267,14 @@ export default function UsersPage() {
                             <DropdownMenuLabel className="text-white">Ações</DropdownMenuLabel>
                             <DropdownMenuItem 
                               className="text-gray-300 hover:bg-zinc-700 hover:text-white"
-                              onClick={() => handleViewUser(Number(user.id))}
+                              onClick={() => handleViewUser(user.id)}
                             >
                               <Eye className="mr-2 h-4 w-4" />
                               Visualizar
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               className="text-gray-300 hover:bg-zinc-700 hover:text-white"
-                              onClick={() => handleEditUser(Number(user.id))}
+                              onClick={() => handleEditUser(user.id)}
                             >
                               <Edit className="mr-2 h-4 w-4" />
                               Editar
@@ -282,7 +282,7 @@ export default function UsersPage() {
                             <DropdownMenuSeparator className="bg-zinc-700" />
                             <DropdownMenuItem 
                                className="text-red-400 hover:bg-red-500/20 hover:text-red-300"
-                               onClick={() => handleDeleteUser(Number(user.id))}
+                               onClick={() => handleDeleteUser(user.id)}
                              >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Excluir

@@ -24,7 +24,7 @@ export function EventsProvider({ children }: EventsProviderProps) {
   const updateEventTicketCount = useCallback((eventId: string | number, newCount: number) => {
     setEvents(prevEvents => 
       prevEvents.map(event => 
-        event.id === Number(eventId) 
+        event.id === String(eventId) 
           ? { ...event, ticket_count: newCount }
           : event
       )

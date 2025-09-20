@@ -13,7 +13,7 @@ import { mercadoPagoApi, type MercadoPagoConfig, type PaymentRequest } from '@/l
 interface MercadoPagoCheckoutProps {
   amount: number
   description: string
-  onSuccess: (paymentId: number) => void
+  onSuccess: (paymentId: string) => void
   onError: (error: string) => void
   userEmail?: string
 }

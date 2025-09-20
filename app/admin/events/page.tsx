@@ -18,7 +18,7 @@ import {
 import { adminApi, ApiEvent } from "@/lib/api"
 
 interface Event {
-  id: number
+  id: string
   name: string
   date: string
   location: string
@@ -41,7 +41,7 @@ export default function AdminEventsPage() {
   const [sortBy, setSortBy] = useState<keyof Event>("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [eventToDelete, setEventToDelete] = useState<number | null>(null)
+  const [eventToDelete, setEventToDelete] = useState<string | null>(null)
 
   useEffect(() => {
     loadEvents()

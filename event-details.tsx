@@ -155,7 +155,7 @@ export default function EventDetails() {
                 <Button
                   variant="outline"
                   className="w-full bg-transparent border-green-500 text-green-500 hover:bg-green-500 hover:text-black"
-                  onClick={() => (window.location.href = `/event/${params.slug}/sell`)}
+                  onClick={() => (window.location.href = `/sell`)}
                 >
                   Vender Ingressos
                 </Button>

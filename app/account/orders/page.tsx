@@ -2,54 +2,54 @@
 
 // Interfaces para tipagem
 interface Order {
-  id: number
+  id: string
   total_amount: string
   status: number
   created_at: string
   updated_at: string
-  transaction: number
-  user: number
+  transaction: string
+  user: string
 }
 
 interface Transaction {
-  id: number
+  id: string
   amount: string
   status: number
   created_at: string
   updated_at: string
   external_id: string
-  payment_method?: number
-  user: number
+  payment_method?: string
+  user: string
   transaction_type?: string
 }
 
 interface Ticket {
-  id: number
+  id: string
   name: string
   quantity: number
   price: string
   status: number
-  event: number
+  event: string
   event_name?: string
-  order?: number
+  order?: string
   created_at: string
   updated_at: string
-  user: number
-  buyer?: number
+  user: string
+  buyer?: string
 }
 
 interface Sale {
-  id: number
+  id: string
   name: string
   quantity: number
   price: string
   status: number
-  event: number
-  order?: number
+  event: string
+  order?: string
   created_at: string
   updated_at: string
-  user: number
-  buyer?: number
+  user: string
+  buyer?: string
 }
 
 interface PaymentMethod {

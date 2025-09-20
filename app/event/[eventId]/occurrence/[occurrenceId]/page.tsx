@@ -24,7 +24,7 @@ interface OccurrencePageProps {
 }
 
 interface TicketSelection {
-  ticketTypeId: number
+  ticketTypeId: string
   quantity: number
   price: number
   name: string
@@ -48,7 +48,7 @@ export default function OccurrencePage({ params }: OccurrencePageProps) {
         setIsLoading(true)
         setError(null)
         
-        const occurrenceData = await occurrencesApi.getWithTickets(parseInt(occurrenceId))
+        const occurrenceData = await occurrencesApi.getWithTickets(occurrenceId)
         setOccurrence(occurrenceData)
       } catch (err) {
         console.error('Erro ao carregar occurrence:', err)
@@ -114,7 +114,7 @@ export default function OccurrencePage({ params }: OccurrencePageProps) {
     })
   }
 
-  const getTicketQuantity = (ticketTypeId: number) => {
+  const getTicketQuantity = (ticketTypeId: string) => {
     const selection = selectedTickets.find(t => t.ticketTypeId === ticketTypeId)
     return selection?.quantity || 0
   }
