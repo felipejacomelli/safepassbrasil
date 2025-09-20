@@ -5,21 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4474e2e0-d35a-47e3-96e1-20561d771496" name="Changes" comment="wip: integração mercado pago">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/account/orders/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/account/orders/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/admin/events/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/admin/events/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/admin/users/[id]/edit/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/admin/users/[id]/edit/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/admin/users/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/admin/users/[id]/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/admin/users/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/admin/users/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/event/[eventId]/occurrence/[occurrenceId]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/event/[eventId]/occurrence/[occurrenceId]/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/event/[eventId]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/event/[eventId]/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/search/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/search/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/events/DateOccurrenceSelector.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/events/DateOccurrenceSelector.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/mercadopago-checkout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/mercadopago-checkout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/contexts/events-context.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/contexts/events-context.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/event-details.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/event-details.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/api.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -99,7 +85,7 @@
       <updated>1757463394183</updated>
       <workItem from="1757463395664" duration="719000" />
       <workItem from="1758286551798" duration="188000" />
-      <workItem from="1758286752615" duration="6485000" />
+      <workItem from="1758286752615" duration="7085000" />
     </task>
     <task id="LOCAL-00001" summary="wip: integração mercado pago">
       <option name="closed" value="true" />

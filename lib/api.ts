@@ -1,6 +1,6 @@
 // Configuração da API para integração com o backend Django
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 // Tipos para autenticação
 export interface LoginRequest {
@@ -217,10 +217,10 @@ interface EventsResponse {
 
 // Funções específicas para eventos
 export const eventsApi = {
-  // Listar todos os eventos
-  getAll: async (): Promise<ApiEvent[]> => {
-    const response = await apiRequestJson<EventsResponse>('/event_app/events');
-    return response.events;
+  // Listar todos os eventos com occurrences futuras
+  getAll: async (): Promise<ApiEventWithOccurrences[]> => {
+    const response = await apiRequestJson<ApiEventWithOccurrences[]>('/ticket_app/api/events/with_upcoming_occurrences/');
+    return response;
   },
   
   // Buscar evento por ID
@@ -255,6 +255,17 @@ export const eventsApi = {
     const endpoint = `/event_app/events/search/${queryString ? `?${queryString}` : ''}`;
     
     return apiRequestJson<EventsResponse>(endpoint);
+  },
+
+  // Buscar evento por slug com suas ocorrências
+  getBySlug: async (slug: string): Promise<ApiEventWithOccurrences> => {
+    // Primeiro buscar o evento básico pelo slug
+    const event = await apiRequestJson<ApiEvent>(`/event_app/event/${slug}/`);
+    
+    // Depois buscar o evento com suas ocorrências usando o ID
+    const eventWithOccurrences = await apiRequestJson<ApiEventWithOccurrences>(`/event_app/events/${event.id}/occurrences/`);
+    
+    return eventWithOccurrences;
   },
 
   // Purchase tickets and update event ticket count
@@ -543,8 +554,8 @@ export const adminApi = {
       return apiRequestJson<{events: ApiEvent[], count: number}>(`/event_app/events${queryString}`);
     },
 
-    getById: async (id: string): Promise<ApiEvent> => {
-      return apiRequestJson<ApiEvent>(`/event_app/event?id=${id}`);
+    getById: (id: string): Promise<ApiEvent> => {
+      return apiRequestJson<ApiEvent>(`/event_app/events/${id}/`);
     },
 
     create: async (eventData: AdminEventFormData): Promise<ApiEvent> => {

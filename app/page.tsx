@@ -5,7 +5,8 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { MapPin, User, ShoppingCart, Plus, ChevronLeft, ChevronRight } from "lucide-react"
-import { eventsApi, transformEventForFrontend, Event } from "@/lib/api"
+import { eventsApi, transformEventForFrontend, Event, ApiEventWithOccurrences, ApiOccurrence } from "@/lib/api"
+import { formatLocationForCard, formatMultipleUFsForCard } from "@/utils/locationUtils"
 
 // Interface para eventos do frontend
 interface FrontendEvent {
@@ -114,7 +115,7 @@ export default function Page() {
   const [showUserMenu, setShowUserMenu] = useState(false)
   
   // Estado para os eventos carregados da API
-  const [events, setEvents] = useState<FrontendEvent[]>([])
+  const [events, setEvents] = useState<ApiEventWithOccurrences[]>([])
   const [categories, setCategories] = useState<FrontendCategory[]>(defaultCategories)
   const [locations, setLocations] = useState<FrontendLocation[]>(defaultLocations)
   const [loading, setLoading] = useState(false)
@@ -152,21 +153,8 @@ export default function Page() {
           loadCategoryCounts()
         ])
         
-        const transformedEvents: FrontendEvent[] = apiEvents.map((event: any) => ({
-          id: event.id,
-          image: event.image,
-          title: event.name,
-          date: event.date,
-          location: event.location,
-          price: event.price,
-          slug: event.slug,
-          ticketCount: event.ticket_count,
-          description: event.description,
-          category: event.category
-        }))
-        
         console.log('🔍 DEBUG - Setando estados...')
-        setEvents(transformedEvents)
+        setEvents(apiEvents)
         setCategories(apiCategories)
         setLocations(apiLocations)
         setError(null)
@@ -192,8 +180,8 @@ export default function Page() {
       const { eventId, newCount } = event.detail
       setEvents(prevEvents => 
         prevEvents.map(evt => 
-          evt.slug === eventId || evt.title === eventId
-            ? { ...evt, ticketCount: newCount }
+          evt.slug === eventId || evt.name === eventId
+            ? { ...evt, occurrences: evt.occurrences?.map(occ => ({ ...occ, available_tickets: newCount })) }
             : evt
         )
       )
@@ -849,7 +837,7 @@ export default function Page() {
               </div>
             ) : (
               currentEvents.map((event, index) => (
-                <EventCard key={index} {...event} />
+                <EventCard key={index} event={event} />
               ))
             )}
           </div>
@@ -1664,54 +1652,61 @@ export default function Page() {
 }
 
 interface EventCardProps {
-  image: string;
-  title: string;
-  date: string;
-  location: string;
-  price: string;
-  id: string;
-  ticketCount: number;
+  event: ApiEventWithOccurrences;
 }
 
-function EventCard({ image, title, date, location, price, id, ticketCount }: EventCardProps) {
-  // Function to format date for calendar display
-  const formatDateForCalendar = (dateString: string) => {
-    // Check if dateString is null or undefined
-    if (!dateString) {
+function EventCard({ event }: EventCardProps) {
+  // Extrair dados da primeira ocorrência futura
+  const nextOccurrence = event.occurrences?.[0];
+  
+  // Função para formatar data para exibição no calendário
+  const formatDateForCalendar = (occurrence: ApiOccurrence | undefined) => {
+    if (!occurrence?.start_at) {
       return { day: "15", month: "JUN" }
     }
     
-    // Extract the first date from ranges like "19-28 de Setembro, 2025"
-    const dateMatch = dateString.match(/(\d{1,2})\s*(?:-\d{1,2})?\s*de\s*(\w+)/)
-    if (dateMatch) {
-      const day = dateMatch[1].padStart(2, "0")
-      const monthName = dateMatch[2]
-
-      // Map Portuguese month names to abbreviations
-      const monthMap: { [key: string]: string } = {
-        Janeiro: "JAN",
-        Fevereiro: "FEV",
-        Março: "MAR",
-        Abril: "ABR",
-        Maio: "MAI",
-        Junho: "JUN",
-        Julho: "JUL",
-        Agosto: "AGO",
-        Setembro: "SET",
-        Outubro: "OUT",
-        Novembro: "NOV",
-        Dezembro: "DEZ",
-      }
-
-      const monthAbbr = monthMap[monthName] || monthName.substring(0, 3).toUpperCase()
-      return { day, month: monthAbbr }
-    }
-
-    // Fallback
-    return { day: "15", month: "JUN" }
+    const date = new Date(occurrence.start_at);
+    const day = date.getDate().toString().padStart(2, "0");
+    const monthNames = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", 
+                       "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+    const month = monthNames[date.getMonth()];
+    
+    return { day, month };
   }
 
-  const { day, month } = formatDateForCalendar(date)
+  // Função para formatar data para exibição textual
+  const formatDateForDisplay = (occurrence: ApiOccurrence | undefined) => {
+    if (!occurrence?.start_at) {
+      return "Data a definir";
+    }
+    
+    const date = new Date(occurrence.start_at);
+    const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                       "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+    
+    return `${date.getDate()} de ${monthNames[date.getMonth()]}, ${date.getFullYear()}`;
+  }
+
+  // Verificar se o evento tem múltiplas ocorrências
+  const hasMultipleOccurrences = event.occurrences && event.occurrences.length > 1;
+  
+  // Determinar URL de navegação baseado no número de ocorrências
+   const navigationUrl = hasMultipleOccurrences 
+     ? `/event/${event.slug}` 
+     : `/event/${event.slug}/${nextOccurrence?.venue_name?.toLowerCase().replace(/\s+/g, '-')}-${formatDateForUrl(nextOccurrence?.start_at)}`;
+
+   // Função auxiliar para formatar data na URL
+   function formatDateForUrl(dateString: string | undefined): string {
+     if (!dateString) return "data";
+     const date = new Date(dateString);
+     return `${date.getDate().toString().padStart(2, "0")}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getFullYear()}`;
+   }
+
+   const { day, month } = formatDateForCalendar(nextOccurrence);
+   const displayDate = formatDateForDisplay(nextOccurrence);
+   const location = formatMultipleUFsForCard(event.occurrences || []);
+   const price = "A partir de R$ 50,00"; // Temporário até termos o campo correto
+   const ticketCount = nextOccurrence?.available_tickets || 0;
 
   return (
     <div
@@ -1723,12 +1718,12 @@ function EventCard({ image, title, date, location, price, id, ticketCount }: Eve
       }}
     >
       <a
-          href={`/event/${id}`}
-          style={{
-            textDecoration: "none",
-            color: "inherit",
-          }}
-        >
+            href={navigationUrl}
+            style={{
+              textDecoration: "none",
+              color: "inherit",
+            }}
+          >
         <div
           style={{
             position: "relative",
@@ -1737,8 +1732,8 @@ function EventCard({ image, title, date, location, price, id, ticketCount }: Eve
           }}
         >
           <img
-            src={image || "/placeholder.svg"}
-            alt={title}
+            src={event.image || "/placeholder.svg"}
+            alt={event.name}
             style={{
               position: "absolute",
               top: 0,
@@ -1801,7 +1796,7 @@ function EventCard({ image, title, date, location, price, id, ticketCount }: Eve
             color: "white",
           }}
         >
-          {title}
+          {event.name}
         </h3>
 
         <div
@@ -1877,7 +1872,7 @@ function EventCard({ image, title, date, location, price, id, ticketCount }: Eve
           }}
         >
           <a
-              href={`/event/${id}`}
+              href={navigationUrl}
               style={{
                 textDecoration: "none",
                 flex: "1",
@@ -1896,7 +1891,7 @@ function EventCard({ image, title, date, location, price, id, ticketCount }: Eve
                 width: "100%",
               }}
             >
-              Ver Detalhes
+              {hasMultipleOccurrences ? "Ver Datas" : "Ver Detalhes"}
             </button>
           </a>
         </div>
