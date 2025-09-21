@@ -18,6 +18,25 @@ export function extractUFFromVenueId(venueId: string | null | undefined): string
 }
 
 /**
+ * Extrai o nome da cidade de um venue_id que pode conter diferentes formatos
+ * @param venueId - O ID do local que pode ser "Cidade - UF" ou apenas um ID
+ * @returns O nome da cidade ou string vazia se não encontrada
+ */
+export function extractCityFromVenueId(venueId: string | null | undefined): string {
+  if (!venueId) return '';
+  
+  // Verifica se o venue_id contém o padrão "Cidade - UF"
+  const match = venueId.match(/^(.+)\s-\s[A-Z]{2}$/);
+  
+  if (match) {
+    return match[1].trim(); // Retorna apenas a cidade (ex: "São Paulo", "Rio de Janeiro")
+  }
+  
+  // Se não encontrar o padrão, retorna string vazia
+  return '';
+}
+
+/**
  * Formata o local para exibição nos cards
  * Prioriza a UF extraída do venue_id, senão usa venue_name
  * @param venueId - O ID do local
@@ -35,6 +54,27 @@ export function formatLocationForCard(
   }
   
   // Fallback para venue_name se não conseguir extrair UF
+  return venueName || "Local a definir";
+}
+
+/**
+ * Formata o nome da cidade para exibição nas ocorrências
+ * Prioriza a cidade extraída do venue_id, senão usa venue_name
+ * @param venueId - O ID do local
+ * @param venueName - O nome do local
+ * @returns String formatada para exibição
+ */
+export function formatCityForOccurrence(
+  venueId: string | null | undefined, 
+  venueName: string | null | undefined
+): string {
+  const city = extractCityFromVenueId(venueId);
+  
+  if (city) {
+    return city;
+  }
+  
+  // Fallback para venue_name se não conseguir extrair cidade
   return venueName || "Local a definir";
 }
 

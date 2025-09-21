@@ -1,20 +1,21 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, use } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Calendar, MapPin, Clock, Users, ArrowLeft } from "lucide-react"
 import { eventsApi, ApiEventWithOccurrences, ApiOccurrence } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Breadcrumbs } from "@/components/ui/breadcrumbs"
+import { formatCityForOccurrence } from "@/utils/locationUtils"
 
 interface EventPageProps {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 export default function EventPage({ params }: EventPageProps) {
   const router = useRouter()
-  const { slug } = params
+  const { slug } = use(params)
   
   const [event, setEvent] = useState<ApiEventWithOccurrences | null>(null)
   const [loading, setLoading] = useState(true)
@@ -185,7 +186,7 @@ export default function EventPage({ params }: EventPageProps) {
                         
                         <div className="flex items-center gap-2 text-gray-300 mb-3">
                           <MapPin className="w-4 h-4" />
-                          <span>{occurrence.venue_name || 'Local a definir'}</span>
+                          <span>{formatCityForOccurrence(occurrence.venue_id?.toString(), occurrence.venue_name)}</span>
                         </div>
 
                         <div className="text-sm text-gray-400">
