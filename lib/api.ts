@@ -91,9 +91,9 @@ export interface ApiOccurrence {
   event_id: string;
   start_at: string;
   end_at?: string;
-  venue_id?: number;
-  venue_name?: string;
-  venue_address?: string;
+  uf?: string;
+  state?: string;
+  city?: string;
   max_capacity?: number;
   available_tickets: number;
   status: 'active' | 'inactive' | 'sold_out';

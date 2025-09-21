@@ -57,7 +57,7 @@ export default function EventOccurrencePage({ params }: EventOccurrencePageProps
         // Encontrar a ocorrência correspondente
         const matchingOccurrence = eventData.occurrences?.find((occ: ApiOccurrence) => {
           const occDate = new Date(occ.start_at).toISOString().split('T')[0]
-          const occCity = occ.venue_name?.toLowerCase().replace(/\s+/g, '-')
+          const occCity = occ.city?.toLowerCase().replace(/\s+/g, '-')
           return occDate === targetDate && occCity === city
         })
 
@@ -182,7 +182,7 @@ export default function EventOccurrencePage({ params }: EventOccurrencePageProps
   const breadcrumbItems = [
       { label: "Events", href: "/" },
       { label: event.name, href: `/event/${slug}` },
-      { label: `${occurrence.venue_name} - ${formatDate(occurrence.start_at)}`, href: `/event/${slug}/${cityDate}` }
+      { label: `${occurrence.city} - ${formatDate(occurrence.start_at)}`, href: `/event/${slug}/${cityDate}` }
     ]
 
   return (
@@ -220,7 +220,7 @@ export default function EventOccurrencePage({ params }: EventOccurrencePageProps
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                <span>{occurrence.venue_name}</span>
+                <span>{occurrence.city}</span>
               </div>
             </div>
 

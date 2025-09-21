@@ -7,7 +7,6 @@ import { eventsApi, ApiEventWithOccurrences, ApiOccurrence } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Breadcrumbs } from "@/components/ui/breadcrumbs"
-import { formatCityForOccurrence } from "@/utils/locationUtils"
 
 interface EventPageProps {
   params: Promise<{ slug: string }>
@@ -62,7 +61,7 @@ export default function EventPage({ params }: EventPageProps) {
   }
 
   const handleOccurrenceClick = (occurrence: ApiOccurrence) => {
-    const city = occurrence.venue_name?.toLowerCase().replace(/\s+/g, '-') || 'local'
+    const city = occurrence.city?.toLowerCase().replace(/\s+/g, '-') || 'local'
     const date = new Date(occurrence.start_at)
     const formattedDate = `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`
     
@@ -186,7 +185,7 @@ export default function EventPage({ params }: EventPageProps) {
                         
                         <div className="flex items-center gap-2 text-gray-300 mb-3">
                           <MapPin className="w-4 h-4" />
-                          <span>{formatCityForOccurrence(occurrence.venue_id?.toString(), occurrence.venue_name)}</span>
+                          <span>{occurrence.city}</span>
                         </div>
 
                         <div className="text-sm text-gray-400">

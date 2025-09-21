@@ -128,10 +128,10 @@ export function DateOccurrenceSelector({
                     </div>
 
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      {occurrence.venue_name && (
+                      {occurrence.city && (
                         <div className="flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
-                          <span>{occurrence.venue_name}</span>
+                          <span>{occurrence.city}</span>
                         </div>
                       )}
                       

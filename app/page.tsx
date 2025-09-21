@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { MapPin, User, ShoppingCart, Plus, ChevronLeft, ChevronRight } from "lucide-react"
 import { eventsApi, transformEventForFrontend, Event, ApiEventWithOccurrences, ApiOccurrence } from "@/lib/api"
-import { formatLocationForCard, formatMultipleUFsForCard } from "@/utils/locationUtils"
 
 // Interface para eventos do frontend
 interface FrontendEvent {
@@ -1693,7 +1692,7 @@ function EventCard({ event }: EventCardProps) {
   // Determinar URL de navegação baseado no número de ocorrências
    const navigationUrl = hasMultipleOccurrences 
      ? `/event/${event.slug}` 
-     : `/event/${event.slug}/${nextOccurrence?.venue_name?.toLowerCase().replace(/\s+/g, '-')}-${formatDateForUrl(nextOccurrence?.start_at)}`;
+     : `/event/${event.slug}/${nextOccurrence?.city?.toLowerCase().replace(/\s+/g, '-')}-${formatDateForUrl(nextOccurrence?.start_at)}`;
 
    // Função auxiliar para formatar data na URL
    function formatDateForUrl(dateString: string | undefined): string {
@@ -1704,7 +1703,25 @@ function EventCard({ event }: EventCardProps) {
 
    const { day, month } = formatDateForCalendar(nextOccurrence);
    const displayDate = formatDateForDisplay(nextOccurrence);
-   const location = formatMultipleUFsForCard(event.occurrences || []);
+   
+   // Função para formatar múltiplos UFs das ocorrências
+   const formatMultipleUFs = (occurrences: ApiOccurrence[] | undefined) => {
+     if (!occurrences || occurrences.length === 0) {
+       return "Local não informado";
+     }
+     
+     // Extrair UFs únicos das ocorrências
+     const uniqueUFs = [...new Set(occurrences.map(occ => occ.uf).filter(Boolean))];
+     
+     // Se tem mais de 4 UFs, mostrar os primeiros 4 seguidos de "..."
+     if (uniqueUFs.length > 4) {
+       return uniqueUFs.slice(0, 4).join(", ") + "...";
+     }
+     
+     return uniqueUFs.join(", ");
+   };
+   
+   const location = formatMultipleUFs(event.occurrences);
    const price = "A partir de R$ 50,00"; // Temporário até termos o campo correto
    const ticketCount = nextOccurrence?.available_tickets || 0;
 
