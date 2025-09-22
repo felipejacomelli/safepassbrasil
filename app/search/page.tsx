@@ -7,7 +7,7 @@ import { eventsApi, transformEventForFrontend } from "@/lib/api"
 // Função para buscar contadores dinâmicos das categorias
 const fetchCategoryCounts = async (): Promise<Category[]> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001'}/category_app/categories/counts/`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/counts/`)
     if (!response.ok) {
       throw new Error('Falha ao buscar contadores de categorias')
     }
@@ -28,7 +28,7 @@ const fetchCategoryCounts = async (): Promise<Category[]> => {
 // Função para buscar localizações dinâmicas
 const fetchLocations = async (): Promise<Location[]> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001'}/category_app/locations/`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/locations/counts/`)
     if (!response.ok) {
       throw new Error('Falha ao buscar localizações')
     }
@@ -37,7 +37,7 @@ const fetchLocations = async (): Promise<Location[]> => {
     // Mapear os dados da API para o formato esperado pelo frontend
     return data.map((item: any) => ({
       name: item.name,
-      count: '0', // Será atualizado dinamicamente conforme necessário
+      count: item.event_count.toString(),
       image: item.image || getLocationImage(item.name)
     }))
   } catch (error) {
@@ -117,6 +117,7 @@ export default function SearchPage() {
   const query = searchParams.get("q") || ""
   const categoryFilter = searchParams.get("category") || ""
   const locationFilter = searchParams.get("location") || ""
+  const dateFilter = searchParams.get("date") || ""
   const [isDesktop, setIsDesktop] = useState(false)
   const [searchResults, setSearchResults] = useState<SearchResults | null>(null)
   const [loading, setLoading] = useState(false)
@@ -136,6 +137,7 @@ export default function SearchPage() {
           q: query || undefined,
           category: categoryFilter || undefined,
           location: locationFilter || undefined,
+          date: dateFilter || undefined,
         })
         
         // Transformar eventos para o formato do frontend
@@ -189,7 +191,7 @@ export default function SearchPage() {
     }
 
     fetchEvents()
-  }, [query, categoryFilter, locationFilter])
+  }, [query, categoryFilter, locationFilter, dateFilter])
 
   // Listener para atualizar contador de ingressos
   useEffect(() => {
@@ -235,7 +237,7 @@ export default function SearchPage() {
   const renderEventCard = (event: Event, index: number) => {
     return (
       <div
-        key={`search-event-${index}`}
+        key={`search-event-${event.id}`}
         style={{
           backgroundColor: "black",
           borderRadius: "12px",
@@ -822,9 +824,9 @@ export default function SearchPage() {
                       marginBottom: "32px",
                     }}
                   >
-                    {searchResults.categories.map((category, index) => (
+                    {searchResults.categories.map((category) => (
                       <a
-                        key={`search-category-${index}`}
+                        key={`search-category-${category.name}`}
                         href={`/search?category=${encodeURIComponent(category.name)}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
                         style={{
                           textDecoration: "none",
@@ -910,9 +912,9 @@ export default function SearchPage() {
                       gap: "16px",
                     }}
                   >
-                    {searchResults.locations.map((location, index) => (
+                    {searchResults.locations.map((location) => (
                       <a
-                        key={`search-location-${index}`}
+                        key={`search-location-${location.name}`}
                         href={`/search?location=${encodeURIComponent(location.name)}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
                         style={{
                           textDecoration: "none",

@@ -211,7 +211,7 @@ export default function UserEditPage() {
 
         {error && (
           <div className="bg-red-900/20 border border-red-500 text-red-200 px-4 py-3 rounded mb-6">
-            {error}
+            {String(error)}
           </div>
         )}
 

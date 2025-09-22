@@ -327,7 +327,7 @@ export default function VerificationPage() {
                     {/* Error Message */}
                     {error && (
                       <div className="bg-red-900 bg-opacity-20 text-red-500 p-3 rounded-lg border border-red-800">
-                        {error}
+                        {String(error)}
                       </div>
                     )}
 

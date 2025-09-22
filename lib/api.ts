@@ -139,7 +139,9 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}): P
     ...options.headers,
   };
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const url = endpoint.startsWith('/api/') ? `${API_BASE_URL}${endpoint}` : `${API_BASE_URL}/api${endpoint}`;
+
+  const response = await fetch(url, {
     ...options,
     headers,
   });
@@ -219,7 +221,7 @@ interface EventsResponse {
 export const eventsApi = {
   // Listar todos os eventos com occurrences futuras
   getAll: async (): Promise<ApiEventWithOccurrences[]> => {
-    const response = await apiRequestJson<ApiEventWithOccurrences[]>('/ticket_app/api/events/with_upcoming_occurrences/');
+    const response = await apiRequestJson<ApiEventWithOccurrences[]>('/ticket_app/events/with_upcoming_occurrences/');
     return response;
   },
   
@@ -244,26 +246,34 @@ export const eventsApi = {
     q?: string;
     category?: string;
     location?: string;
+    date?: string;
   }): Promise<EventsResponse> => {
     const queryParams = new URLSearchParams();
     
     if (params.q) queryParams.append('q', params.q);
     if (params.category) queryParams.append('category', params.category);
     if (params.location) queryParams.append('location', params.location);
+    if (params.date) queryParams.append('date', params.date);
     
     const queryString = queryParams.toString();
-    const endpoint = `/event_app/events/search/${queryString ? `?${queryString}` : ''}`;
-    
+    const endpoint = `/api/events/events/search/${queryString ? `?${queryString}` : ''}`;
     return apiRequestJson<EventsResponse>(endpoint);
+  },
+
+  // Função de busca simples para compatibilidade
+  searchSimple: async (query: string): Promise<Event[]> => {
+    const response = await fetch(`${API_BASE_URL}/api/events/search/?${query}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.events ? data.events.map(transformEventForFrontend) : [];
   },
 
   // Buscar evento por slug com suas ocorrências
   getBySlug: async (slug: string): Promise<ApiEventWithOccurrences> => {
-    // Primeiro buscar o evento básico pelo slug
-    const event = await apiRequestJson<ApiEvent>(`/event_app/event/${slug}/`);
-    
-    // Depois buscar o evento com suas ocorrências usando o ID
-    const eventWithOccurrences = await apiRequestJson<ApiEventWithOccurrences>(`/event_app/events/${event.id}/occurrences/`);
+    // Buscar o evento com suas ocorrências diretamente pelo slug
+    const eventWithOccurrences = await apiRequestJson<ApiEventWithOccurrences>(`/events/events/${slug}/`);
     
     return eventWithOccurrences;
   },
@@ -681,28 +691,24 @@ export interface PaymentResponse {
 export const mercadoPagoApi = {
   // Obter configurações do Mercado Pago
   getConfig: async (): Promise<MercadoPagoConfig> => {
-    return apiRequestJson<MercadoPagoConfig>('/api/payment/mercadopago/config/');
+    return apiRequestJson<MercadoPagoConfig>('/payment/mercadopago/config/');
   },
-
-  // Processar pagamento
+  
   processPayment: async (paymentData: PaymentRequest): Promise<PaymentResponse> => {
-    return apiRequestJson<PaymentResponse>('/api/payment/mercadopago/process/', {
+    return apiRequestJson<PaymentResponse>('/payment/mercadopago/process/', {
       method: 'POST',
       body: JSON.stringify(paymentData),
     });
   },
-
-  // Obter métodos de pagamento disponíveis
+  
   getPaymentMethods: async (): Promise<any[]> => {
-    return apiRequestJson<any[]>('/api/payment/mercadopago/payment-methods/');
+    return apiRequestJson<any[]>('/payment/mercadopago/payment-methods/');
   },
-
-  // Obter bancos emissores para um método de pagamento
+  
   getIssuers: async (paymentMethodId: string): Promise<any[]> => {
-    return apiRequestJson<any[]>(`/api/payment/mercadopago/issuers/?payment_method_id=${paymentMethodId}`);
+    return apiRequestJson<any[]>(`/payment/mercadopago/issuers/?payment_method_id=${paymentMethodId}`);
   },
 
-  // Calcular parcelas
   getInstallments: async (amount: number, paymentMethodId: string, issuerId?: string): Promise<any[]> => {
     const params = new URLSearchParams({
       amount: amount.toString(),
@@ -713,6 +719,6 @@ export const mercadoPagoApi = {
       params.append('issuer_id', issuerId);
     }
     
-    return apiRequestJson<any[]>(`/api/payment/mercadopago/installments/?${params.toString()}`);
+    return apiRequestJson<any[]>(`/payment/mercadopago/installments/?${params.toString()}`);
   },
 };
