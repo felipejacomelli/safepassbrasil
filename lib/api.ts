@@ -63,6 +63,7 @@ export interface ApiEvent {
   price: string;
   slug: string;
   ticket_count: number;
+  total_available_tickets: number;
   description?: string;
   category?: string;
   status: 'open' | 'closed';
@@ -83,6 +84,7 @@ export interface Event {
   category: string;
   city: string;
   ticket_count: number;
+  total_available_tickets: number;
 }
 
 // Tipos para Occurrences
@@ -650,7 +652,8 @@ export function transformEventForFrontend(apiEvent: ApiEvent): Event {
     slug: apiEvent.slug || '',
     category: apiEvent.category || '',
     city: apiEvent.location?.split(',').pop()?.trim() || '',
-    ticket_count: apiEvent.ticket_count || 0
+    ticket_count: apiEvent.ticket_count || 0,
+    total_available_tickets: apiEvent.total_available_tickets || 0
   };
 }
 

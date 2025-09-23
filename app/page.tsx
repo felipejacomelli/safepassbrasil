@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import {useEffect, useState} from "react"
 import useSWR from "swr"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
@@ -462,28 +462,48 @@ function EventCard({ event }: { event: any }) {
         router.push(`/event/${event.slug || event.id}`)
     }
 
+    // Função para lidar com o clique no botão de venda
+    const handleSellClick = (e: React.MouseEvent) => {
+        e.stopPropagation() // Evita que o clique no botão acione o clique do card
+        router.push(`/event/${event.slug || event.id}/sell`)
+    }
+
     return (
-        <div
-            onClick={handleCardClick}
-            className="bg-black rounded overflow-hidden shadow cursor-pointer hover:scale-105 transition-transform"
-        >
-            <img
-                src={event.image || "/placeholder.svg"}
-                alt={event.name}
-                className="w-full h-48 object-cover"
-            />
-            <div className="p-4">
-                <h3 className="font-semibold mb-2">{event.name}</h3>
-                <div className="flex items-center text-sm text-zinc-400 mb-2">
-                    {/*<span>{event.next_date || "Data não informada"}</span>*/}
+        <div className="bg-black rounded overflow-hidden shadow hover:scale-105 transition-transform">
+            <div
+                onClick={handleCardClick}
+                className="cursor-pointer"
+            >
+                <img
+                    src={event.image || "/placeholder.svg"}
+                    alt={event.name}
+                    className="w-full h-48 object-cover"
+                />
+                <div className="p-4">
+                    <h3 className="font-semibold mb-2">{event.name}</h3>
+                    <div className="flex items-center text-sm text-zinc-400 mb-2">
+                        {/*<span>{event.next_date || "Data não informada"}</span>*/}
+                    </div>
+                    <div className="flex items-center text-sm text-zinc-400 mb-2">
+                        <MapPin className="w-4 h-4 mr-1" />
+                        <span>{getEventLocations(event)}</span>
+                    </div>
+                    <div className="text-lg font-bold text-blue-500 mb-3">
+                        {event.total_available_tickets !== undefined 
+                            ? `${event.total_available_tickets} ingressos` 
+                            : "Ingressos esgotados"}
+                    </div>
                 </div>
-                <div className="flex items-center text-sm text-zinc-400 mb-2">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    <span>{getEventLocations(event)}</span>
-                </div>
-                <div className="text-lg font-bold text-blue-500">
-                    {event.price ? `R$ ${event.price}` : "Preço não informado"}
-                </div>
+            </div>
+            
+            {/* Botão Venda seu ingresso */}
+            <div className="px-4 pb-4">
+                <button
+                    onClick={handleSellClick}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-black font-semibold py-2 px-4 rounded transition-colors"
+                >
+                    Venda seu ingresso
+                </button>
             </div>
         </div>
     )

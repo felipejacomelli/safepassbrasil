@@ -2,14 +2,36 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { eventsApi } from "@/lib/api"
+import useSWR from "swr"
 
-export default function SellTicketPage({ params }: { params: { slug: string } }) {
+// Fetcher function for API calls
+const fetcher = (url: string) =>
+  fetch(url).then((res) => {
+    if (!res.ok) throw new Error("Erro ao buscar dados")
+    return res.json()
+  })
+
+export default async function SellTicketPage({ params }: { params: { slug: string } }) {
+  // Await params as required by Next.js 15
+  const { slug } = await params
+  
+  return <SellTicketPageClient slug={slug} />
+}
+
+function SellTicketPageClient({ slug }: { slug: string }) {
   const [isDesktop, setIsDesktop] = useState(false)
   const router = useRouter()
+  
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL
+
+  // Fetch event data from API based on slug
+  const { data: eventData, error: fetchError, isLoading } = useSWR(
+    `${baseUrl}/api/events/events/${slug}/`,
+    fetcher
+  )
 
   // Find the event data based on the slug
-  const event = events.find((e) => e.slug === params.slug) || events[0]
+  const event = eventData || null
 
   // State for form
   const [ticketType, setTicketType] = useState("pista-premium")
@@ -30,76 +52,72 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
   const [quantity, setQuantity] = useState("1")
   const [description, setDescription] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState("")
+  const [formError, setFormError] = useState("")
   const [success, setSuccess] = useState(false)
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setError("")
+    setFormError("")
 
     // Validate price
     if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      setError("Por favor, insira um preço válido")
+      setFormError("Por favor, insira um preço válido")
       return
     }
 
     // Validate quantity
     if (!quantity || isNaN(Number(quantity)) || Number(quantity) <= 0) {
-      setError("Por favor, insira uma quantidade válida")
+      setFormError("Por favor, insira uma quantidade válida")
       return
     }
 
     setIsSubmitting(true)
 
     try {
-      // Get event ID from the events array
-      const eventData = events.find(e => e.slug === params.slug)
-      if (!eventData) {
-        setError("Evento não encontrado")
+      // Check if event data is available
+      if (!event) {
+        setFormError("Evento não encontrado")
         setIsSubmitting(false)
         return
       }
 
-      // Map slug to event ID (temporary solution)
-      let eventId: number
-      switch (params.slug) {
-        case "rock-in-rio-2025":
-          eventId = 3
-          break
-        case "festival-de-verao":
-          eventId = 4
-          break
-        case "lollapalooza-brasil-2025":
-          eventId = 5
-          break
-        default:
-          eventId = 3 // Default to Rock in Rio
-      }
+      // Call the sell tickets API using the event ID from the fetched data
+       const response = await fetch(`${baseUrl}/api/tickets/sell/`, {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+         },
+         body: JSON.stringify({
+          event_id: event?.id,
+          quantity: Number(quantity),
+          price: Number(price),
+          ticket_type: ticketType,
+          description: description
+        })
+       })
 
-      // Call the sell tickets API
-      const result = await eventsApi.sellTickets(eventId, {
-        quantity: Number(quantity),
-        price: Number(price),
-        ticket_type: ticketType,
-        description: description
-      })
+       if (!response.ok) {
+         throw new Error('Erro ao anunciar ingresso')
+       }
 
-      if (result.success) {
-        setSuccess(true)
-        // Redirect after success
-        setTimeout(() => {
-          router.push(`/event/${params.slug}`)
-        }, 3000)
-      } else {
-        setError(result.message || "Erro ao listar ingressos")
-      }
-    } catch (err) {
-      console.error('Erro ao vender ingressos:', err)
-      setError("Erro ao conectar com o servidor. Tente novamente.")
-    } finally {
-      setIsSubmitting(false)
-    }
+       const result = await response.json()
+
+       if (result.success) {
+         setSuccess(true)
+         // Redirect after success
+         setTimeout(() => {
+           router.push(`/event/${slug}`)
+         }, 3000)
+       } else {
+         setFormError(result.message || "Erro ao listar ingressos")
+       }
+     } catch (err) {
+       console.error('Erro ao vender ingressos:', err)
+       setFormError("Erro ao conectar com o servidor. Tente novamente.")
+     } finally {
+       setIsSubmitting(false)
+     }
   }
 
   return (
@@ -270,13 +288,13 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
           </a>
           <span>›</span>
           <a
-            href={`/event/${event.slug}`}
+            href={`/event/${event?.slug || slug}`}
             style={{
               color: "#A1A1AA",
               textDecoration: "none",
             }}
           >
-            {event.title}
+            {event?.title || "Carregando..."}
           </a>
           <span>›</span>
           <span style={{ color: "#3B82F6" }}>Vender Ingressos</span>
@@ -298,7 +316,7 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                 marginBottom: "16px",
               }}
             >
-              Vender Ingressos: {event.title}
+              Vender Ingressos: {event?.title || "Carregando..."}
             </h1>
 
             {/* Event Image */}
@@ -313,8 +331,8 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
               }}
             >
               <img
-                src={event.image || "/placeholder.svg"}
-                alt={event.title}
+                src={event?.image || "/placeholder.svg"}
+                alt={event?.title || "Evento"}
                 style={{
                   position: "absolute",
                   top: 0,
@@ -344,7 +362,7 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                 }}
               >
                 <span style={{ marginRight: "8px" }}>📅</span>
-                <span>{event.date}</span>
+                <span>{event?.date || "Data a definir"}</span>
               </div>
               <div
                 style={{
@@ -355,7 +373,7 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                 }}
               >
                 <span style={{ marginRight: "8px" }}>📍</span>
-                <span>{event.location}</span>
+                <span>{event?.location || "Local a definir"}</span>
               </div>
               <div
                 style={{
@@ -365,7 +383,7 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                 }}
               >
                 <span style={{ marginRight: "8px" }}>⏰</span>
-                <span>{event.time || "19:00 - 23:00"}</span>
+                <span>{event?.time || "19:00 - 23:00"}</span>
               </div>
             </div>
 
@@ -452,10 +470,10 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                     marginBottom: "24px",
                   }}
                 >
-                  Seu ingresso para {event.title} foi publicado e já está disponível para compradores.
+                  Seu ingresso para {event?.title || "este evento"} foi publicado e já está disponível para compradores.
                 </p>
                 <a
-                  href={`/event/${event.slug}`}
+                  href={`/event/${event?.slug || slug}`}
                   style={{
                     display: "inline-block",
                     backgroundColor: "#3B82F6",
@@ -783,7 +801,7 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                 </div>
 
                 {/* Error Message */}
-                {error && (
+                {formError && (
                   <div
                     style={{
                       backgroundColor: "rgba(220, 38, 38, 0.1)",
@@ -794,7 +812,7 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
                       border: "1px solid rgba(220, 38, 38, 0.3)",
                     }}
                   >
-                    {error}
+                    {formError}
                   </div>
                 )}
 
@@ -891,69 +909,4 @@ export default function SellTicketPage({ params }: { params: { slug: string } })
   )
 }
 
-// Mock event data (same as in other files)
-const events = [
-  {
-    slug: "festival-de-verao",
-    title: "Festival de Verão",
-    date: "15 de Dezembro, 2023",
-    time: "16:00 - 02:00",
-    location: "Praia de Copacabana, Rio de Janeiro",
-    attendance: "50.000+ pessoas",
-    price: "A partir de R$ 150",
-    image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&auto=format&fit=crop&q=60",
-    description: [
-      "O Festival de Verão é um dos eventos mais aguardados da temporada, reunindo grandes nomes da música brasileira e internacional em um cenário paradisíaco.",
-      "Com uma programação diversificada que vai do pop ao rock, do samba ao eletrônico, o festival promete agradar a todos os gostos musicais.",
-      "Além dos shows, o evento conta com áreas de alimentação, lounges e diversas atividades para tornar sua experiência ainda mais completa.",
-    ],
-    gallery: [
-      "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1506157786151-b8491531f063?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-    ],
-  },
-  {
-    slug: "rock-in-rio-2025",
-    title: "Rock in Rio 2025",
-    date: "19-28 de Setembro, 2025",
-    time: "14:00 - 00:00",
-    location: "Cidade do Rock, Rio de Janeiro",
-    attendance: "100.000+ pessoas",
-    price: "A partir de R$ 650",
-    image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&auto=format&fit=crop&q=60",
-    description: [
-      "O Rock in Rio é um dos maiores festivais de música do mundo, reunindo artistas nacionais e internacionais em performances inesquecíveis. Em 2025, o evento promete ser ainda mais grandioso, com uma lineup diversificada e cheia de estrelas.",
-      "Durante os dias de festival, a Cidade do Rock se transforma em um verdadeiro parque de diversões para os amantes da música, com várias atrações além dos shows principais, incluindo a famosa roda gigante, tirolesa, e diversas opções gastronômicas.",
-      "Não perca a chance de fazer parte deste evento histórico e viver momentos únicos ao som de seus artistas favoritos!",
-    ],
-    gallery: [
-      "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
-      "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-    ],
-  },
-  {
-    slug: "lollapalooza-brasil-2025",
-    title: "Lollapalooza Brasil 2025",
-    date: "28-30 de Março, 2025",
-    time: "11:00 - 23:00",
-    location: "Autódromo de Interlagos, São Paulo",
-    attendance: "80.000+ pessoas",
-    price: "A partir de R$ 750",
-    image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
-    description: [
-      "O Lollapalooza Brasil retorna em 2025 para sua décima edição no país, trazendo o melhor da música alternativa, rock, hip-hop, música eletrônica e muito mais.",
-      "Distribuído em diversos palcos no Autódromo de Interlagos, o festival oferece uma experiência completa com atrações para todos os gostos, além de áreas de descanso, praça de alimentação com opções diversificadas e espaços instagramáveis.",
-      "Prepare-se para três dias intensos de música, arte e cultura em um dos festivais mais aguardados do calendário brasileiro.",
-    ],
-    gallery: [
-      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80",
-      "https://images.unsplash.com/photo-1506157786151-b8491531f063?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-      "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80",
-    ],
-  },
-]
+// Mock event data (same as in other files) - moved to avoid duplication
