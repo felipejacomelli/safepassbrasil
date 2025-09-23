@@ -481,7 +481,7 @@ function EventCard({ event }: { event: any }) {
                     <MapPin className="w-4 h-4 mr-1" />
                     <span>{getEventLocations(event)}</span>
                 </div>
-                <div className="text-lg font-bold text-green-400">
+                <div className="text-lg font-bold text-blue-500">
                     {event.price ? `R$ ${event.price}` : "Preço não informado"}
                 </div>
             </div>
