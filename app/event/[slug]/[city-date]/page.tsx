@@ -161,6 +161,14 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
   }
 
   const addToCart = (ticketType: TicketType) => {
+    // Verificar se o usuário está autenticado
+    if (!isAuthenticated) {
+      // Salvar a URL atual para retornar após o login
+      localStorage.setItem('redirectAfterLogin', window.location.pathname)
+      window.location.href = "/login"
+      return
+    }
+
     if (!event) return
     
     const quantity = ticketQuantities[ticketType.id] || 1
@@ -200,6 +208,19 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
 
     // Navigate to cart page
     window.location.href = "/cart"
+  }
+
+  const handleSellTicket = () => {
+    // Verificar se o usuário está autenticado
+    if (!isAuthenticated) {
+      // Salvar a URL atual para retornar após o login
+      localStorage.setItem('redirectAfterLogin', window.location.pathname)
+      window.location.href = "/login"
+      return
+    }
+
+    // Se autenticado, navegar para a página de venda
+    window.location.href = `/event/${event?.slug}/sell`
   }
 
   if (loading) {
@@ -788,9 +809,7 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
                 alignItems: "center",
                 gap: "8px",
               }}
-              onClick={() => {
-                window.location.href = `/event/${event.slug}/sell`
-              }}
+              onClick={handleSellTicket}
             >
               <Ticket size={20} />
               Vender Ingresso
