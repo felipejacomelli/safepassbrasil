@@ -338,7 +338,7 @@ export const eventsApi = {
 export const occurrencesApi = {
   // Buscar occurrence com tickets
   getWithTickets: (occurrenceId: string): Promise<ApiOccurrenceWithTickets> => {
-    return apiRequestJson<ApiOccurrenceWithTickets>(`/event_app/occurrences/${occurrenceId}/tickets/`);
+    return apiRequestJson<ApiOccurrenceWithTickets>(`/events/occurrences/${occurrenceId}/`);
   },
 
   // Buscar occurrences por evento
