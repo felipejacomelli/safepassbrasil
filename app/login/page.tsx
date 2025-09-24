@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
@@ -17,7 +15,8 @@ export default function LoginPage() {
   const { login, register, isAuthenticated } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const returnUrl = searchParams.get('returnUrl')
+  const returnUrl = new URLSearchParams(window.location.search).get("returnUrl")
+  
   const [isLoginMode, setIsLoginMode] = useState(true)
   const [formData, setFormData] = useState({
     email: "",
@@ -28,7 +27,7 @@ export default function LoginPage() {
     country: "",
     cpf: "",
   })
-  
+
   const [fieldErrors, setFieldErrors] = useState({
     name: "",
     email: "",
@@ -41,17 +40,16 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      // Se há um returnUrl, redireciona para lá, senão vai para /account
-      const redirectTo = returnUrl || "/account"
-      router.push(redirectTo)
+      // Se o usuário estiver autenticado, redireciona para o returnUrl ou página padrão
+      router.push(returnUrl || "/account")
     }
-  }, [isAuthenticated, router, returnUrl])
+  }, [isAuthenticated, returnUrl, router])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    
+
     let formattedValue = value
-    
+
     // Formatação automática do CPF
     if (name === 'cpf') {
       const numbers = value.replace(/\D/g, '')
@@ -67,7 +65,7 @@ export default function LoginPage() {
         }
       }
     }
-    
+
     // Formatação automática do celular
     if (name === 'phone') {
       const numbers = value.replace(/\D/g, '')
@@ -83,19 +81,19 @@ export default function LoginPage() {
         formattedValue = `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`
       }
     }
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: formattedValue
     }))
-    
+
     // Validação em tempo real
     validateField(name, formattedValue)
   }
-  
+
   const validateField = (fieldName: string, value: string) => {
     let error = ""
-    
+
     switch (fieldName) {
       case 'name':
         if (!value.trim()) {
@@ -109,7 +107,7 @@ export default function LoginPage() {
           }
         }
         break
-        
+
       case 'email':
         if (!value.trim()) {
           error = "Email é obrigatório"
@@ -120,28 +118,28 @@ export default function LoginPage() {
           }
         }
         break
-        
+
       case 'phone':
         const phoneNumbers = value.replace(/\D/g, '')
         if (phoneNumbers.length > 0 && phoneNumbers.length < 10) {
           error = "Celular deve ter 10 ou 11 dígitos"
         }
         break
-        
+
       case 'cpf':
         if (value.trim()) {
           const cpfValidation = validateCpfWithMessage(value)
           error = cpfValidation.message
         }
         break
-        
+
       case 'country':
         if (!value.trim()) {
           error = "País é obrigatório"
         }
         break
     }
-    
+
     setFieldErrors(prev => ({
       ...prev,
       [fieldName]: error
@@ -167,11 +165,9 @@ export default function LoginPage() {
         if (result.success) {
           if (result.requires2FA) {
             router.push(`/verify?email=${encodeURIComponent(formData.email)}`)
-          } else if (result.isAdmin && !returnUrl) {
-            // Só redireciona para admin se não há returnUrl específico
+          } else if (result.isAdmin) {
             router.push("/admin")
           } else {
-            // Usa returnUrl se disponível, senão vai para /account
             const redirectTo = returnUrl || "/account"
             router.push(redirectTo)
           }
@@ -184,8 +180,7 @@ export default function LoginPage() {
         setIsLoading(false)
       }
     } else {
-      // Register logic
-      // Validação completa antes do envio
+      // Register logic (similar à sua lógica de criação de conta)
       const validationErrors = {
         name: !formData.name.trim() ? "Nome é obrigatório" : "",
         email: !formData.email.trim() ? "Email é obrigatório" : "",
