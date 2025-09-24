@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -42,11 +42,12 @@ const fetcher = (url: string) =>
     return res.json()
   })
 
-export default function SellTicketPage({ params }: { params: { slug: string } }) {
+export default function SellTicketPage({ params }: { params: Promise<{ slug: string }> }) {
   return <SellTicketPageClient params={params} />
 }
 
-function SellTicketPageClient({ params }: { params: { slug: string } }) {
+function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = use(params)
   const [isDesktop, setIsDesktop] = useState(false)
   const router = useRouter()
   const { user, logout } = useAuth()
@@ -55,7 +56,7 @@ function SellTicketPageClient({ params }: { params: { slug: string } }) {
 
   // Fetch event data from API based on slug
   const { data: eventData, error: fetchError, isLoading } = useSWR(
-    `${baseUrl}/api/events/events/${params.slug}/`,
+    `${baseUrl}/api/events/events/${resolvedParams.slug}/`,
     fetcher
   )
 
@@ -155,10 +156,13 @@ function SellTicketPageClient({ params }: { params: { slug: string } }) {
       }
 
       // Call the create ticket API using the correct endpoint
-       const response = await fetch(`${baseUrl}/api/tickets/${selectedTicketTypeId}/`, {
+       const response = await fetch(`${baseUrl}/api/tickets/`, {
          method: 'POST',
          headers: {
            'Content-Type': 'application/json',
+           ...(typeof window !== 'undefined' && localStorage.getItem('authToken') && {
+             'Authorization': `Token ${localStorage.getItem('authToken')}`
+           })
          },
          body: JSON.stringify({
           ticket_type: selectedTicketTypeId,
@@ -170,20 +174,18 @@ function SellTicketPageClient({ params }: { params: { slug: string } }) {
        })
 
        if (!response.ok) {
-         throw new Error('Erro ao anunciar ingresso')
+         const errorData = await response.json()
+         throw new Error(errorData.error || 'Erro ao anunciar ingresso')
        }
 
        const result = await response.json()
 
-       if (result.success) {
-         setSuccess(true)
-         // Redirect after success
-         setTimeout(() => {
-           router.push(`/event/${params.slug}`)
-         }, 3000)
-       } else {
-         setFormError(result.message || "Erro ao listar ingressos")
-       }
+       // Se chegou até aqui e response.ok é true, significa que foi criado com sucesso
+       setSuccess(true)
+       // Redirect after success
+       setTimeout(() => {
+         router.push(`/event/${resolvedParams.slug}`)
+       }, 3000)
      } catch (err) {
        console.error('Erro ao vender ingressos:', err)
        setFormError("Erro ao conectar com o servidor. Tente novamente.")
@@ -288,7 +290,7 @@ function SellTicketPageClient({ params }: { params: { slug: string } }) {
           </a>
           <span>›</span>
           <a
-            href={`/event/${event?.slug || params.slug}`}
+            href={`/event/${event?.slug || resolvedParams.slug}`}
             style={{
               color: "#A1A1AA",
               textDecoration: "none",
@@ -508,7 +510,7 @@ function SellTicketPageClient({ params }: { params: { slug: string } }) {
                   Seu ingresso para {event?.name || "este evento"} foi publicado e já está disponível para compradores.
                 </p>
                 <a
-                  href={`/event/${event?.slug || params.slug}`}
+                  href={`/event/${event?.slug || resolvedParams.slug}`}
                   style={{
                     display: "inline-block",
                     backgroundColor: "#3B82F6",
