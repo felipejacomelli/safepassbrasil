@@ -372,7 +372,7 @@ export const occurrencesApi = {
 export const authApi = {
   // Login do usuário
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    return apiRequestJson<LoginResponse>('/user_app/user/login', {
+    return apiRequestJson<LoginResponse>('/user/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
@@ -380,7 +380,7 @@ export const authApi = {
 
   // Registro de novo usuário
   register: async (userData: RegisterRequest): Promise<LoginResponse> => {
-    return apiRequestJson<LoginResponse>('/user_app/user/register', {
+    return apiRequestJson<LoginResponse>('/user/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
@@ -388,12 +388,12 @@ export const authApi = {
 
   // Obter perfil do usuário autenticado
   getProfile: async (): Promise<ApiUser> => {
-    return apiRequestJson<ApiUser>('/user_app/profile');
+    return apiRequestJson<ApiUser>('/profile');
   },
 
   // Atualizar perfil do usuário autenticado
   updateProfile: async (userData: UpdateUserRequest): Promise<ApiUser> => {
-    return apiRequestJson<ApiUser>('/user_app/profile', {
+    return apiRequestJson<ApiUser>('/profile', {
       method: 'PUT',
       body: JSON.stringify(userData),
     });
@@ -431,7 +431,7 @@ export const authApi = {
   },
 
   logout: async (): Promise<{success: boolean}> => {
-    return apiRequestJson<{success: boolean}>('/user_app/user/logout', { method: 'POST' });
+    return apiRequestJson<{success: boolean}>('/user/logout', { method: 'POST' });
   },
 };
 

@@ -1,7 +1,38 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { 
+  Calendar, 
+  Clock, 
+  MapPin, 
+  Users, 
+  Ticket, 
+  ArrowLeft, 
+  AlertCircle, 
+  CheckCircle,
+  LogOut,
+  User
+} from "lucide-react"
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/contexts/auth-context"
+import { eventsApi, type ApiEvent, type ApiOccurrence } from "@/lib/api"
+import { cn } from "@/lib/utils"
+
 import useSWR from "swr"
 
 // Fetcher function for API calls
@@ -11,22 +42,20 @@ const fetcher = (url: string) =>
     return res.json()
   })
 
-export default async function SellTicketPage({ params }: { params: { slug: string } }) {
-  // Await params as required by Next.js 15
-  const { slug } = await params
-  
-  return <SellTicketPageClient slug={slug} />
+export default function SellTicketPage({ params }: { params: { slug: string } }) {
+  return <SellTicketPageClient params={params} />
 }
 
-function SellTicketPageClient({ slug }: { slug: string }) {
+function SellTicketPageClient({ params }: { params: { slug: string } }) {
   const [isDesktop, setIsDesktop] = useState(false)
   const router = useRouter()
+  const { user, logout } = useAuth()
   
   const baseUrl = process.env.NEXT_PUBLIC_API_URL
 
   // Fetch event data from API based on slug
   const { data: eventData, error: fetchError, isLoading } = useSWR(
-    `${baseUrl}/api/events/events/${slug}/`,
+    `${baseUrl}/api/events/events/${params.slug}/`,
     fetcher
   )
 
@@ -34,8 +63,12 @@ function SellTicketPageClient({ slug }: { slug: string }) {
   const event = eventData || null
 
   // State for form
-  const [ticketType, setTicketType] = useState("pista-premium")
+  const [selectedOccurrence, setSelectedOccurrence] = useState("")
+  const [ticketType, setTicketType] = useState("")
   const [price, setPrice] = useState("")
+
+  // Get the selected occurrence object
+  const currentOccurrence = event?.occurrences?.find((occ: any) => occ.id === selectedOccurrence)
 
   // Initialize form values from URL params after hydration
   useEffect(() => {
@@ -45,10 +78,28 @@ function SellTicketPageClient({ slug }: { slug: string }) {
     const urlParams = new URLSearchParams(window.location.search)
     const typeParam = urlParams.get("type")
     const priceParam = urlParams.get("price")
+    const occurrenceParam = urlParams.get("occurrence")
     
     if (typeParam) setTicketType(typeParam)
     if (priceParam) setPrice(priceParam)
-  }, [])
+    if (occurrenceParam) setSelectedOccurrence(occurrenceParam)
+    
+    // Auto-populate with first occurrence if not already set
+    if (event && event.occurrences && event.occurrences.length > 0 && !selectedOccurrence && !occurrenceParam) {
+      const firstOccurrence = event.occurrences[0]
+      setSelectedOccurrence(firstOccurrence.id)
+    }
+  }, [event, selectedOccurrence])
+
+  // Reset ticket type and price when occurrence changes
+  useEffect(() => {
+    if (currentOccurrence && currentOccurrence.ticket_types && currentOccurrence.ticket_types.length > 0) {
+      // Reset ticket type selection when occurrence changes
+      setTicketType("")
+      setPrice("")
+    }
+  }, [selectedOccurrence])
+
   const [quantity, setQuantity] = useState("1")
   const [description, setDescription] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -59,6 +110,18 @@ function SellTicketPageClient({ slug }: { slug: string }) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setFormError("")
+
+    // Validate occurrence selection
+    if (!selectedOccurrence) {
+      setFormError("Por favor, selecione uma data/local do evento")
+      return
+    }
+
+    // Validate ticket type
+    if (!ticketType) {
+      setFormError("Por favor, selecione um tipo de ingresso")
+      return
+    }
 
     // Validate price
     if (!price || isNaN(Number(price)) || Number(price) <= 0) {
@@ -82,18 +145,27 @@ function SellTicketPageClient({ slug }: { slug: string }) {
         return
       }
 
-      // Call the sell tickets API using the event ID from the fetched data
-       const response = await fetch(`${baseUrl}/api/tickets/sell/`, {
+      // Use the selected ticket type ID
+      const selectedTicketTypeId = ticketType
+      
+      if (!selectedTicketTypeId) {
+        setFormError("Nenhum tipo de ingresso selecionado")
+        setIsSubmitting(false)
+        return
+      }
+
+      // Call the create ticket API using the correct endpoint
+       const response = await fetch(`${baseUrl}/api/tickets/${selectedTicketTypeId}/`, {
          method: 'POST',
          headers: {
            'Content-Type': 'application/json',
          },
          body: JSON.stringify({
-          event_id: event?.id,
+          ticket_type: selectedTicketTypeId,
+          name: user?.name || 'Vendedor',
           quantity: Number(quantity),
           price: Number(price),
-          ticket_type: ticketType,
-          description: description
+          owner: user?.id
         })
        })
 
@@ -107,7 +179,7 @@ function SellTicketPageClient({ slug }: { slug: string }) {
          setSuccess(true)
          // Redirect after success
          setTimeout(() => {
-           router.push(`/event/${slug}`)
+           router.push(`/event/${params.slug}`)
          }, 3000)
        } else {
          setFormError(result.message || "Erro ao listar ingressos")
@@ -131,129 +203,57 @@ function SellTicketPageClient({ slug }: { slug: string }) {
       }}
     >
       {/* Header/Navigation */}
-      <header
-        style={{
-          padding: "16px",
-          borderBottom: "1px solid #333",
-          position: "sticky",
-          top: 0,
-          backgroundColor: "rgba(0,0,0,0.9)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-          zIndex: 10,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            maxWidth: "1200px",
-            margin: "0 auto",
-            width: "100%",
-          }}
-        >
-          {/* Logo */}
-          <a
-            href="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              textDecoration: "none",
-            }}
-          >
-            <div
-              style={{
-                backgroundColor: "#3B82F6",
-                padding: "6px",
-                borderRadius: "4px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+      <header className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <a
+              href="/"
+              className="flex items-center gap-2 text-decoration-none"
             >
-              <div
-                style={{
-                  width: "24px",
-                  height: "24px",
-                  backgroundColor: "black",
-                  borderRadius: "4px",
-                }}
-              />
-            </div>
-            <span
-              style={{
-                color: "white",
-                fontSize: "20px",
-                fontWeight: "bold",
-              }}
-            >
-              reticket
-            </span>
-          </a>
+              <div className="bg-blue-600 p-1.5 rounded flex items-center justify-center">
+                <div className="w-6 h-6 bg-black rounded" />
+              </div>
+              <span className="text-white text-xl font-bold">
+                reticket
+              </span>
+            </a>
 
-          {/* Navigation Links */}
-          <nav
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-            }}
-          >
-            {isDesktop && (
-              <>
-                <a
-                  href="/#como-funciona"
-                  style={{
-                    color: "white",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                  }}
-                >
-                  Como Funciona
-                </a>
-                <a
-                  href="#"
-                  style={{
-                    color: "white",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                  }}
-                >
-                  WhatsApp
-                </a>
-              </>
+            {/* User Menu with Avatar and Logout */}
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center space-x-2 hover:bg-zinc-800">
+                    <div className="h-8 w-8 rounded-full bg-zinc-700 flex items-center justify-center text-white text-sm font-medium">
+                      {user.name?.charAt(0) || "U"}
+                    </div>
+                    <span className="text-sm font-medium">{user.name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 bg-zinc-900 border-zinc-800">
+                  <div className="px-3 py-2">
+                    <p className="text-sm font-medium text-white">{user.name}</p>
+                    <p className="text-xs text-zinc-400">{user.email}</p>
+                  </div>
+                  <DropdownMenuSeparator className="bg-zinc-800" />
+                  <DropdownMenuItem 
+                    onClick={logout}
+                    className="text-red-400 hover:text-red-300 hover:bg-zinc-800 cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Button variant="ghost" size="sm" onClick={() => router.push('/login')}>
+                  <User className="h-4 w-4 mr-2" />
+                  Entrar
+                </Button>
+              </div>
             )}
-            <button
-              style={{
-                backgroundColor: "transparent",
-                border: "1px solid #3B82F6",
-                color: "white",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "bold",
-              }}
-            >
-              Cadastrar
-            </button>
-            <button
-              style={{
-                backgroundColor: "transparent",
-                border: "1px solid #3B82F6",
-                color: "white",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "bold",
-              }}
-            >
-              Acessar
-            </button>
-          </nav>
+          </div>
         </div>
       </header>
 
@@ -288,13 +288,13 @@ function SellTicketPageClient({ slug }: { slug: string }) {
           </a>
           <span>›</span>
           <a
-            href={`/event/${event?.slug || slug}`}
+            href={`/event/${event?.slug || params.slug}`}
             style={{
               color: "#A1A1AA",
               textDecoration: "none",
             }}
           >
-            {event?.title || "Carregando..."}
+            {event?.name || "Carregando..."}
           </a>
           <span>›</span>
           <span style={{ color: "#3B82F6" }}>Vender Ingressos</span>
@@ -316,7 +316,7 @@ function SellTicketPageClient({ slug }: { slug: string }) {
                 marginBottom: "16px",
               }}
             >
-              Vender Ingressos: {event?.title || "Carregando..."}
+              Vender Ingressos: {event?.name || "Carregando..."}
             </h1>
 
             {/* Event Image */}
@@ -332,7 +332,7 @@ function SellTicketPageClient({ slug }: { slug: string }) {
             >
               <img
                 src={event?.image || "/placeholder.svg"}
-                alt={event?.title || "Evento"}
+                alt={event?.name || "Evento"}
                 style={{
                   position: "absolute",
                   top: 0,
@@ -362,7 +362,18 @@ function SellTicketPageClient({ slug }: { slug: string }) {
                 }}
               >
                 <span style={{ marginRight: "8px" }}>📅</span>
-                <span>{event?.date || "Data a definir"}</span>
+                <span>
+                  {currentOccurrence?.start_at 
+                    ? new Date(currentOccurrence.start_at).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit', 
+                        year: 'numeric'
+                      })
+                    : selectedOccurrence 
+                      ? "Data a definir"
+                      : "Selecione uma data"
+                  }
+                </span>
               </div>
               <div
                 style={{
@@ -373,7 +384,14 @@ function SellTicketPageClient({ slug }: { slug: string }) {
                 }}
               >
                 <span style={{ marginRight: "8px" }}>📍</span>
-                <span>{event?.location || "Local a definir"}</span>
+                <span>
+                  {currentOccurrence 
+                    ? `${currentOccurrence.city}, ${currentOccurrence.state} - ${currentOccurrence.uf}${currentOccurrence.venue ? ` - ${currentOccurrence.venue}` : ''}`
+                    : selectedOccurrence 
+                      ? "Local a definir"
+                      : "Selecione um local"
+                  }
+                </span>
               </div>
               <div
                 style={{
@@ -383,7 +401,24 @@ function SellTicketPageClient({ slug }: { slug: string }) {
                 }}
               >
                 <span style={{ marginRight: "8px" }}>⏰</span>
-                <span>{event?.time || "19:00 - 23:00"}</span>
+                <span>
+                  {currentOccurrence?.start_at 
+                    ? new Date(currentOccurrence.start_at).toLocaleTimeString('pt-BR', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })
+                    : selectedOccurrence 
+                      ? "Horário a definir"
+                      : "Selecione um horário"
+                  }
+                  {currentOccurrence?.end_at 
+                    ? ` - ${new Date(currentOccurrence.end_at).toLocaleTimeString('pt-BR', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}`
+                    : ""
+                  }
+                </span>
               </div>
             </div>
 
@@ -470,10 +505,10 @@ function SellTicketPageClient({ slug }: { slug: string }) {
                     marginBottom: "24px",
                   }}
                 >
-                  Seu ingresso para {event?.title || "este evento"} foi publicado e já está disponível para compradores.
+                  Seu ingresso para {event?.name || "este evento"} foi publicado e já está disponível para compradores.
                 </p>
                 <a
-                  href={`/event/${event?.slug || slug}`}
+                  href={`/event/${event?.slug || params.slug}`}
                   style={{
                     display: "inline-block",
                     backgroundColor: "#3B82F6",
@@ -507,6 +542,49 @@ function SellTicketPageClient({ slug }: { slug: string }) {
                     Detalhes do Ingresso
                   </h2>
 
+                  {/* Occurrence Selection */}
+                  <div
+                    style={{
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <label
+                      htmlFor="occurrence"
+                      style={{
+                        display: "block",
+                        marginBottom: "8px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      Data e Local do Evento
+                    </label>
+                    <select
+                      id="occurrence"
+                      value={selectedOccurrence}
+                      onChange={(e) => setSelectedOccurrence(e.target.value)}
+                      style={{
+                        width: "100%",
+                        backgroundColor: "#27272A",
+                        color: "white",
+                        padding: "12px",
+                        borderRadius: "8px",
+                        border: "1px solid #3F3F46",
+                        fontSize: "16px",
+                      }}
+                    >
+                      <option value="">Selecione uma data e local</option>
+                      {event?.occurrences?.map((occurrence: any) => (
+                        <option key={occurrence.id} value={occurrence.id}>
+                          {new Date(occurrence.start_at).toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          })} - {occurrence.city}, {occurrence.state}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   {/* Ticket Type */}
                   <div
                     style={{
@@ -527,21 +605,26 @@ function SellTicketPageClient({ slug }: { slug: string }) {
                       id="ticket-type"
                       value={ticketType}
                       onChange={(e) => setTicketType(e.target.value)}
+                      disabled={!selectedOccurrence}
                       style={{
                         width: "100%",
-                        backgroundColor: "#27272A",
-                        color: "white",
+                        backgroundColor: selectedOccurrence ? "#27272A" : "#1A1A1A",
+                        color: selectedOccurrence ? "white" : "#6B7280",
                         padding: "12px",
                         borderRadius: "8px",
                         border: "1px solid #3F3F46",
                         fontSize: "16px",
+                        cursor: selectedOccurrence ? "pointer" : "not-allowed",
                       }}
                     >
-                      <option value="pista-premium">Pista Premium</option>
-                      <option value="pista">Pista</option>
-                      <option value="cadeira-inferior">Cadeira Inferior</option>
-                      <option value="cadeira-superior">Cadeira Superior</option>
-                      <option value="camarote">Camarote</option>
+                      <option value="">
+                        {selectedOccurrence ? "Selecione um tipo de ingresso" : "Primeiro selecione uma data e local"}
+                      </option>
+                      {currentOccurrence?.ticket_types?.map((ticketTypeOption: any) => (
+                        <option key={ticketTypeOption.id} value={ticketTypeOption.id}>
+                          {ticketTypeOption.name} - R$ {ticketTypeOption.price}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

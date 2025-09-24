@@ -437,6 +437,7 @@ export default function Page() {
 
 function EventCard({ event }: { event: any }) {
     const router = useRouter()
+    const { isAuthenticated } = useAuth()
 
     // Extrair UFs únicos das ocorrências
     const getEventLocations = (event: any) => {
@@ -465,7 +466,15 @@ function EventCard({ event }: { event: any }) {
     // Função para lidar com o clique no botão de venda
     const handleSellClick = (e: React.MouseEvent) => {
         e.stopPropagation() // Evita que o clique no botão acione o clique do card
-        router.push(`/event/${event.slug || event.id}/sell`)
+        
+        if (!isAuthenticated) {
+            // Se não estiver autenticado, redireciona para login com parâmetro de retorno
+            const returnUrl = encodeURIComponent(`/event/${event.slug || event.id}/sell`)
+            router.push(`/login?returnUrl=${returnUrl}`)
+        } else {
+            // Se estiver autenticado, vai direto para a página de venda
+            router.push(`/event/${event.slug || event.id}/sell`)
+        }
     }
 
     return (

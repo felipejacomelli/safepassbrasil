@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4474e2e0-d35a-47e3-96e1-20561d771496" name="Changes" comment="feat: branch com otimizações no front">
+    <list default="true" id="4474e2e0-d35a-47e3-96e1-20561d771496" name="Changes" comment="feat: add botao vender ingresso, add contagem de ingressos total pagina inicial">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/event/[slug]/sell/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/event/[slug]/sell/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/api.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -111,7 +109,15 @@
       <option name="project" value="LOCAL" />
       <updated>1758290781228</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="feat: add botao vender ingresso, add contagem de ingressos total pagina inicial">
+      <option name="closed" value="true" />
+      <created>1758663728066</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1758663728066</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -120,6 +126,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="wip: integração mercado pago" />
     <MESSAGE value="feat: branch com otimizações no front" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: branch com otimizações no front" />
+    <MESSAGE value="feat: add botao vender ingresso, add contagem de ingressos total pagina inicial" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: add botao vender ingresso, add contagem de ingressos total pagina inicial" />
   </component>
 </project>

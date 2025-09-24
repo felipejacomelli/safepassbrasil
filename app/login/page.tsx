@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,8 @@ import { validateCpfWithMessage } from "@/utils/cpf"
 export default function LoginPage() {
   const { login, register, isAuthenticated } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnUrl = searchParams.get('returnUrl')
   const [isLoginMode, setIsLoginMode] = useState(true)
   const [formData, setFormData] = useState({
     email: "",
@@ -39,9 +41,11 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/account")
+      // Se há um returnUrl, redireciona para lá, senão vai para /account
+      const redirectTo = returnUrl || "/account"
+      router.push(redirectTo)
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, router, returnUrl])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -163,10 +167,13 @@ export default function LoginPage() {
         if (result.success) {
           if (result.requires2FA) {
             router.push(`/verify?email=${encodeURIComponent(formData.email)}`)
-          } else if (result.isAdmin) {
+          } else if (result.isAdmin && !returnUrl) {
+            // Só redireciona para admin se não há returnUrl específico
             router.push("/admin")
           } else {
-            router.push("/account")
+            // Usa returnUrl se disponível, senão vai para /account
+            const redirectTo = returnUrl || "/account"
+            router.push(redirectTo)
           }
         } else {
           setError("Email ou senha inválidos")
