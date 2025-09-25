@@ -1,20 +1,24 @@
 "use client"
 
 import { useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
-import { eventsApi, transformEventForFrontend } from "@/lib/api"
+import { useEffect, useState, useMemo } from "react"
+import { useData } from "@/contexts/data-context"
+import { EventCard } from "@/app/page"
 
 // Função para buscar contadores dinâmicos das categorias
 const fetchCategoryCounts = async (): Promise<Category[]> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/counts/`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/counts/`)
     if (!response.ok) {
       throw new Error('Falha ao buscar contadores de categorias')
     }
     const data = await response.json()
     
+    // Verificar se data é um array ou se tem uma propriedade que contém o array
+    const categories = Array.isArray(data) ? data : (data.categories || [])
+    
     // Mapear os dados da API para o formato esperado pelo frontend
-    return data.map((item: any) => ({
+    return categories.map((item: ApiCategoryItem) => ({
       name: item.name,
       count: item.event_count.toString(),
       image: getCategoryImage(item.name)
@@ -28,14 +32,14 @@ const fetchCategoryCounts = async (): Promise<Category[]> => {
 // Função para buscar localizações dinâmicas
 const fetchLocations = async (): Promise<Location[]> => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/api/locations/counts/`)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/locations/counts/`)
     if (!response.ok) {
       throw new Error('Falha ao buscar localizações')
     }
     const data = await response.json()
     
     // Mapear os dados da API para o formato esperado pelo frontend
-    return data.map((item: any) => ({
+    return data.map((item: ApiLocationItem) => ({
       name: item.name,
       count: item.event_count.toString(),
       image: item.image || getLocationImage(item.name)
@@ -72,6 +76,52 @@ const getLocationImage = (locationName: string): string => {
 }
 
 // Interfaces
+// Interfaces para tipos da API
+interface ApiCategoryItem {
+  name: string
+  event_count: number
+}
+
+interface ApiLocationItem {
+  name: string
+  event_count: number
+  image?: string
+}
+
+interface ApiEvent {
+  id: string
+  image: string
+  image_url?: string
+  title: string
+  description?: string
+  date: string
+  location: string
+  price: string
+  slug: string
+  category: string
+  category_name?: string
+  category_slug: string
+  city: string
+  ticket_count: number
+  total_available_tickets?: number
+  occurrences?: Array<{
+    venue_city_slug?: string
+    venue?: {
+      city?: string
+    }
+  }>
+}
+
+interface ApiCategory {
+  name: string
+  slug: string
+}
+
+interface ApiLocation {
+  name: string
+  slug: string
+}
+
 interface Event {
   id: string
   image: string
@@ -114,109 +164,60 @@ interface SearchResults {
 
 export default function SearchPage() {
   const searchParams = useSearchParams()
-  const query = searchParams.get("q") || ""
-  const categoryFilter = searchParams.get("category") || ""
-  const locationFilter = searchParams.get("location") || ""
-  const dateFilter = searchParams.get("date") || ""
+  const query = searchParams.get('q') || ''
+  const categoryFilter = searchParams.get('category') || ''
+  const locationFilter = searchParams.get('location') || ''
+  const dateFilter = searchParams.get('date') || ''
   const [isDesktop, setIsDesktop] = useState(false)
-  const [searchResults, setSearchResults] = useState<SearchResults | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+
+  const { events, categories, locations, isLoading, error } = useData()
 
   useEffect(() => {
     // Set desktop state after client mount to avoid hydration mismatch
     setIsDesktop(window.matchMedia("(min-width: 640px)").matches)
-    
-    const fetchEvents = async () => {
-      setLoading(true)
-      setError(null)
-      
-      try {
-        // Buscar eventos da API
-        const response = await eventsApi.search({
-          q: query || undefined,
-          category: categoryFilter || undefined,
-          location: locationFilter || undefined,
-          date: dateFilter || undefined,
-        })
-        
-        // Transformar eventos para o formato do frontend
-        const transformedEvents = response.events.map(transformEventForFrontend)
-        
-        // Buscar categorias com contadores dinâmicos
-        const dynamicCategories = await fetchCategoryCounts()
-        let filteredCategories = [...dynamicCategories]
-        if (query) {
-          filteredCategories = filteredCategories.filter((category) =>
-            category.name.toLowerCase().includes(query.toLowerCase()),
-          )
-        }
-
-        // Buscar localizações dinâmicas
-        const dynamicLocations = await fetchLocations()
-        let filteredLocations = [...dynamicLocations]
-        if (query) {
-          filteredLocations = filteredLocations.filter((location) =>
-            location.name.toLowerCase().includes(query.toLowerCase()),
-          )
-        }
-
-        setSearchResults({
-          events: transformedEvents,
-          categories: filteredCategories,
-          locations: filteredLocations,
-          query,
-          categoryFilter,
-          locationFilter,
-        })
-      } catch (err) {
-        console.error('Erro ao buscar eventos:', err)
-        setError('Erro ao carregar eventos. Tente novamente.')
-        
-        // Em caso de erro, definir resultados vazios
-        const fallbackCategories = await fetchCategoryCounts()
-        const fallbackLocations = await fetchLocations()
-        
-        setSearchResults({
-          events: [],
-          categories: [...fallbackCategories],
-          locations: [...fallbackLocations],
-          query,
-          categoryFilter,
-          locationFilter,
-        })
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchEvents()
-  }, [query, categoryFilter, locationFilter, dateFilter])
-
-  // Listener para atualizar contador de ingressos
-  useEffect(() => {
-    const handleTicketCountUpdate = (event: CustomEvent) => {
-      const { eventId, newCount } = event.detail
-      setSearchResults(prevResults => {
-        if (!prevResults) return prevResults
-        
-        return {
-          ...prevResults,
-          events: prevResults.events.map(evt => 
-            evt.slug === eventId || evt.title === eventId
-              ? { ...evt, ticket_count: newCount }
-              : evt
-          )
-        }
-      })
-    }
-
-    window.addEventListener('ticketCountUpdated', handleTicketCountUpdate as EventListener)
-    
-    return () => {
-      window.removeEventListener('ticketCountUpdated', handleTicketCountUpdate as EventListener)
-    }
   }, [])
+  
+  // Filter events, categories, and locations based on search parameters
+  const { filteredEvents, filteredCategories, filteredLocations } = useMemo(() => {
+
+    if (!events || !categories || !locations) return {
+      filteredEvents: [],
+      filteredCategories: [],
+      filteredLocations: []
+    }
+
+    // Filter events based on search query and category
+    const filteredEvts = events.filter((event) => {
+      // Convert category name to slug for comparison (lowercase and replace spaces with hyphens)
+      console.log('categoryFilter: ', categoryFilter);
+      const eventCategorySlug = event.category.toLowerCase().replace(/\s+/g, '-')
+      console.log('eventCategorySlug: ', eventCategorySlug);
+
+      if (categoryFilter && eventCategorySlug !== categoryFilter) return false
+      if (query && !event.title.toLowerCase().includes(query.toLowerCase())) return false
+      return true
+    })
+
+    // Filter categories based on search query
+    const filteredCats = categories.filter((category) => {
+      if (categoryFilter && category.slug !== categoryFilter) return false
+      if (query && !category.name.toLowerCase().includes(query.toLowerCase())) return false
+      return true
+    })
+
+    // Filter locations based on search query
+    const filteredLocs = locations.filter((location) => {
+      if (locationFilter && location.uf !== locationFilter) return false
+      if (query && !location.state.toLowerCase().includes(query.toLowerCase())) return false
+      return true
+    })
+
+    return {
+      filteredEvents: filteredEvts,
+      filteredCategories: filteredCats,
+      filteredLocations: filteredLocs
+    }
+  }, [events, categories, locations, query, categoryFilter, locationFilter])
 
   // Determine the title based on filters
   const getSearchTitle = () => {
@@ -231,197 +232,13 @@ export default function SearchPage() {
     }
   }
 
-  // Update the renderEventCard function to include a sell button next to the "Ver ingressos" button
-
-  // Function to render event cards
-  const renderEventCard = (event: Event, index: number) => {
-    return (
-      <div
-        key={`search-event-${event.id}`}
-        style={{
-          backgroundColor: "black",
-          borderRadius: "12px",
-          overflow: "hidden",
-          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-        }}
-      >
-        <a
-          href={`/event/${event.id}`}
-          style={{
-            textDecoration: "none",
-            color: "inherit",
-          }}
-        >
-          <div
-            style={{
-              position: "relative",
-              paddingTop: "56.25%", // 16:9 aspect ratio
-              backgroundColor: "#27272A",
-            }}
-          >
-            <img
-              src={event.image || "/placeholder.svg"}
-              alt={event.title}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-          </div>
-        </a>
-
-        <div
-          style={{
-            padding: "16px",
-          }}
-        >
-          <h3
-            style={{
-              fontSize: "18px",
-              fontWeight: "600",
-              marginBottom: "8px",
-              color: "white",
-            }}
-          >
-            {event.title}
-          </h3>
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginBottom: "8px",
-              color: "#A1A1AA",
-              fontSize: "14px",
-            }}
-          >
-            <span style={{ marginRight: "8px" }}>📅</span>
-            <span>{event.date}</span>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginBottom: "16px",
-              color: "#A1A1AA",
-              fontSize: "14px",
-            }}
-          >
-            <span style={{ marginRight: "8px" }}>📍</span>
-            <span>{event.location}</span>
-          </div>
-
-          {/* Add ticket count with icon */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginBottom: "16px",
-              color: "#A1A1AA",
-              fontSize: "14px",
-            }}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              style={{ marginRight: "8px" }}
-            >
-              <path
-                d="M22 10V6C22 4.89543 21.1046 4 20 4H4C2.89543 4 2 4.89543 2 6V10M22 10V18C22 19.1046 21.1046 20 20 20H4C2.89543 20 2 19.1046 2 18V10M22 10H2M9 14H15"
-                stroke="#3B82F6"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>{event.ticket_count} ingressos disponíveis</span>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "12px",
-            }}
-          >
-            <span
-              style={{
-                color: "#3B82F6",
-                fontWeight: "600",
-                fontSize: "16px",
-              }}
-            >
-              {event.price}
-            </span>
-          </div>
-
-          {/* Buttons container */}
-          <div
-            style={{
-              display: "flex",
-              gap: "8px",
-            }}
-          >
-            <a
-              href={`/event/${event.slug}`}
-              style={{
-                textDecoration: "none",
-                flex: "1",
-              }}
-            >
-              <button
-                style={{
-                  backgroundColor: "transparent",
-                  border: "1px solid #3B82F6",
-                  color: "white",
-                  padding: "8px 16px",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  width: "100%",
-                }}
-              >
-                Ver ingressos
-              </button>
-            </a>
-
-            <a
-              href={`/sell`}
-              style={{
-                textDecoration: "none",
-                flex: "1",
-              }}
-            >
-              <button
-                style={{
-                  backgroundColor: "transparent",
-                  border: "1px solid #10B981",
-                  color: "#10B981",
-                  padding: "8px 16px",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  width: "100%",
-                }}
-              >
-                Vender
-              </button>
-            </a>
-          </div>
-        </div>
-      </div>
-    )
+  // Transform event data to match EventCard component expectations
+  const transformEventForCard = (event: any) => {
+    return {
+      ...event,
+      name: event.name || event.title, // EventCard expects 'name', use event.name or fallback to title
+      total_available_tickets: event.ticket_count
+    }
   }
 
   return (
@@ -747,239 +564,237 @@ export default function SearchPage() {
             width: "100%",
           }}
         >
-          {searchResults && (
+          <h1
+            style={{
+              fontSize: "28px",
+              fontWeight: "bold",
+              marginBottom: "8px",
+            }}
+          >
+            {getSearchTitle()}
+          </h1>
+
+          {isLoading ? (
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center", 
+              padding: "40px",
+              color: "#A1A1AA" 
+            }}>
+              <div style={{ marginRight: "12px" }}>🔄</div>
+              <span>Carregando eventos...</span>
+            </div>
+          ) : error ? (
+            <div style={{ 
+              padding: "20px", 
+              backgroundColor: "#7F1D1D", 
+              borderRadius: "8px", 
+              marginBottom: "32px",
+              color: "#FEF2F2" 
+            }}>
+              <div style={{ marginBottom: "8px", fontWeight: "600" }}>⚠️ Erro ao carregar eventos</div>
+              <div>Erro ao carregar eventos. Tente novamente.</div>
+            </div>
+          ) : filteredEvents.length === 0 ? (
+            <p style={{ color: "#A1A1AA", marginBottom: "32px" }}>
+              Nenhum resultado encontrado. Tente outra busca ou remova os filtros.
+            </p>
+          ) : (
+            <p style={{ color: "#A1A1AA", marginBottom: "32px" }}>
+              Encontramos {filteredEvents.length} eventos.
+            </p>
+          )}
+
+          {filteredEvents.length > 0 && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                gap: "24px",
+                marginBottom: "32px",
+              }}
+            >
+              {filteredEvents.map((event: Event, index: number) => (
+                <EventCard key={`search-event-${event.id}`} event={transformEventForCard(event)} />
+              ))}
+            </div>
+          )}
+
+          {!categoryFilter && !locationFilter && query && filteredCategories.length > 0 && (
             <>
-              <h1
+              <h2
                 style={{
-                  fontSize: "28px",
+                  fontSize: "20px",
                   fontWeight: "bold",
-                  marginBottom: "8px",
+                  marginBottom: "16px",
+                  marginTop: "24px",
                 }}
               >
-                {getSearchTitle()}
-              </h1>
-
-              {loading ? (
-                <div style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  justifyContent: "center", 
-                  padding: "40px",
-                  color: "#A1A1AA" 
-                }}>
-                  <div style={{ marginRight: "12px" }}>🔄</div>
-                  <span>Carregando eventos...</span>
-                </div>
-              ) : error ? (
-                <div style={{ 
-                  padding: "20px", 
-                  backgroundColor: "#7F1D1D", 
-                  borderRadius: "8px", 
+                Categorias ({filteredCategories.length})
+              </h2>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : "repeat(2, 1fr)",
+                  gap: "16px",
                   marginBottom: "32px",
-                  color: "#FEF2F2" 
-                }}>
-                  <div style={{ marginBottom: "8px", fontWeight: "600" }}>⚠️ Erro ao carregar eventos</div>
-                  <div>{error}</div>
-                </div>
-              ) : searchResults.events.length === 0 ? (
-                <p style={{ color: "#A1A1AA", marginBottom: "32px" }}>
-                  Nenhum resultado encontrado. Tente outra busca ou remova os filtros.
-                </p>
-              ) : (
-                <p style={{ color: "#A1A1AA", marginBottom: "32px" }}>
-                  Encontramos {searchResults.events.length} eventos.
-                </p>
-              )}
-
-              {searchResults.events.length > 0 && (
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                    gap: "24px",
-                    marginBottom: "32px",
-                  }}
-                >
-                  {searchResults.events.map((event, index) => renderEventCard(event, index))}
-                </div>
-              )}
-
-              {!categoryFilter && !locationFilter && query && searchResults.categories.length > 0 && (
-                <>
-                  <h2
+                }}
+              >
+                {filteredCategories.map((category) => (
+                  <a
+                    key={`search-category-${category.name}`}
+                    href={`/search?category=${encodeURIComponent(category.slug)}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
                     style={{
-                      fontSize: "20px",
-                      fontWeight: "bold",
-                      marginBottom: "16px",
-                      marginTop: "24px",
+                      textDecoration: "none",
                     }}
                   >
-                    Categorias ({searchResults.categories.length})
-                  </h2>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : "repeat(2, 1fr)",
-                      gap: "16px",
-                      marginBottom: "32px",
-                    }}
-                  >
-                    {searchResults.categories.map((category) => (
-                      <a
-                        key={`search-category-${category.name}`}
-                        href={`/search?category=${encodeURIComponent(category.name)}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
+                    <div
+                      style={{
+                        position: "relative",
+                        borderRadius: "12px",
+                        overflow: "hidden",
+                        aspectRatio: "1/1",
+                      }}
+                    >
+                      <img
+                        src={category.image || "/placeholder.svg"}
+                        alt={category.name}
                         style={{
-                          textDecoration: "none",
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          background:
+                            "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%)",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "flex-end",
+                          padding: "16px",
                         }}
                       >
-                        <div
+                        <h3
                           style={{
-                            position: "relative",
-                            borderRadius: "12px",
-                            overflow: "hidden",
-                            aspectRatio: "1/1",
+                            color: "white",
+                            fontSize: "18px",
+                            fontWeight: "bold",
+                            marginBottom: "4px",
                           }}
                         >
-                          <img
-                            src={category.image || "/placeholder.svg"}
-                            alt={category.name}
-                            style={{
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
-                          />
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              width: "100%",
-                              height: "100%",
-                              background:
-                                "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%)",
-                              display: "flex",
-                              flexDirection: "column",
-                              justifyContent: "flex-end",
-                              padding: "16px",
-                            }}
-                          >
-                            <h3
-                              style={{
-                                color: "white",
-                                fontSize: "18px",
-                                fontWeight: "bold",
-                                marginBottom: "4px",
-                              }}
-                            >
-                              {category.name}
-                            </h3>
-                            <p
-                              style={{
-                                color: "#A1A1AA",
-                                fontSize: "14px",
-                              }}
-                            >
-                              {category.count} eventos
-                            </p>
-                          </div>
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                </>
-              )}
+                          {category.name}
+                        </h3>
+                        <p
+                          style={{
+                            color: "#A1A1AA",
+                            fontSize: "14px",
+                          }}
+                        >
+                          {category.event_count || 0} eventos
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </>
+          )}
 
-              {!categoryFilter && !locationFilter && query && searchResults.locations.length > 0 && (
-                <>
-                  <h2
+          {!categoryFilter && !locationFilter && query && filteredLocations.length > 0 && (
+            <>
+              <h2
+                style={{
+                  fontSize: "20px",
+                  fontWeight: "bold",
+                  marginBottom: "16px",
+                  marginTop: "24px",
+                }}
+              >
+                Localizações ({filteredLocations.length})
+              </h2>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : "repeat(2, 1fr)",
+                  gap: "16px",
+                }}
+              >
+                {filteredLocations.map((location) => (
+                  <a
+                    key={`search-location-${location.state}`}
+                    href={`/search?location=${encodeURIComponent(location.uf)}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
                     style={{
-                      fontSize: "20px",
-                      fontWeight: "bold",
-                      marginBottom: "16px",
-                      marginTop: "24px",
+                      textDecoration: "none",
                     }}
                   >
-                    Localizações ({searchResults.locations.length})
-                  </h2>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : "repeat(2, 1fr)",
-                      gap: "16px",
-                    }}
-                  >
-                    {searchResults.locations.map((location) => (
-                      <a
-                        key={`search-location-${location.name}`}
-                        href={`/search?location=${encodeURIComponent(location.name)}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
+                    <div
+                      style={{
+                        position: "relative",
+                        borderRadius: "12px",
+                        overflow: "hidden",
+                        aspectRatio: "1/1",
+                      }}
+                    >
+                      <img
+                        src="/placeholder.svg"
+                        alt={location.state}
                         style={{
-                          textDecoration: "none",
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          background:
+                            "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%)",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "flex-end",
+                          padding: "16px",
                         }}
                       >
-                        <div
+                        <h3
                           style={{
-                            position: "relative",
-                            borderRadius: "12px",
-                            overflow: "hidden",
-                            aspectRatio: "1/1",
+                            color: "white",
+                            fontSize: "18px",
+                            fontWeight: "bold",
+                            marginBottom: "4px",
                           }}
                         >
-                          <img
-                            src={location.image || "/placeholder.svg"}
-                            alt={location.name}
-                            style={{
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
-                          />
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              width: "100%",
-                              height: "100%",
-                              background:
-                                "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%)",
-                              display: "flex",
-                              flexDirection: "column",
-                              justifyContent: "flex-end",
-                              padding: "16px",
-                            }}
-                          >
-                            <h3
-                              style={{
-                                color: "white",
-                                fontSize: "18px",
-                                fontWeight: "bold",
-                                marginBottom: "4px",
-                              }}
-                            >
-                              {location.name}
-                            </h3>
-                            <p
-                              style={{
-                                color: "#A1A1AA",
-                                fontSize: "14px",
-                              }}
-                            >
-                              {location.count} eventos
-                            </p>
-                          </div>
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                </>
-              )}
+                          {location.state}
+                        </h3>
+                        <p
+                          style={{
+                            color: "#A1A1AA",
+                            fontSize: "14px",
+                          }}
+                        >
+                          {location.event_count || 0} eventos
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
             </>
           )}
         </div>

@@ -114,12 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Debug effect para monitorar mudanças no estado de autenticação
-  useEffect(() => {
-    if (mounted) {
-      console.log('AuthContext Debug - mounted:', mounted, 'user:', user, 'isAuthenticated:', mounted ? !!user : false, 'isLoading:', !mounted || isLoading)
-    }
-  }, [mounted, user, isLoading])
+  // Debug effect removido para evitar loop infinito de re-renderizações
 
   // Função para tentar login automático e obter token
   const tryAutoLogin = async (email: string) => {

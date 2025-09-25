@@ -1,9 +1,9 @@
 "use client"
 
 import {useEffect, useState} from "react"
-import useSWR from "swr"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
+import { useData } from "@/contexts/data-context"
 import {
     MapPin,
     User,
@@ -13,29 +13,15 @@ import {
     ChevronRight,
 } from "lucide-react"
 
-// Fetcher padrão
-const fetcher = (url: string) =>
-    fetch(url).then((res) => {
-        if (!res.ok) throw new Error("Erro ao buscar dados")
-        return res.json()
-    })
-
 export default function Page() {
     const router = useRouter()
     const { isAuthenticated, logout } = useAuth()
+    const { events, categories, locations, isLoading, error } = useData()
     const [searchQuery, setSearchQuery] = useState("")
     const [page, setPage] = useState(1)
     const [locationsPage, setLocationsPage] = useState(1)
     const pageSize = 4
     const locationsPageSize = 8
-
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL
-
-    // ✅ Uma única chamada para home
-    const { data, error, isLoading } = useSWR(
-        `${baseUrl}/api/events/home/`,
-        fetcher
-    )
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
@@ -44,9 +30,6 @@ export default function Page() {
     }
 
     // Paginação manual só sobre os eventos recebidos
-    const events = data?.events || []
-    const categories = data?.categories || []
-    const locations = data?.locations || []
     const totalPages = Math.ceil(events.length / pageSize) || 1
     const paginatedEvents = events.slice((page - 1) * pageSize, page * pageSize)
     
@@ -300,7 +283,7 @@ export default function Page() {
                 <div className="max-w-6xl mx-auto px-4">
                     <div className="text-center mb-12">
                         <h2 className="text-3xl font-bold text-white mb-4">Como funciona</h2>
-                        <p className="text-zinc-400">Compre e venda ingressos online de um jeito 4 seguro</p>
+                        <p className="text-zinc-400">Compre e venda ingressos online de um jeito mais seguro</p>
                     </div>
                     
                     <div className="grid md:grid-cols-3 gap-8">
@@ -435,7 +418,7 @@ export default function Page() {
     )
 }
 
-function EventCard({ event }: { event: any }) {
+export function EventCard({ event }: { event: any }) {
     const router = useRouter()
     const { isAuthenticated } = useAuth()
 

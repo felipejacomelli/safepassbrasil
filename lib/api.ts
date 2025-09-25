@@ -259,7 +259,7 @@ export const eventsApi = {
     if (params.date) queryParams.append('date', params.date);
     
     const queryString = queryParams.toString();
-    const endpoint = `/api/events/search/${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/api/events/events/search/${queryString ? `?${queryString}` : ''}`;
     return apiRequestJson<EventsResponse>(endpoint);
   },
 
