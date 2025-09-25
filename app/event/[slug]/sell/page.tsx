@@ -56,7 +56,7 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
 
   // Fetch event data from API based on slug
   const { data: eventData, error: fetchError, isLoading } = useSWR(
-    `${baseUrl}/api/events/${resolvedParams.slug}/`,
+    `${baseUrl}/api/events/events/${resolvedParams.slug}/`,
     fetcher
   )
 
@@ -174,11 +174,32 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
        })
 
        if (!response.ok) {
-         const errorData = await response.json()
+         // Try to parse as JSON first, fallback to text if it fails
+         let errorData;
+         const contentType = response.headers.get('content-type');
+         
+         if (contentType && contentType.includes('application/json')) {
+           errorData = await response.json();
+         } else {
+           // If response is HTML or other format, create a generic error
+           const textResponse = await response.text();
+           console.error('Non-JSON response:', textResponse);
+           errorData = { error: 'Erro de comunicação com o servidor' };
+         }
+         
          throw new Error(errorData.error || 'Erro ao anunciar ingresso')
        }
 
-       const result = await response.json()
+       // Parse response safely
+       let result;
+       try {
+         result = await response.json();
+         console.log('Ticket created successfully:', result);
+       } catch (parseError) {
+         console.error('Error parsing success response:', parseError);
+         // Even if we can't parse the response, if response.ok is true, consider it successful
+         result = { success: true };
+       }
 
        // Se chegou até aqui e response.ok é true, significa que foi criado com sucesso
        setSuccess(true)
