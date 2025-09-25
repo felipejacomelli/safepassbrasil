@@ -276,7 +276,7 @@ export const eventsApi = {
   // Buscar evento por slug com suas ocorrências
   getBySlug: async (slug: string): Promise<ApiEventWithOccurrences> => {
     // Buscar o evento com suas ocorrências diretamente pelo slug
-    const eventWithOccurrences = await apiRequestJson<ApiEventWithOccurrences>(`/events/${slug}/`);
+    const eventWithOccurrences = await apiRequestJson<ApiEventWithOccurrences>(`/api/events/events/${slug}/`);
     
     return eventWithOccurrences;
   },
