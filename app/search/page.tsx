@@ -237,7 +237,7 @@ export default function SearchPage() {
     return {
       ...event,
       name: event.name || event.title, // EventCard expects 'name', use event.name or fallback to title
-      total_available_tickets: event.ticket_count
+      total_available_tickets: event.total_available_tickets || event.ticket_count || event.available_tickets
     }
   }
 
