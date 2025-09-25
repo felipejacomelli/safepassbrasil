@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { User, ShoppingCart } from "lucide-react"
+import { MercadoPagoCheckout } from "@/components/mercadopago-checkout"
 
 interface CartItem {
   id: string
@@ -67,6 +68,7 @@ export default function CartPage() {
 
   // Checkout state
   const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const [useMercadoPago, setUseMercadoPago] = useState(true) // Usar Mercado Pago por padrão
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -316,6 +318,41 @@ export default function CartPage() {
 
   const handleCartClick = () => {
     router.push("/cart")
+  }
+
+  // Handlers para Mercado Pago
+  const handleMercadoPagoSuccess = async (paymentId: string) => {
+    try {
+      setIsSubmitting(true)
+      
+      // Processar compra para cada item do carrinho
+      const { eventsApi } = await import('@/lib/api')
+      
+      for (const item of cartItems) {
+        const result = await eventsApi.purchaseTickets(item.eventId, item.quantity)
+        
+        // Atualizar o contador local se a resposta incluir remaining_tickets
+        if (result.remaining_tickets !== undefined) {
+          window.dispatchEvent(new CustomEvent('ticketCountUpdated', {
+            detail: { eventId: item.eventId, newCount: result.remaining_tickets }
+          }))
+        }
+      }
+      
+      setOrderComplete(true)
+      setCartItems([]) // Limpar carrinho
+      
+    } catch (error) {
+      console.error('Erro ao processar compra após pagamento:', error)
+      alert('Pagamento aprovado, mas houve erro ao processar os ingressos. Entre em contato com o suporte.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleMercadoPagoError = (error: string) => {
+    console.error('Erro no pagamento Mercado Pago:', error)
+    alert(`Erro no pagamento: ${error}`)
   }
 
   // Show loading state until client-side hydration is complete
@@ -1156,7 +1193,58 @@ export default function CartPage() {
                     </button>
                   </div>
 
-                  <form onSubmit={handleCheckout}>
+                  {/* Seletor de método de pagamento */}
+                  <div style={{ marginBottom: "24px" }}>
+                    <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "16px" }}>
+                      Método de Pagamento
+                    </h3>
+                    <div style={{ display: "flex", gap: "12px", marginBottom: "20px" }}>
+                      <button
+                        type="button"
+                        onClick={() => setUseMercadoPago(true)}
+                        style={{
+                          flex: 1,
+                          padding: "12px",
+                          backgroundColor: useMercadoPago ? "#3B82F6" : "#27272A",
+                          color: useMercadoPago ? "black" : "white",
+                          border: useMercadoPago ? "2px solid #3B82F6" : "2px solid #3F3F46",
+                          borderRadius: "8px",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Mercado Pago
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setUseMercadoPago(false)}
+                        style={{
+                          flex: 1,
+                          padding: "12px",
+                          backgroundColor: !useMercadoPago ? "#3B82F6" : "#27272A",
+                          color: !useMercadoPago ? "black" : "white",
+                          border: !useMercadoPago ? "2px solid #3B82F6" : "2px solid #3F3F46",
+                          borderRadius: "8px",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Cartão Direto
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Componente Mercado Pago ou formulário tradicional */}
+                  {useMercadoPago ? (
+                    <MercadoPagoCheckout
+                      amount={total}
+                      description={`Compra de ${cartItems.length} ingresso(s) - ${cartItems.map(item => item.eventName).join(', ')}`}
+                      onSuccess={handleMercadoPagoSuccess}
+                      onError={handleMercadoPagoError}
+                      userEmail={user?.email}
+                    />
+                  ) : (
+                    <form onSubmit={handleCheckout}>
                     <div style={{ marginBottom: "20px" }}>
                       <label
                         style={{
@@ -1405,7 +1493,8 @@ export default function CartPage() {
                     >
                       {isSubmitting ? "Processando..." : "Confirmar Pagamento"}
                     </button>
-                  </form>
+                    </form>
+                  )}
                 </div>
               </div>
             )}

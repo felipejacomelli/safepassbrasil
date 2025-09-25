@@ -10,6 +10,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, CreditCard, AlertCircle } from 'lucide-react'
 import { mercadoPagoApi, type MercadoPagoConfig, type PaymentRequest } from '@/lib/api'
 
+// Declarar tipos para MercadoPago SDK
+declare global {
+  interface Window {
+    MercadoPago: any;
+  }
+}
+
 interface MercadoPagoCheckoutProps {
   amount: number
   description: string
@@ -58,6 +65,7 @@ export function MercadoPagoCheckout({
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [mp, setMp] = useState<any>(null)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -73,6 +81,33 @@ export function MercadoPagoCheckout({
     identificationNumber: ''
   })
 
+  // Carregar SDK do MercadoPago
+  useEffect(() => {
+    const loadMercadoPagoSDK = () => {
+      return new Promise((resolve, reject) => {
+        if (window.MercadoPago) {
+          resolve(window.MercadoPago)
+          return
+        }
+
+        const script = document.createElement('script')
+        script.src = 'https://sdk.mercadopago.com/js/v2'
+        script.onload = () => resolve(window.MercadoPago)
+        script.onerror = reject
+        document.head.appendChild(script)
+      })
+    }
+
+    loadMercadoPagoSDK()
+      .then(() => {
+        console.log('MercadoPago SDK carregado')
+      })
+      .catch((error) => {
+        console.error('Erro ao carregar SDK do MercadoPago:', error)
+        setError('Erro ao carregar SDK de pagamento')
+      })
+  }, [])
+
   // Carregar configurações e métodos de pagamento
   useEffect(() => {
     const loadInitialData = async () => {
@@ -86,6 +121,13 @@ export function MercadoPagoCheckout({
         if (!configData.enabled) {
           setError('Mercado Pago não está habilitado')
           return
+        }
+
+        // Inicializar SDK com public key
+        if (window.MercadoPago && configData.public_key) {
+          const mercadoPago = new window.MercadoPago(configData.public_key)
+          setMp(mercadoPago)
+          console.log('MercadoPago inicializado com public key:', configData.public_key.substring(0, 20) + '...')
         }
 
         // Carregar métodos de pagamento
@@ -106,53 +148,54 @@ export function MercadoPagoCheckout({
     loadInitialData()
   }, [])
 
-  // Carregar emissores quando método de pagamento for selecionado
+  // Carregar emissores quando método de pagamento é selecionado
   useEffect(() => {
-    const loadIssuers = async () => {
-      if (!formData.paymentMethodId) return
-
-      try {
-        const issuersData = await mercadoPagoApi.getIssuers(formData.paymentMethodId)
-        setIssuers(issuersData)
-      } catch (err) {
-        console.error('Erro ao carregar emissores:', err)
-      }
+    if (formData.paymentMethodId) {
+      loadIssuers(formData.paymentMethodId)
     }
-
-    loadIssuers()
   }, [formData.paymentMethodId])
 
-  // Carregar parcelas quando método e emissor forem selecionados
+  // Carregar parcelamentos quando emissor é selecionado
   useEffect(() => {
-    const loadInstallments = async () => {
-      if (!formData.paymentMethodId || !formData.issuerId) return
-
-      try {
-        const installmentsData = await mercadoPagoApi.getInstallments(
-          amount,
-          formData.paymentMethodId,
-          formData.issuerId
-        )
-        
-        if (installmentsData.length > 0) {
-          setInstallments(installmentsData[0].payer_costs || [])
-        }
-      } catch (err) {
-        console.error('Erro ao carregar parcelas:', err)
-      }
+    if (formData.paymentMethodId && formData.issuerId) {
+      loadInstallments(formData.paymentMethodId, formData.issuerId)
     }
+  }, [formData.paymentMethodId, formData.issuerId])
 
-    loadInstallments()
-  }, [formData.paymentMethodId, formData.issuerId, amount])
+  const loadIssuers = async (paymentMethodId: string) => {
+    try {
+      const issuersData = await mercadoPagoApi.getIssuers(paymentMethodId)
+      setIssuers(issuersData)
+      
+      // Auto-selecionar primeiro emissor se houver apenas um
+      if (issuersData.length === 1) {
+        handleInputChange('issuerId', issuersData[0].id)
+      }
+    } catch (err) {
+      console.error('Erro ao carregar emissores:', err)
+    }
+  }
 
-  const handleInputChange = (field: string, value: string) => {
+  const loadInstallments = async (paymentMethodId: string, issuerId: string) => {
+    try {
+      const installmentsData = await mercadoPagoApi.getInstallments(
+        amount,
+        paymentMethodId, 
+        issuerId
+      )
+      setInstallments(installmentsData)
+    } catch (err) {
+      console.error('Erro ao carregar parcelamentos:', err)
+    }
+  }
+
+  const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
   const formatCardNumber = (value: string) => {
     const digitsOnly = value.replace(/\D/g, '')
-    const formatted = digitsOnly.replace(/(\d{4})(?=\d)/g, '$1 ')
-    return formatted.substring(0, 19) // Máximo 16 dígitos + 3 espaços
+    return digitsOnly.replace(/(\d{4})(?=\d)/g, '$1 ')
   }
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,6 +219,37 @@ export function MercadoPagoCheckout({
     }
   }
 
+  const createCardToken = async () => {
+    if (!mp) {
+      throw new Error('SDK do MercadoPago não está inicializado')
+    }
+
+    const cardData = {
+      cardNumber: formData.cardNumber.replace(/\s/g, ''),
+      cardholderName: formData.cardholderName,
+      cardExpirationMonth: formData.expirationMonth,
+      cardExpirationYear: formData.expirationYear,
+      securityCode: formData.securityCode,
+      identificationType: formData.identificationType,
+      identificationNumber: formData.identificationNumber
+    }
+
+    console.log('Criando card token com dados:', {
+      ...cardData,
+      cardNumber: cardData.cardNumber.substring(0, 6) + '...',
+      securityCode: '***'
+    })
+
+    try {
+      const response = await mp.createCardToken(cardData)
+      console.log('Card token criado:', response)
+      return response
+    } catch (error) {
+      console.error('Erro ao criar card token:', error)
+      throw error
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setProcessing(true)
@@ -191,10 +265,26 @@ export function MercadoPagoCheckout({
         throw new Error('Selecione um método de pagamento')
       }
 
-      // Preparar dados do pagamento
+      if (!formData.expirationMonth || !formData.expirationYear) {
+        throw new Error('Preencha a data de vencimento do cartão')
+      }
+
+      if (!formData.identificationNumber) {
+        throw new Error('Preencha o número do documento')
+      }
+
+      // Criar card token
+      const tokenResponse = await createCardToken()
+      
+      if (!tokenResponse || !tokenResponse.id) {
+        throw new Error('Erro ao gerar token do cartão')
+      }
+
+      // Preparar dados do pagamento com o token
       const paymentData: PaymentRequest = {
         amount,
         description,
+        token: tokenResponse.id,
         payment_method_id: formData.paymentMethodId,
         installments: formData.installments,
         issuer_id: formData.issuerId,
@@ -207,6 +297,11 @@ export function MercadoPagoCheckout({
         }
       }
 
+      console.log('Processando pagamento com dados:', {
+        ...paymentData,
+        token: tokenResponse.id.substring(0, 20) + '...'
+      })
+
       // Processar pagamento
       const response = await mercadoPagoApi.processPayment(paymentData)
       
@@ -218,6 +313,7 @@ export function MercadoPagoCheckout({
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao processar pagamento'
+      console.error('Erro no processamento:', err)
       setError(errorMessage)
       onError(errorMessage)
     } finally {
@@ -274,14 +370,14 @@ export function MercadoPagoCheckout({
               id="cardNumber"
               value={formData.cardNumber}
               onChange={handleCardNumberChange}
-              placeholder="1234 5678 9012 3456"
+              placeholder="0000 0000 0000 0000"
               maxLength={19}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="cardholderName">Nome do Portador</Label>
+            <Label htmlFor="cardholderName">Nome do Titular</Label>
             <Input
               id="cardholderName"
               value={formData.cardholderName}
@@ -302,9 +398,9 @@ export function MercadoPagoCheckout({
                   <SelectValue placeholder="MM" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <SelectItem key={i + 1} value={String(i + 1).padStart(2, '0')}>
-                      {String(i + 1).padStart(2, '0')}
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                    <SelectItem key={month} value={month.toString().padStart(2, '0')}>
+                      {month.toString().padStart(2, '0')}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -318,17 +414,14 @@ export function MercadoPagoCheckout({
                 onValueChange={(value) => handleInputChange('expirationYear', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="AA" />
+                  <SelectValue placeholder="AAAA" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.from({ length: 10 }, (_, i) => {
-                    const year = new Date().getFullYear() + i
-                    return (
-                      <SelectItem key={year} value={String(year).slice(-2)}>
-                        {String(year).slice(-2)}
-                      </SelectItem>
-                    )
-                  })}
+                  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map(year => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -338,7 +431,7 @@ export function MercadoPagoCheckout({
               <Input
                 id="securityCode"
                 value={formData.securityCode}
-                onChange={(e) => handleInputChange('securityCode', e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => handleInputChange('securityCode', e.target.value)}
                 placeholder="123"
                 maxLength={4}
                 required
@@ -346,7 +439,55 @@ export function MercadoPagoCheckout({
             </div>
           </div>
 
-          {formData.paymentMethodId && issuers.length > 0 && (
+          <div className="space-y-2">
+            <Label htmlFor="identificationType">Tipo de Documento</Label>
+            <Select 
+              value={formData.identificationType} 
+              onValueChange={(value) => handleInputChange('identificationType', value)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="CPF">CPF</SelectItem>
+                <SelectItem value="CNPJ">CNPJ</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="identificationNumber">Número do Documento</Label>
+            <Input
+              id="identificationNumber"
+              value={formData.identificationNumber}
+              onChange={(e) => handleInputChange('identificationNumber', e.target.value)}
+              placeholder="000.000.000-00"
+              required
+            />
+          </div>
+
+          {formData.paymentMethodId && (
+            <div className="space-y-2">
+              <Label htmlFor="paymentMethod">Método de Pagamento</Label>
+              <Select 
+                value={formData.paymentMethodId} 
+                onValueChange={(value) => handleInputChange('paymentMethodId', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentMethods.map(method => (
+                    <SelectItem key={method.id} value={method.id}>
+                      {method.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {issuers.length > 1 && (
             <div className="space-y-2">
               <Label htmlFor="issuer">Banco Emissor</Label>
               <Select 
@@ -357,7 +498,7 @@ export function MercadoPagoCheckout({
                   <SelectValue placeholder="Selecione o banco" />
                 </SelectTrigger>
                 <SelectContent>
-                  {issuers.map((issuer) => (
+                  {issuers.map(issuer => (
                     <SelectItem key={issuer.id} value={issuer.id}>
                       {issuer.name}
                     </SelectItem>
@@ -369,55 +510,24 @@ export function MercadoPagoCheckout({
 
           {installments.length > 0 && (
             <div className="space-y-2">
-              <Label htmlFor="installments">Parcelas</Label>
+              <Label htmlFor="installments">Parcelamento</Label>
               <Select 
-                value={String(formData.installments)} 
-                onValueChange={(value) => handleInputChange('installments', value)}
+                value={formData.installments.toString()} 
+                onValueChange={(value) => handleInputChange('installments', parseInt(value))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione as parcelas" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {installments.map((option) => (
-                    <SelectItem key={option.installments} value={String(option.installments)}>
-                      {option.installments}x de R$ {(option.installment_amount / 100).toFixed(2)}
-                      {option.installment_rate > 0 && ' (com juros)'}
+                  {installments.map(option => (
+                    <SelectItem key={option.installments} value={option.installments.toString()}>
+                      {option.recommended_message}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           )}
-
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-2">
-              <Label htmlFor="identificationType">Tipo Doc.</Label>
-              <Select 
-                value={formData.identificationType} 
-                onValueChange={(value) => handleInputChange('identificationType', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CPF">CPF</SelectItem>
-                  <SelectItem value="CNPJ">CNPJ</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="identificationNumber">Número</Label>
-              <Input
-                id="identificationNumber"
-                value={formData.identificationNumber}
-                onChange={(e) => handleInputChange('identificationNumber', e.target.value.replace(/\D/g, ''))}
-                placeholder="12345678901"
-                maxLength={14}
-                required
-              />
-            </div>
-          </div>
 
           <Button 
             type="submit" 
