@@ -56,7 +56,7 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
 
   // Fetch event data from API based on slug
   const { data: eventData, error: fetchError, isLoading } = useSWR(
-    `${baseUrl}/api/events/events/${resolvedParams.slug}/`,
+    `${baseUrl}/api/events/${resolvedParams.slug}/`,
     fetcher
   )
 

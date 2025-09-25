@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { adminApi, ApiEvent } from "@/lib/api"
+import { useAuth } from "@/contexts/auth-context"
 
 interface Event {
   id: string
@@ -34,6 +35,7 @@ interface Event {
 
 export default function AdminEventsPage() {
   const router = useRouter()
+  const { isAuthenticated, user, isLoading } = useAuth()
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -43,9 +45,26 @@ export default function AdminEventsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [eventToDelete, setEventToDelete] = useState<string | null>(null)
 
+  // Verificar autenticação e permissões de admin
   useEffect(() => {
-    loadEvents()
-  }, [])
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        router.push('/login?redirect=/admin/events')
+        return
+      }
+      
+      if (!user?.isAdmin) {
+        router.push('/unauthorized')
+        return
+      }
+    }
+  }, [isAuthenticated, user, isLoading, router])
+
+  useEffect(() => {
+    if (isAuthenticated && user?.isAdmin) {
+      loadEvents()
+    }
+  }, [isAuthenticated, user])
 
   const loadEvents = async () => {
     try {
@@ -53,19 +72,19 @@ export default function AdminEventsPage() {
       const response = await adminApi.events.getAll()
       
       // Transform API events to frontend format
-      const transformedEvents: Event[] = response.events.map((apiEvent: ApiEvent) => ({
+      const transformedEvents: Event[] = (response.events || []).map((apiEvent: ApiEvent) => ({
         id: apiEvent.id,
         name: apiEvent.name,
-        date: apiEvent.date || 'Data não informada', // Use the date string directly as it's already formatted
-        location: apiEvent.location,
-        status: getEventStatus(apiEvent.created_at), // Use created_at for status calculation since date is a formatted string
-        ticketsSold: Math.max(0, (apiEvent.ticket_count || 0) - (apiEvent.ticket_count || 0)), // Placeholder
+        date: apiEvent.date || 'Data não informada',
+        location: apiEvent.location || 'Local não informado',
+        status: getEventStatus(apiEvent.created_at),
+        ticketsSold: 0, // Placeholder - would need additional API call
         totalTickets: apiEvent.ticket_count || 0,
         revenue: parseFloat(apiEvent.price?.replace(/[^\d,]/g, '').replace(',', '.') || '0') * 100, // Convert to cents
         image: apiEvent.image,
-        price: apiEvent.price,
-         category: apiEvent.category || '',
-         description: apiEvent.description || ''
+        price: apiEvent.price || 'Preço não informado',
+        category: apiEvent.category || '',
+        description: apiEvent.description || ''
       }))
       
       setEvents(transformedEvents)

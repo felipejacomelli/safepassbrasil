@@ -1,6 +1,6 @@
 // Configuração da API para integração com o backend Django
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 // Tipos para autenticação
 export interface LoginRequest {
@@ -133,7 +133,8 @@ export interface ApiOccurrenceWithTickets extends ApiOccurrence {
 
 // Função para fazer requisições HTTP
 export const apiRequest = async (endpoint: string, options: RequestInit = {}): Promise<Response> => {
-  const token = localStorage.getItem('authToken');
+  // Verificar se estamos no lado do cliente antes de acessar localStorage
+  const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
   
   const headers = {
     'Content-Type': 'application/json',
@@ -258,7 +259,7 @@ export const eventsApi = {
     if (params.date) queryParams.append('date', params.date);
     
     const queryString = queryParams.toString();
-    const endpoint = `/api/events/events/search/${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/api/events/search/${queryString ? `?${queryString}` : ''}`;
     return apiRequestJson<EventsResponse>(endpoint);
   },
 
@@ -275,7 +276,7 @@ export const eventsApi = {
   // Buscar evento por slug com suas ocorrências
   getBySlug: async (slug: string): Promise<ApiEventWithOccurrences> => {
     // Buscar o evento com suas ocorrências diretamente pelo slug
-    const eventWithOccurrences = await apiRequestJson<ApiEventWithOccurrences>(`/events/events/${slug}/`);
+    const eventWithOccurrences = await apiRequestJson<ApiEventWithOccurrences>(`/events/${slug}/`);
     
     return eventWithOccurrences;
   },
@@ -494,38 +495,38 @@ export interface AdminEventFormData {
 export const adminApi = {
   // Dashboard
   getDashboardStats: async (): Promise<AdminDashboardStats> => {
-    const [orderSummary, eventCount, userCount] = await Promise.all([
-      apiRequestJson<AdminDashboardStats>('/order_app/orders/summary/'),
-      apiRequestJson<{count: number}>('/event_app/events'),
-      apiRequestJson<{count: number}>('/user_app/users')
+    const [orderSummary, eventResponse, userResponse] = await Promise.all([
+      apiRequestJson<AdminDashboardStats>('/orders/summary/'),
+      apiRequestJson<{count: number, results: any[]}>('/events/events/'),
+      apiRequestJson<{count: number, results: any[]}>('/users')
     ]);
     
     return {
       ...orderSummary,
-      total_events: eventCount.count,
-      total_users: userCount.count,
+      total_events: eventResponse.count,
+      total_users: userResponse.count,
     };
   },
 
   // Settings
   settings: {
     get: async () => {
-      return await apiRequest('/settings_app/');
+      return await apiRequest('/settings/');
     },
     update: async (type: string, data: any) => {
-      return await apiRequestJson('/settings_app/', {
+      return await apiRequestJson('/settings/', {
         method: 'PUT',
         body: JSON.stringify({ type, data })
       });
     },
     testEmail: async (email?: string) => {
-      return await apiRequestJson('/settings_app/test-email/', {
+      return await apiRequestJson('/settings/test-email/', {
         method: 'POST',
         body: JSON.stringify({ email })
       });
     },
     backup: async () => {
-      return await apiRequest('/settings_app/backup/');
+      return await apiRequest('/settings/backup/');
     }
   },
 
@@ -533,29 +534,29 @@ export const adminApi = {
   users: {
     getAll: async (params?: Record<string, string>): Promise<{users: AdminUser[], count: number}> => {
       const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
-      return apiRequestJson<{users: AdminUser[], count: number}>(`/user_app/users${queryString}`);
+      return apiRequestJson<{users: AdminUser[], count: number}>(`/users${queryString}`);
     },
 
     getById: async (id: string): Promise<AdminUser> => {
-      return apiRequestJson<AdminUser>(`/user_app/user/${id}`);
+      return apiRequestJson<AdminUser>(`/user/${id}`);
     },
 
     create: async (userData: Partial<AdminUser>): Promise<AdminUser> => {
-      return apiRequestJson<AdminUser>('/user_app/user', {
+      return apiRequestJson<AdminUser>('/user', {
         method: 'POST',
         body: JSON.stringify(userData),
       });
     },
 
     update: async (id: string, userData: Partial<AdminUser>): Promise<AdminUser> => {
-      return apiRequestJson<AdminUser>(`/user_app/user/${id}`, {
+      return apiRequestJson<AdminUser>(`/user/${id}`, {
         method: 'PUT',
         body: JSON.stringify(userData),
       });
     },
 
     delete: async (id: string): Promise<void> => {
-      await apiRequest(`/user_app/user/${id}`, { method: 'DELETE' });
+      await apiRequest(`/user/${id}`, { method: 'DELETE' });
     },
   },
 
@@ -563,29 +564,34 @@ export const adminApi = {
   events: {
     getAll: async (params?: Record<string, string>): Promise<{events: ApiEvent[], count: number}> => {
       const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
-      return apiRequestJson<{events: ApiEvent[], count: number}>(`/event_app/events${queryString}`);
+      const response = await apiRequestJson<{results: ApiEvent[], count: number}>(`/events/events${queryString}`);
+      // Transform the response to match the expected format
+      return {
+        events: response.results,
+        count: response.count
+      };
     },
 
     getById: (id: string): Promise<ApiEvent> => {
-      return apiRequestJson<ApiEvent>(`/event_app/events/${id}/`);
+      return apiRequestJson<ApiEvent>(`/events/events/${id}/`);
     },
 
     create: async (eventData: AdminEventFormData): Promise<ApiEvent> => {
-      return apiRequestJson<ApiEvent>('/event_app/event', {
+      return apiRequestJson<ApiEvent>('/events/events/', {
         method: 'POST',
         body: JSON.stringify(eventData),
       });
     },
 
     update: async (id: string, eventData: Partial<AdminEventFormData>): Promise<ApiEvent> => {
-      return apiRequestJson<ApiEvent>(`/event_app/event/${id}`, {
+      return apiRequestJson<ApiEvent>(`/events/events/${id}/`, {
         method: 'PUT',
         body: JSON.stringify(eventData),
       });
     },
 
     delete: async (id: string): Promise<void> => {
-      await apiRequest(`/event_app/event/${id}`, { method: 'DELETE' });
+      await apiRequest(`/events/events/${id}/`, { method: 'DELETE' });
     },
   },
 
@@ -593,25 +599,25 @@ export const adminApi = {
   orders: {
     getAll: async (params?: Record<string, string>): Promise<{orders: AdminOrder[], count: number}> => {
       const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
-      return apiRequestJson<{orders: AdminOrder[], count: number}>(`/order_app/orders${queryString}`);
+      return apiRequestJson<{orders: AdminOrder[], count: number}>(`/orders${queryString}`);
     },
 
     getById: async (id: string): Promise<AdminOrder> => {
-      return apiRequestJson<AdminOrder>(`/order_app/order?id=${id}`);
+      return apiRequestJson<AdminOrder>(`/order?id=${id}`);
     },
 
     getDetails: async (id: string): Promise<{order: AdminOrder, transaction: any, tickets: any[], total_tickets: number}> => {
-      return apiRequestJson<{order: AdminOrder, transaction: any, tickets: any[], total_tickets: number}>(`/order_app/orders/${id}/details/`);
+      return apiRequestJson<{order: AdminOrder, transaction: any, tickets: any[], total_tickets: number}>(`/orders/${id}/details/`);
     },
 
     cancel: async (id: string): Promise<{success: boolean, message: string}> => {
-      return apiRequestJson<{success: boolean, message: string}>(`/order_app/orders/${id}/cancel/`, {
+      return apiRequestJson<{success: boolean, message: string}>(`/orders/${id}/cancel/`, {
         method: 'POST',
       });
     },
 
     getSummary: async (): Promise<AdminDashboardStats> => {
-      return apiRequestJson<AdminDashboardStats>('/order_app/orders/summary/');
+      return apiRequestJson<AdminDashboardStats>('/orders/summary/');
     },
   },
 
@@ -619,23 +625,23 @@ export const adminApi = {
   transactions: {
     getAll: async (params?: Record<string, string>): Promise<{Transaction: any[], count?: number}> => {
       const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
-      return apiRequestJson<{Transaction: any[], count?: number}>(`/transaction_app/transactions${queryString}`);
+      return apiRequestJson<{Transaction: any[], count?: number}>(`/transactions${queryString}`);
     },
 
     getById: async (id: string): Promise<any> => {
-      return apiRequestJson<any>(`/transaction_app/transaction?id=${id}`);
+      return apiRequestJson<any>(`/transaction?id=${id}`);
     },
   },
 
   // Tickets
   tickets: {
-    getAll: async (params?: Record<string, string>): Promise<{Ticket: any[]}> => {
+    getAll: async (params?: Record<string, string>): Promise<{tickets: any[]}> => {
       const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
-      return apiRequestJson<{Ticket: any[]}>(`/ticket_app/tickets${queryString}`);
+      return apiRequestJson<{tickets: any[]}>(`/tickets${queryString}`);
     },
 
-    getSold: async (): Promise<{Ticket: any[]}> => {
-      return apiRequestJson<{Ticket: any[]}>('/ticket_app/tickets/sold');
+    getSold: async (): Promise<{tickets: any[]}> => {
+      return apiRequestJson<{tickets: any[]}>('/tickets/sold');
     },
   },
 };

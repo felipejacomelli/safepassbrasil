@@ -67,15 +67,15 @@ export default function AdminDashboardPage() {
     try {
       // Buscar pedidos recentes
       const ordersResponse = await adminApi.orders.getAll({ limit: '10', ordering: '-created_at' })
-      const recentOrders = ordersResponse.orders.slice(0, 5)
+      const recentOrders = ordersResponse.orders?.slice(0, 5) || []
 
       // Buscar usuários recentes
       const usersResponse = await adminApi.users.getAll({ limit: '5', ordering: '-date_joined' })
-      const recentUsers = usersResponse.users.slice(0, 2)
+      const recentUsers = usersResponse.users?.slice(0, 2) || []
 
       // Buscar eventos recentes
       const eventsResponse = await adminApi.events.getAll({ limit: '5', ordering: '-created_at' })
-      const recentEvents = eventsResponse.events.slice(0, 2)
+      const recentEvents = eventsResponse.events?.slice(0, 2) || []
 
       const activities: RecentActivity[] = []
 
