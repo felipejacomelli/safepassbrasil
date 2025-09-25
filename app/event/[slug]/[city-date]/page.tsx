@@ -163,9 +163,8 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
   const addToCart = (ticketType: TicketType) => {
     // Verificar se o usuário está autenticado
     if (!isAuthenticated) {
-      // Salvar a URL atual para retornar após o login
-      localStorage.setItem('redirectAfterLogin', window.location.pathname)
-      window.location.href = "/login"
+      // Redirecionar para login com returnUrl como query parameter
+      window.location.href = `/login?returnUrl=${encodeURIComponent(window.location.pathname)}`
       return
     }
 
@@ -213,9 +212,9 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
   const handleSellTicket = () => {
     // Verificar se o usuário está autenticado
     if (!isAuthenticated) {
-      // Salvar a URL atual para retornar após o login
-      localStorage.setItem('redirectAfterLogin', window.location.pathname)
-      window.location.href = "/login"
+      // Redirecionar para login com returnUrl como query parameter
+      const sellUrl = `/event/${event?.slug}/sell`
+      window.location.href = `/login?returnUrl=${encodeURIComponent(sellUrl)}`
       return
     }
 
@@ -359,16 +358,16 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
           >
             {isDesktop && (
               <>
-                <a
-                  href="/#como-funciona"
-                  style={{
-                    color: "white",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                  }}
-                >
-                  Como Funciona
-                </a>
+                {/*<a*/}
+                {/*  href="/#como-funciona"*/}
+                {/*  style={{*/}
+                {/*    color: "white",*/}
+                {/*    textDecoration: "none",*/}
+                {/*    fontSize: "14px",*/}
+                {/*  }}*/}
+                {/*>*/}
+                {/*  Como Funciona*/}
+                {/*</a>*/}
                 <a
                   href="#"
                   style={{

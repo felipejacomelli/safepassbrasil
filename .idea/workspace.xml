@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="4474e2e0-d35a-47e3-96e1-20561d771496" name="Changes" comment="feat: add botao vender ingresso, add contagem de ingressos total pagina inicial">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/page.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,26 +41,26 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "js.debugger.nextJs.config.created.client": "true",
-    "js.debugger.nextJs.config.created.server": "true",
-    "last_opened_file_path": "/Users/pereira/Documents/robson/projetos/reticket/v0-Reticket/app/event/[slug]",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "npm.Next.js: server-side.executor": "Run",
-    "ts.external.directory.path": "/Users/pereira/Documents/robson/projetos/reticket/v0-Reticket/node_modules/typescript/lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;js.debugger.nextJs.config.created.client&quot;: &quot;true&quot;,
+    &quot;js.debugger.nextJs.config.created.server&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/pereira/Documents/robson/projetos/reticket/v0-Reticket/app/event/[slug]&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;npm.Next.js: server-side.executor&quot;: &quot;Run&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/pereira/Documents/robson/projetos/reticket/v0-Reticket/node_modules/typescript/lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/app/event/[slug]" />
@@ -85,7 +84,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-b598e85cdad2-JavaScript-WS-252.25557.126" />
+        <option value="bundled-js-predefined-d6986cc7102b-9c94529fcfe0-JavaScript-WS-252.26199.162" />
       </set>
     </attachedChunks>
   </component>
@@ -100,6 +99,7 @@
       <workItem from="1758286551798" duration="188000" />
       <workItem from="1758286752615" duration="7085000" />
       <workItem from="1758540750713" duration="26519000" />
+      <workItem from="1758810664633" duration="300000" />
     </task>
     <task id="LOCAL-00001" summary="wip: integração mercado pago">
       <option name="closed" value="true" />
