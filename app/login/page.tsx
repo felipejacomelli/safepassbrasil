@@ -15,7 +15,9 @@ export default function LoginPage() {
   const { login, register, isAuthenticated } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const returnUrl = new URLSearchParams(window.location.search).get("returnUrl")
+  const returnUrl = typeof window !== 'undefined' 
+    ? new URLSearchParams(window.location.search).get("returnUrl")
+    : searchParams.get("redirect")
   
   const [isLoginMode, setIsLoginMode] = useState(true)
   const [formData, setFormData] = useState({

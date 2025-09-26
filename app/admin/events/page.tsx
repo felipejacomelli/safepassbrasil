@@ -18,6 +18,43 @@ import {
 import { adminApi, ApiEvent } from "@/lib/api"
 import { useAuth } from "@/contexts/auth-context"
 
+// Interface para os dados que vêm do backend com ocorrências
+interface BackendEvent extends ApiEvent {
+  occurrences?: {
+    id: string
+    event: string
+    start_at: string
+    location?: {
+      id: string
+      name: string
+      slug: string
+      description: string
+    }
+    uf?: string
+    state?: string
+    city?: string
+    status: string
+    ticket_types?: {
+      id: string
+      occurrence: string
+      name: string
+      description?: string
+      price: string
+      currency: string
+      total_stock: number
+      remaining_stock: number
+      status: string
+      is_available: boolean
+      created_at: string
+      updated_at: string
+    }[]
+    available_tickets: number
+    created_at: string
+    updated_at: string
+  }[]
+  available_tickets: number
+}
+
 interface Event {
   id: string
   name: string
@@ -69,23 +106,67 @@ export default function AdminEventsPage() {
   const loadEvents = async () => {
     try {
       setLoading(true)
-      const response = await adminApi.events.getAll()
+      
+      // Buscar todas as páginas de eventos
+      let allEvents: BackendEvent[] = []
+      let page = 1
+      let hasMore = true
+      
+      while (hasMore) {
+        const response = await adminApi.events.getAll({ 
+          page: page.toString(),
+          page_size: '100' 
+        })
+        
+        allEvents = [...allEvents, ...response.events as BackendEvent[]]
+        
+        // Verificar se há mais páginas baseado no count total
+        hasMore = allEvents.length < response.count
+        page++
+      }
       
       // Transform API events to frontend format
-      const transformedEvents: Event[] = (response.events || []).map((apiEvent: ApiEvent) => ({
-        id: apiEvent.id,
-        name: apiEvent.name,
-        date: apiEvent.date || 'Data não informada',
-        location: apiEvent.location || 'Local não informado',
-        status: getEventStatus(apiEvent.created_at),
-        ticketsSold: 0, // Placeholder - would need additional API call
-        totalTickets: apiEvent.ticket_count || 0,
-        revenue: parseFloat(apiEvent.price?.replace(/[^\d,]/g, '').replace(',', '.') || '0') * 100, // Convert to cents
-        image: apiEvent.image,
-        price: apiEvent.price || 'Preço não informado',
-        category: apiEvent.category || '',
-        description: apiEvent.description || ''
-      }))
+      const transformedEvents: Event[] = allEvents.map((apiEvent: BackendEvent) => {
+        // Get the first occurrence for date and location
+        const firstOccurrence = apiEvent.occurrences?.[0]
+        const location = firstOccurrence?.location?.name || firstOccurrence?.city || 'Local não informado'
+        const date = firstOccurrence?.start_at ? new Date(firstOccurrence.start_at).toLocaleDateString('pt-BR') : 'Data não informada'
+        
+        // Calculate total tickets sold and revenue
+        let totalTicketsSold = 0
+        let totalRevenue = 0
+        let minPrice = Infinity
+        
+        apiEvent.occurrences?.forEach(occurrence => {
+          occurrence.ticket_types?.forEach(ticketType => {
+            const sold = ticketType.total_stock - ticketType.remaining_stock
+            totalTicketsSold += sold
+            totalRevenue += sold * parseFloat(ticketType.price)
+            
+            const price = parseFloat(ticketType.price)
+            if (price < minPrice) {
+              minPrice = price
+            }
+          })
+        })
+        
+        const priceDisplay = minPrice === Infinity ? 'Preço não informado' : `R$ ${minPrice.toFixed(2)}`
+        
+        return {
+          id: apiEvent.id,
+          name: apiEvent.name,
+          date: date,
+          location: location,
+          status: getEventStatus(apiEvent.occurrences || []),
+          ticketsSold: totalTicketsSold,
+          totalTickets: apiEvent.total_available_tickets || 0,
+          revenue: totalRevenue * 100, // Convert to cents for consistency
+          image: apiEvent.image,
+          price: priceDisplay,
+          category: apiEvent.category || 'Sem categoria',
+          description: apiEvent.description || ''
+        }
+      })
       
       setEvents(transformedEvents)
     } catch (error) {
@@ -95,18 +176,53 @@ export default function AdminEventsPage() {
     }
   }
 
-  const getEventStatus = (dateString: string): "active" | "upcoming" | "completed" => {
-    const eventDate = new Date(dateString)
+  const getEventStatus = (occurrences: BackendEvent['occurrences']): "active" | "upcoming" | "completed" => {
+    if (!occurrences || occurrences.length === 0) {
+      return "completed"
+    }
+    
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate())
     
-    if (eventDateOnly < today) {
-      return "completed"
-    } else if (eventDateOnly > today) {
-      return "upcoming"
-    } else {
+    // Check all occurrences to determine status
+    let hasUpcoming = false
+    let hasActive = false
+    let hasCompleted = false
+    let hasAvailableTickets = false
+    
+    occurrences.forEach(occurrence => {
+      const occurrenceDate = new Date(occurrence.start_at)
+      const occurrenceDateOnly = new Date(occurrenceDate.getFullYear(), occurrenceDate.getMonth(), occurrenceDate.getDate())
+      
+      // Check if occurrence has available tickets
+      const hasTickets = occurrence.ticket_types?.some(ticketType => 
+        ticketType.remaining_stock > 0 && ticketType.is_available && ticketType.status === 'ACTIVE'
+      ) || false
+      
+      if (hasTickets) {
+        hasAvailableTickets = true
+      }
+      
+      if (occurrenceDateOnly > today) {
+        hasUpcoming = true
+      } else if (occurrenceDateOnly.getTime() === today.getTime()) {
+        hasActive = true
+      } else {
+        hasCompleted = true
+      }
+    })
+    
+    // Priority: active (today with tickets) > upcoming (future with tickets) > completed
+    if (hasActive && hasAvailableTickets) {
       return "active"
+    } else if (hasUpcoming && hasAvailableTickets) {
+      return "upcoming"
+    } else if (hasActive) {
+      return "active" // Today but no tickets available
+    } else if (hasUpcoming) {
+      return "upcoming" // Future but no tickets available
+    } else {
+      return "completed"
     }
   }
 

@@ -563,8 +563,10 @@ export const adminApi = {
   // Eventos
   events: {
     getAll: async (params?: Record<string, string>): Promise<{events: ApiEvent[], count: number}> => {
-      const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
-      const response = await apiRequestJson<{results: ApiEvent[], count: number}>(`/events/events${queryString}`);
+      // Adiciona page_size=100 por padrão para buscar mais eventos
+      const defaultParams = { page_size: '100', ...params };
+      const queryString = '?' + new URLSearchParams(defaultParams).toString();
+      const response = await apiRequestJson<{results: ApiEvent[], count: number}>(`/events/events/${queryString}`);
       // Transform the response to match the expected format
       return {
         events: response.results,
