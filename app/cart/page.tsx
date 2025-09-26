@@ -825,7 +825,13 @@ export default function CartPage() {
               <>
                 {/* Checkout Button at Top */}
                 <button
-                  onClick={() => setIsCheckingOut(true)}
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      router.push('/login?returnUrl=/cart')
+                      return
+                    }
+                    setIsCheckingOut(true)
+                  }}
                   style={{
                     width: "100%",
                     backgroundColor: "#3B82F6",
@@ -1096,7 +1102,13 @@ export default function CartPage() {
                   }}
                 >
                   <button
-                    onClick={() => setIsCheckingOut(true)}
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        router.push('/login?returnUrl=/cart')
+                        return
+                      }
+                      setIsCheckingOut(true)
+                    }}
                     style={{
                       flex: "1",
                       backgroundColor: "#3B82F6",

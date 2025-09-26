@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4474e2e0-d35a-47e3-96e1-20561d771496" name="Changes" comment="feat: add botao vender ingresso, add contagem de ingressos total pagina inicial">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="4474e2e0-d35a-47e3-96e1-20561d771496" name="Changes" comment="feat: add botao vender ingresso, add contagem de ingressos total pagina inicial" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -99,7 +97,7 @@
       <workItem from="1758286551798" duration="188000" />
       <workItem from="1758286752615" duration="7085000" />
       <workItem from="1758540750713" duration="26519000" />
-      <workItem from="1758810664633" duration="300000" />
+      <workItem from="1758810664633" duration="1545000" />
     </task>
     <task id="LOCAL-00001" summary="wip: integração mercado pago">
       <option name="closed" value="true" />
