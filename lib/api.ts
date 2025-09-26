@@ -733,3 +733,19 @@ export const mercadoPagoApi = {
     return apiRequestJson<any[]>(`/payment/mercadopago/installments/?${params.toString()}`);
   },
 };
+
+// Tipos para categorias
+export interface ApiCategory {
+  id: string;
+  name: string;
+  slug: string;
+  image?: string;
+  description?: string;
+}
+
+export const categoriesApi = {
+  getAll: async (): Promise<ApiCategory[]> => {
+    const response = await apiRequestJson<{results: ApiCategory[]}>('/api/categories/');
+    return response.results;
+  },
+};
