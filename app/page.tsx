@@ -11,6 +11,7 @@ import {
     Plus,
     ChevronLeft,
     ChevronRight,
+    X,
 } from "lucide-react"
 
 export default function Page() {
@@ -20,6 +21,7 @@ export default function Page() {
     const [searchQuery, setSearchQuery] = useState("")
     const [page, setPage] = useState(1)
     const [locationsPage, setLocationsPage] = useState(1)
+    const [selectedState, setSelectedState] = useState<string | null>(null)
     const pageSize = 4
     const locationsPageSize = 8
 
@@ -29,13 +31,44 @@ export default function Page() {
         router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
     }
 
-    // Paginação manual só sobre os eventos recebidos
-    const totalPages = Math.ceil(events.length / pageSize) || 1
-    const paginatedEvents = events.slice((page - 1) * pageSize, page * pageSize)
+    // Filtrar eventos por estado selecionado
+    const filteredEvents = selectedState 
+        ? events.filter((event: any) => {
+            if (event.occurrences && event.occurrences.length > 0) {
+                return event.occurrences.some((occ: any) => 
+                    occ.uf === selectedState || occ.state === selectedState
+                )
+            }
+            return false
+        })
+        : events
+
+    // Paginação manual só sobre os eventos filtrados
+    const totalPages = Math.ceil(filteredEvents.length / pageSize) || 1
+    const paginatedEvents = filteredEvents.slice((page - 1) * pageSize, page * pageSize)
     
     // Paginação para locais
     const totalLocationsPages = Math.ceil(locations.length / locationsPageSize) || 1
     const paginatedLocations = locations.slice((locationsPage - 1) * locationsPageSize, locationsPage * locationsPageSize)
+
+    // Resetar página quando o filtro mudar
+    useEffect(() => {
+        setPage(1)
+    }, [selectedState])
+
+    // Função para selecionar/deselecionar estado
+    const handleStateSelect = (state: string) => {
+        if (selectedState === state) {
+            setSelectedState(null) // Deselecionar se já estiver selecionado
+        } else {
+            setSelectedState(state) // Selecionar novo estado
+        }
+    }
+
+    // Função para limpar filtro
+    const clearFilter = () => {
+        setSelectedState(null)
+    }
 
     return (
         <div className="min-h-screen rounded flex flex-col bg-black text-white">
@@ -117,14 +150,32 @@ export default function Page() {
             {/* Eventos */}
             <section className="bg-zinc-900 py-12 px-4">
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="text-2xl font-bold mb-6">Próximos eventos</h2>
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-bold">
+                            {selectedState ? `Eventos em ${selectedState}` : "Próximos eventos"}
+                        </h2>
+                        {selectedState && (
+                            <button
+                                onClick={clearFilter}
+                                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded-lg text-sm transition-colors"
+                            >
+                                <X size={16} />
+                                Limpar filtro
+                            </button>
+                        )}
+                    </div>
 
                     {isLoading ? (
                         <p>Carregando...</p>
                     ) : error ? (
                         <p className="text-red-500">Erro ao carregar eventos.</p>
                     ) : paginatedEvents.length === 0 ? (
-                        <p>Nenhum evento encontrado.</p>
+                        <p>
+                            {selectedState 
+                                ? `Nenhum evento encontrado em ${selectedState}.` 
+                                : "Nenhum evento encontrado."
+                            }
+                        </p>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {paginatedEvents.map((event: any) => (
@@ -161,7 +212,7 @@ export default function Page() {
             {/* Categorias */}
             <section className="bg-black py-12 px-4 border-t border-zinc-800">
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="text-2xl font-bold mb-6">Categorias</h2>
+                    <h2 className="text-2xl font-bold mb-6">Eventos por categoria</h2>
                     {categories.length === 0 ? (
                         <p>Nenhuma categoria encontrada.</p>
                     ) : (
@@ -197,7 +248,7 @@ export default function Page() {
             {/* Localizações */}
             <section className="bg-zinc-900 py-12 px-4 border-t border-zinc-800">
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="text-2xl font-bold mb-6">Locais</h2>
+                    <h2 className="text-2xl font-bold mb-6">Eventos por localização</h2>
                     {locations.length === 0 ? (
                         <p>Nenhum local encontrado.</p>
                     ) : (
@@ -226,9 +277,7 @@ export default function Page() {
                                     return (
                                         <button
                                             key={loc.state || loc.uf}
-                                            onClick={() =>
-                                                router.push(`/search?location=${encodeURIComponent(loc.state || loc.uf)}`)
-                                            }
+                                            onClick={() => router.push(`/search?location=${encodeURIComponent(loc.state || loc.uf)}`)}
                                             className="bg-zinc-800 rounded overflow-hidden hover:shadow-lg hover:scale-105 transition"
                                         >
                                             <img

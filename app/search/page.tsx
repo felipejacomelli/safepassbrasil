@@ -187,14 +187,65 @@ export default function SearchPage() {
     }
 
     // Filter events based on search query and category
-    const filteredEvts = events.filter((event) => {
+    const filteredEvts = events.filter((event: any) => { // Use 'any' type to access all API fields
       // Convert category name to slug for comparison (lowercase and replace spaces with hyphens)
       console.log('categoryFilter: ', categoryFilter);
       const eventCategorySlug = event.category.toLowerCase().replace(/\s+/g, '-')
       console.log('eventCategorySlug: ', eventCategorySlug);
 
       if (categoryFilter && eventCategorySlug !== categoryFilter) return false
-      if (query && !event.title.toLowerCase().includes(query.toLowerCase())) return false
+      
+      // Filter by location (state/UF)
+      if (locationFilter) {
+        // Check if event has occurrences with matching state/UF
+        if (event.occurrences && event.occurrences.length > 0) {
+          const hasMatchingLocation = event.occurrences.some((occ: any) => 
+            occ.uf === locationFilter || occ.state === locationFilter
+          )
+          if (!hasMatchingLocation) return false
+        } else {
+          // Fallback: check if event city/location matches
+          const eventLocation = event.city || event.location || ''
+          if (!eventLocation.toLowerCase().includes(locationFilter.toLowerCase())) {
+            return false
+          }
+        }
+      }
+      
+      // Enhanced search logic - search in multiple fields with better matching
+      if (query) {
+        const searchQuery = query.toLowerCase().trim()
+        
+        // Primary searchable fields - use both API data and transformed data
+        const searchableFields = [
+          event.title || event.name, // Support both title and name fields from API
+          event.category || event.category_name, // Support both category formats
+          event.location,
+          event.city
+        ].filter(Boolean) // Remove undefined/null values
+        
+        // Secondary searchable fields (description, etc.)
+        const secondaryFields = [
+          event.description
+        ].filter(Boolean)
+        
+        // Combine all fields for comprehensive search
+        const allFields = [...searchableFields, ...secondaryFields]
+        
+        // Check for exact matches first (higher priority)
+        const hasExactMatch = allFields.some(field => 
+          field.toLowerCase().includes(searchQuery)
+        )
+        
+        // Check for partial word matches
+        const searchWords = searchQuery.split(' ').filter(word => word.length > 2)
+        const hasPartialMatch = searchWords.length > 0 && searchWords.some(word =>
+          allFields.some(field => field.toLowerCase().includes(word))
+        )
+        
+        if (!hasExactMatch && !hasPartialMatch) return false
+      }
+      
       return true
     })
 
