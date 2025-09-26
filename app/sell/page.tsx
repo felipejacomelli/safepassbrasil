@@ -104,7 +104,17 @@ export default function SellTicketsPage() {
   // Verificar autenticação
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push('/login?redirect=/sell')
+      // Se o usuário não está autenticado e não está carregando,
+      // redireciona para a página inicial (logout) ou login (acesso direto)
+      const wasAuthenticated = localStorage.getItem('user') !== null
+      
+      if (wasAuthenticated) {
+        // Se havia dados de usuário mas agora não está autenticado, foi logout
+        router.push('/')
+      } else {
+        // Se nunca houve dados de usuário, é acesso direto - vai para login
+        router.push('/login?redirect=/sell')
+      }
       return
     }
   }, [isAuthenticated, isLoading, router])

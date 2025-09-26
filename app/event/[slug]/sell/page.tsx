@@ -107,6 +107,12 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
   const [formError, setFormError] = useState("")
   const [success, setSuccess] = useState(false)
 
+  // Handle logout with redirect to home page
+  const handleLogout = () => {
+    logout()
+    router.push("/")
+  }
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -260,7 +266,7 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
                   </div>
                   <DropdownMenuSeparator className="bg-zinc-800" />
                   <DropdownMenuItem 
-                    onClick={logout}
+                    onClick={handleLogout}
                     className="text-red-400 hover:text-red-300 hover:bg-zinc-800 cursor-pointer"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
