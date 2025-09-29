@@ -369,70 +369,123 @@ export const occurrencesApi = {
   },
 };
 
+// Interfaces para redefinição de senha
+export interface PasswordResetRequest {
+  email: string;
+}
+
+export interface PasswordResetResponse {
+  success: boolean;
+  message: string;
+  detail?: string;
+}
+
+export interface PasswordResetConfirmRequest {
+  token: string;
+  email: string;
+  new_password: string;
+}
+
+export interface PasswordResetValidateRequest {
+  token: string;
+  email: string;
+}
+
+export interface PasswordResetValidateResponse {
+  valid: boolean;
+  message: string;
+  expires_at?: string;
+  user_email?: string;
+}
+
 // API de autenticação
 export const authApi = {
   // Login do usuário
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    return apiRequestJson<LoginResponse>('/user/login', {
+    return apiRequestJson<LoginResponse>('/api/users/login/', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
   },
 
-  // Registro de novo usuário
+  // Registro de usuário
   register: async (userData: RegisterRequest): Promise<LoginResponse> => {
-    return apiRequestJson<LoginResponse>('/user/register', {
+    return apiRequestJson<LoginResponse>('/api/users/register/', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
   },
 
-  // Obter perfil do usuário autenticado
+  // Obter perfil do usuário
   getProfile: async (): Promise<ApiUser> => {
-    return apiRequestJson<ApiUser>('/profile');
+    return apiRequestJson<ApiUser>('/api/users/profile/');
   },
 
-  // Atualizar perfil do usuário autenticado
+  // Atualizar perfil do usuário
   updateProfile: async (userData: UpdateUserRequest): Promise<ApiUser> => {
-    return apiRequestJson<ApiUser>('/profile', {
-      method: 'PUT',
+    return apiRequestJson<ApiUser>('/api/users/profile/', {
+      method: 'PATCH',
       body: JSON.stringify(userData),
     });
   },
 
   getLoginHistory: async (): Promise<any[]> => {
-    return apiRequestJson<any[]>('/user_app/user/login_history');
+    return apiRequestJson<any[]>('/api/users/login-history/');
   },
 
   get2FAStatus: async (): Promise<{is_2fa_enabled: boolean}> => {
-    return apiRequestJson<{is_2fa_enabled: boolean}>('/user_app/user/2fa/status');
+    return apiRequestJson<{is_2fa_enabled: boolean}>('/api/users/2fa/status/');
   },
 
   setup2FA: async (): Promise<{secret: string, otpauth_url: string}> => {
-    return apiRequestJson<{secret: string, otpauth_url: string}>('/user_app/user/2fa/setup', { method: 'POST' });
+    return apiRequestJson<{secret: string, otpauth_url: string}>('/api/users/2fa/setup/', { method: 'POST' });
   },
 
   verify2FA: async (code: string): Promise<{success: boolean, backup_codes?: string[]}> => {
-    return apiRequestJson<{success: boolean, backup_codes?: string[]}>('/user_app/user/2fa/verify', {
+    return apiRequestJson<{success: boolean, backup_codes?: string[]}>('/api/users/2fa/verify/', {
       method: 'POST',
       body: JSON.stringify({ code }),
     });
   },
 
   disable2FA: async (): Promise<{success: boolean}> => {
-    return apiRequestJson<{success: boolean}>('/user_app/user/2fa/disable', { method: 'POST' });
+    return apiRequestJson<{success: boolean}>('/api/users/2fa/disable/', { method: 'POST' });
   },
 
   getBackupCodes: async (): Promise<{backup_codes: string[]}> => {
-    return apiRequestJson<{backup_codes: string[]}>('/user_app/user/2fa/backup_codes');
+    return apiRequestJson<{backup_codes: string[]}>('/api/users/2fa/backup-codes/');
   },
 
   regenerateBackupCodes: async (): Promise<{backup_codes: string[]}> => {
-    return apiRequestJson<{backup_codes: string[]}>('/user_app/user/2fa/backup_codes', { method: 'POST' });
+    return apiRequestJson<{backup_codes: string[]}>('/api/users/2fa/backup-codes/regenerate/', { method: 'POST' });
   },
 
   logout: async (): Promise<{success: boolean}> => {
-    return apiRequestJson<{success: boolean}>('/user/logout', { method: 'POST' });
+    return apiRequestJson<{success: boolean}>('/api/users/logout/', { method: 'POST' });
+  },
+
+  // Redefinição de senha - Solicitar
+  requestPasswordReset: async (data: PasswordResetRequest): Promise<PasswordResetResponse> => {
+    return apiRequestJson<PasswordResetResponse>('/api/users/password-reset/request/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Redefinição de senha - Validar token
+  validatePasswordResetToken: async (data: PasswordResetValidateRequest): Promise<PasswordResetValidateResponse> => {
+    return apiRequestJson<PasswordResetValidateResponse>('/api/users/password-reset/validate/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Redefinição de senha - Confirmar nova senha
+  confirmPasswordReset: async (data: PasswordResetConfirmRequest): Promise<PasswordResetResponse> => {
+    return apiRequestJson<PasswordResetResponse>('/api/users/password-reset/confirm/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   },
 };
 

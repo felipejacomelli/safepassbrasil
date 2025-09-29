@@ -12,18 +12,37 @@ import {
     ChevronLeft,
     ChevronRight,
     X,
+    ChevronDown,
+    LogOut,
+    UserCircle,
 } from "lucide-react"
 
 export default function Page() {
     const router = useRouter()
-    const { isAuthenticated, logout } = useAuth()
+    const { isAuthenticated, logout, user } = useAuth()
     const { events, categories, locations, isLoading, error } = useData()
     const [searchQuery, setSearchQuery] = useState("")
     const [page, setPage] = useState(1)
     const [locationsPage, setLocationsPage] = useState(1)
     const [selectedState, setSelectedState] = useState<string | null>(null)
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
     const pageSize = 4
     const locationsPageSize = 8
+
+    const handleLogout = () => {
+        logout()
+        router.push("/account") // Redireciona para a página de conta após logout
+    }
+
+    const handleAccountAccess = () => {
+        router.push("/account")
+        setIsUserMenuOpen(false)
+    }
+
+    const handleLogoutFromDropdown = () => {
+        logout()
+        setIsUserMenuOpen(false)
+    }
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
@@ -83,12 +102,37 @@ export default function Page() {
                     </a>
                     <nav className="flex items-center gap-4">
                         {isAuthenticated ? (
-                            <button
-                                onClick={logout}
-                                className="border border-blue-500 px-3 py-1.5 rounded text-sm font-semibold"
-                            >
-                                Sair
-                            </button>
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                    className="flex items-center gap-2 border border-blue-500 px-3 py-1.5 rounded text-sm font-semibold hover:bg-blue-500/10 transition-colors"
+                                >
+                                    <UserCircle size={18} />
+                                    <span>{user?.name || 'Usuário'}</span>
+                                    <ChevronDown size={16} className={`transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                
+                                {isUserMenuOpen && (
+                                    <div className="absolute right-0 top-full mt-2 w-48 bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg z-50">
+                                        <div className="py-2">
+                                            <button
+                                                onClick={handleAccountAccess}
+                                                className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-800 transition-colors text-left"
+                                            >
+                                                <UserCircle size={16} />
+                                                Minha Conta
+                                            </button>
+                                            <button
+                                                onClick={handleLogoutFromDropdown}
+                                                className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-800 transition-colors text-left text-red-400"
+                                            >
+                                                <LogOut size={16} />
+                                                Sair
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         ) : (
                             <>
                                 <button

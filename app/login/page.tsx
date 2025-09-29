@@ -414,7 +414,7 @@ export default function LoginPage() {
                 </Label>
                 {isLoginMode && (
                   <div className="text-sm">
-                    <Link href="#" className="font-medium text-blue-500 hover:text-blue-400">
+                    <Link href="/forgot-password" className="font-medium text-blue-500 hover:text-blue-400">
                       Esqueceu a senha?
                     </Link>
                   </div>
