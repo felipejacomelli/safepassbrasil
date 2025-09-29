@@ -190,7 +190,7 @@ export default function SearchPage() {
     const filteredEvts = events.filter((event: any) => { // Use 'any' type to access all API fields
       // Convert category name to slug for comparison (lowercase and replace spaces with hyphens)
       console.log('categoryFilter: ', categoryFilter);
-      const eventCategorySlug = event.category.toLowerCase().replace(/\s+/g, '-')
+      const eventCategorySlug = event.category ? event.category.toLowerCase().replace(/\s+/g, '-') : ''
       console.log('eventCategorySlug: ', eventCategorySlug);
 
       if (categoryFilter && eventCategorySlug !== categoryFilter) return false
