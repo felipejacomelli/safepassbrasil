@@ -402,7 +402,7 @@ export interface PasswordResetValidateResponse {
 export const authApi = {
   // Login do usuário
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    return apiRequestJson<LoginResponse>('/api/users/login/', {
+    return apiRequestJson<LoginResponse>('/api/login/', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
@@ -410,7 +410,7 @@ export const authApi = {
 
   // Registro de usuário
   register: async (userData: RegisterRequest): Promise<LoginResponse> => {
-    return apiRequestJson<LoginResponse>('/api/users/register/', {
+    return apiRequestJson<LoginResponse>('/api/register/', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
@@ -418,55 +418,55 @@ export const authApi = {
 
   // Obter perfil do usuário
   getProfile: async (): Promise<ApiUser> => {
-    return apiRequestJson<ApiUser>('/api/users/profile/');
+    return apiRequestJson<ApiUser>('/api/profile/');
   },
 
   // Atualizar perfil do usuário
   updateProfile: async (userData: UpdateUserRequest): Promise<ApiUser> => {
-    return apiRequestJson<ApiUser>('/api/users/profile/', {
+    return apiRequestJson<ApiUser>('/api/profile/', {
       method: 'PATCH',
       body: JSON.stringify(userData),
     });
   },
 
   getLoginHistory: async (): Promise<any[]> => {
-    return apiRequestJson<any[]>('/api/users/login-history/');
+    return apiRequestJson<any[]>('/api/login-history/');
   },
 
   get2FAStatus: async (): Promise<{is_2fa_enabled: boolean}> => {
-    return apiRequestJson<{is_2fa_enabled: boolean}>('/api/users/2fa/status/');
+    return apiRequestJson<{is_2fa_enabled: boolean}>('/api/2fa/status/');
   },
 
   setup2FA: async (): Promise<{secret: string, otpauth_url: string}> => {
-    return apiRequestJson<{secret: string, otpauth_url: string}>('/api/users/2fa/setup/', { method: 'POST' });
+    return apiRequestJson<{secret: string, otpauth_url: string}>('/api/2fa/setup/', { method: 'POST' });
   },
 
   verify2FA: async (code: string): Promise<{success: boolean, backup_codes?: string[]}> => {
-    return apiRequestJson<{success: boolean, backup_codes?: string[]}>('/api/users/2fa/verify/', {
+    return apiRequestJson<{success: boolean, backup_codes?: string[]}>('/api/2fa/verify/', {
       method: 'POST',
       body: JSON.stringify({ code }),
     });
   },
 
   disable2FA: async (): Promise<{success: boolean}> => {
-    return apiRequestJson<{success: boolean}>('/api/users/2fa/disable/', { method: 'POST' });
+    return apiRequestJson<{success: boolean}>('/api/2fa/disable/', { method: 'POST' });
   },
 
   getBackupCodes: async (): Promise<{backup_codes: string[]}> => {
-    return apiRequestJson<{backup_codes: string[]}>('/api/users/2fa/backup-codes/');
+    return apiRequestJson<{backup_codes: string[]}>('/api/2fa/backup-codes/');
   },
 
   regenerateBackupCodes: async (): Promise<{backup_codes: string[]}> => {
-    return apiRequestJson<{backup_codes: string[]}>('/api/users/2fa/backup-codes/regenerate/', { method: 'POST' });
+    return apiRequestJson<{backup_codes: string[]}>('/api/2fa/backup-codes/regenerate/', { method: 'POST' });
   },
 
   logout: async (): Promise<{success: boolean}> => {
-    return apiRequestJson<{success: boolean}>('/api/users/logout/', { method: 'POST' });
+    return apiRequestJson<{success: boolean}>('/api/logout/', { method: 'POST' });
   },
 
   // Redefinição de senha - Solicitar
   requestPasswordReset: async (data: PasswordResetRequest): Promise<PasswordResetResponse> => {
-    return apiRequestJson<PasswordResetResponse>('/api/users/password-reset/request/', {
+    return apiRequestJson<PasswordResetResponse>('/api/password-reset/request/', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -474,7 +474,7 @@ export const authApi = {
 
   // Redefinição de senha - Validar token
   validatePasswordResetToken: async (data: PasswordResetValidateRequest): Promise<PasswordResetValidateResponse> => {
-    return apiRequestJson<PasswordResetValidateResponse>('/api/users/password-reset/validate/', {
+    return apiRequestJson<PasswordResetValidateResponse>('/api/password-reset/validate/', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -482,7 +482,7 @@ export const authApi = {
 
   // Redefinição de senha - Confirmar nova senha
   confirmPasswordReset: async (data: PasswordResetConfirmRequest): Promise<PasswordResetResponse> => {
-    return apiRequestJson<PasswordResetResponse>('/api/users/password-reset/confirm/', {
+    return apiRequestJson<PasswordResetResponse>('/api/password-reset/confirm/', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -718,72 +718,150 @@ export function transformEventForFrontend(apiEvent: ApiEvent): Event {
   };
 }
 
-// Tipos para Mercado Pago
-export interface MercadoPagoConfig {
+// Tipos para Asaas
+export interface AsaasConfig {
   enabled: boolean;
-  public_key: string;
   sandbox_mode: boolean;
 }
 
-export interface PaymentRequest {
-  amount: number;
+export interface AsaasPaymentRequest {
+  billing_type: 'PIX' | 'CREDIT_CARD' | 'BOLETO';
+  value: number;
   description: string;
-  payment_method_id?: string;
-  token?: string;
-  installments?: number;
-  issuer_id?: string;
-  payer?: {
-    email: string;
-    identification?: {
-      type: string;
-      number: string;
-    };
+  customer_name: string;
+  customer_email: string;
+  customer_cpf: string;
+  customer_phone?: string;
+  customer_mobile_phone?: string;
+  due_date?: string;
+  installment_count?: number;
+  credit_card?: {
+    holder_name: string;
+    number: string;
+    expiry_month: string;
+    expiry_year: string;
+    ccv: string;
   };
 }
 
-export interface PaymentResponse {
-  id: string;
+export interface AsaasPaymentResponse {
+  success: boolean;
+  payment_id: string;
   status: string;
-  status_detail: string;
-  payment_method_id: string;
-  payment_type_id: string;
-  transaction_amount: number;
-  date_created: string;
+  billing_type: string;
+  value: number;
+  net_value?: number;
+  due_date?: string;
+  invoice_url?: string;
+  bank_slip_url?: string;
+  pix_code?: string;
+  qr_code?: string;
+  error?: string;
 }
 
-// API do Mercado Pago
-export const mercadoPagoApi = {
-  // Obter configurações do Mercado Pago
-  getConfig: async (): Promise<MercadoPagoConfig> => {
-    return apiRequestJson<MercadoPagoConfig>('/payment/mercadopago/config/');
+export interface AsaasPaymentMethod {
+  id: string;
+  name: string;
+  enabled: boolean;
+}
+
+export interface AsaasInstallmentOption {
+  installments: number;
+  installment_amount: number;
+  total_amount: number;
+  interest_rate: number;
+}
+
+export interface AsaasPaymentStatus {
+  payment_id: string;
+  status: string;
+  billing_type: string;
+  value: number;
+  net_value?: number;
+  due_date?: string;
+  payment_date?: string;
+  invoice_url?: string;
+  bank_slip_url?: string;
+  pix_code?: string;
+  qr_code?: string;
+}
+
+export interface AsaasPaymentSummary {
+  payment: AsaasPaymentStatus;
+  customer: {
+    id: string;
+    name: string;
+    email: string;
+    cpf: string;
+    phone?: string;
+  };
+  installments?: Array<{
+    number: number;
+    value: number;
+    due_date: string;
+    status: string;
+  }>;
+  refunds?: Array<{
+    id: string;
+    value: number;
+    status: string;
+    date: string;
+  }>;
+}
+
+// API do Asaas
+export const asaasApi = {
+  // Obter configurações do Asaas
+  getConfig: async (): Promise<AsaasConfig> => {
+    return apiRequestJson<AsaasConfig>('/api/payment/config/');
   },
   
-  processPayment: async (paymentData: PaymentRequest): Promise<PaymentResponse> => {
-    return apiRequestJson<PaymentResponse>('/payment/mercadopago/process/', {
+  // Criar pagamento
+  createPayment: async (paymentData: AsaasPaymentRequest): Promise<AsaasPaymentResponse> => {
+    return apiRequestJson<AsaasPaymentResponse>('/api/payment/create/', {
       method: 'POST',
       body: JSON.stringify(paymentData),
     });
   },
   
-  getPaymentMethods: async (): Promise<any[]> => {
-    return apiRequestJson<any[]>('/payment/mercadopago/payment-methods/');
+  // Obter status do pagamento
+  getPaymentStatus: async (paymentId: string): Promise<AsaasPaymentStatus> => {
+    return apiRequestJson<AsaasPaymentStatus>(`/api/payment/status/${paymentId}/`);
   },
   
-  getIssuers: async (paymentMethodId: string): Promise<any[]> => {
-    return apiRequestJson<any[]>(`/payment/mercadopago/issuers/?payment_method_id=${paymentMethodId}`);
+  // Obter métodos de pagamento disponíveis
+  getPaymentMethods: async (): Promise<{success: boolean; methods: AsaasPaymentMethod[]}> => {
+    return apiRequestJson<{success: boolean; methods: AsaasPaymentMethod[]}>('/api/payment/methods/');
   },
-
-  getInstallments: async (amount: number, paymentMethodId: string, issuerId?: string): Promise<any[]> => {
-    const params = new URLSearchParams({
-      amount: amount.toString(),
-      payment_method_id: paymentMethodId,
+  
+  // Obter opções de parcelamento
+  getInstallmentOptions: async (amount: number): Promise<{success: boolean; options: AsaasInstallmentOption[]}> => {
+    return apiRequestJson<{success: boolean; options: AsaasInstallmentOption[]}>(`/api/payment/installments/?amount=${amount}`);
+  },
+  
+  // Cancelar pagamento
+  cancelPayment: async (paymentId: string): Promise<{success: boolean; message: string}> => {
+    return apiRequestJson<{success: boolean; message: string}>(`/api/payment/cancel/${paymentId}/`, {
+      method: 'POST',
     });
-    
-    if (issuerId) {
-      params.append('issuer_id', issuerId);
+  },
+  
+  // Estornar pagamento
+  refundPayment: async (paymentId: string, value?: number): Promise<{success: boolean; message: string; refund_id?: string}> => {
+    const body: any = {};
+    if (value) {
+      body.value = value;
     }
     
-    return apiRequestJson<any[]>(`/payment/mercadopago/installments/?${params.toString()}`);
+    return apiRequestJson<{success: boolean; message: string; refund_id?: string}>(`/api/payment/refund/${paymentId}/`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  },
+  
+  // Obter resumo completo do pagamento
+  getPaymentSummary: async (paymentId: string): Promise<AsaasPaymentSummary> => {
+    return apiRequestJson<AsaasPaymentSummary>(`/api/payment/summary/${paymentId}/`);
   },
 };
 

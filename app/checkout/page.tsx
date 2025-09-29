@@ -17,7 +17,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { CreditCard, Landmark, Banknote, QrCode, ShieldCheck, ChevronRight, AlertCircle } from "lucide-react"
-import { MercadoPagoCheckout } from "@/components/mercadopago-checkout"
+import { AsaasCheckout } from "@/components/asaas-checkout"
 import { useAuth } from "@/contexts/auth-context"
 
 export default function CheckoutPage() {
@@ -34,7 +34,7 @@ export default function CheckoutPage() {
   const [installments, setInstallments] = useState("1")
   const [isProcessing, setIsProcessing] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [useMercadoPago, setUseMercadoPago] = useState(false)
+  const [useAsaas, setUseAsaas] = useState(false)
 
   // Buyer information
   const [buyerName, setBuyerName] = useState("")
@@ -407,7 +407,7 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* Credit Card Form */}
-                {paymentMethod === "credit-card" && !useMercadoPago && (
+                {paymentMethod === "credit-card" && !useAsaas && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between mb-4">
                       <span className="text-gray-300">Usar pagamento de teste</span>
@@ -415,10 +415,10 @@ export default function CheckoutPage() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => setUseMercadoPago(true)}
+                        onClick={() => setUseAsaas(true)}
                         className="text-primary border-primary hover:bg-primary hover:text-black"
                       >
-                        Usar Mercado Pago
+                        Usar Asaas
                       </Button>
                     </div>
                     <div>
@@ -538,37 +538,40 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                {/* Mercado Pago Integration */}
-                {paymentMethod === "credit-card" && useMercadoPago && (
+                {/* Asaas Integration */}
+                {paymentMethod === "credit-card" && useAsaas && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between mb-4">
-                      <span className="text-gray-300">Pagamento via Mercado Pago</span>
+                      <span className="text-gray-300">Pagamento via Asaas</span>
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => setUseMercadoPago(false)}
+                        onClick={() => setUseAsaas(false)}
                         className="text-gray-400 border-gray-600 hover:bg-gray-700"
                       >
                         Voltar ao teste
                       </Button>
                     </div>
                     
-                    <MercadoPagoCheckout
-                      amount={Math.round(total * 100)} // Convert to cents
+                    <AsaasCheckout
+                      amount={total}
                       description={`Compra de ingressos - ${cartItems.map(item => item.eventName).join(', ')}`}
                       userEmail={user?.email || buyerEmail}
-                      onSuccess={(paymentId) => {
-                        console.log('Pagamento aprovado:', paymentId)
+                      onSuccess={(paymentId: string, paymentData: any) => {
+                        console.log('Pagamento aprovado:', paymentId, paymentData)
                         // Clear cart
                         localStorage.removeItem("cart")
                         // Redirect to success page
                         router.push("/checkout/success")
                       }}
-                      onError={(error) => {
+                      onError={(error: string) => {
                         console.error('Erro no pagamento:', error)
                         // Redirect to error page
                         router.push(`/checkout/error?reason=payment_failed&message=${encodeURIComponent(error)}`)
+                      }}
+                      onLoading={(loading: boolean) => {
+                        setIsProcessing(loading)
                       }}
                     />
                   </div>
