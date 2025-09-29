@@ -44,19 +44,8 @@ export const eventSchema = z.object({
   name: z.string().min(1, "Nome do evento é obrigatório"),
   description: z.string().min(1, "Descrição é obrigatória"),
   category: z.string().min(1, "Categoria é obrigatória"),
-  image: z.string().optional(),
-  organizer: z.string().optional(),
-  contact_email: z.string().optional().refine((val) => !val || z.string().email().safeParse(val).success, {
-    message: "Email inválido"
-  }),
-  contact_phone: z.string().optional(),
-  website: z.string().optional().refine((val) => !val || z.string().url().safeParse(val).success, {
-    message: "URL do website inválida"
-  }),
-  age_restriction: z.enum(["none", "12", "14", "16", "18"]).default("none"),
-  additional_info: z.string().optional(),
-  occurrences: z.array(occurrenceSchema).min(1, "Pelo menos uma ocorrência é obrigatória"),
-  unique_tickets: z.array(uniqueTicketSchema).optional().default([]),
+  category_id: z.string().min(1, "ID da categoria é obrigatório"),
+  image: z.string().min(1, "Imagem é obrigatória"),
 })
 
 // Tipos TypeScript derivados dos schemas
@@ -66,8 +55,6 @@ export type Occurrence = z.infer<typeof occurrenceSchema>
 export type Event = z.infer<typeof eventSchema>
 
 // Schema para formulário de criação (com campos opcionais para UI)
-export const eventFormSchema = eventSchema.extend({
-  occurrences: z.array(occurrenceSchema).min(1, "Pelo menos uma ocorrência é obrigatória"),
-})
+export const eventFormSchema = eventSchema
 
 export type EventFormData = z.infer<typeof eventFormSchema>

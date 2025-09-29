@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4474e2e0-d35a-47e3-96e1-20561d771496" name="Changes" comment="feat: add botao vender ingresso, add contagem de ingressos total pagina inicial" />
+    <list default="true" id="4474e2e0-d35a-47e3-96e1-20561d771496" name="Changes" comment="feat: add botao vender ingresso, add contagem de ingressos total pagina inicial">
+      <change beforePath="$PROJECT_DIR$/app/admin/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/admin/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/admin/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/admin/page.tsx" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -98,6 +101,7 @@
       <workItem from="1758286752615" duration="7085000" />
       <workItem from="1758540750713" duration="26519000" />
       <workItem from="1758810664633" duration="1545000" />
+      <workItem from="1759017337197" duration="762000" />
     </task>
     <task id="LOCAL-00001" summary="wip: integração mercado pago">
       <option name="closed" value="true" />

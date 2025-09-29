@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Ticket, ShoppingCart, Users, Settings, BarChart3, LogOut, Menu, X } from "lucide-react"
+import { LayoutDashboard, Ticket, ShoppingCart, Users, Settings, BarChart3, LogOut, Menu, X, Calendar, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/auth-context"
 
@@ -53,6 +53,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: "Eventos", href: "/admin/events", icon: Ticket },
+    { name: "Ocorrências", href: "/admin/occurrences", icon: Calendar },
+    { name: "Tipos de Ingressos", href: "/admin/ticket-types", icon: Ticket },
+    { name: "Ingressos Únicos", href: "/admin/unique-tickets", icon: Star },
     { name: "Pedidos", href: "/admin/orders", icon: ShoppingCart },
     { name: "Usuários", href: "/admin/users", icon: Users },
     { name: "Relatórios", href: "/admin/reports", icon: BarChart3 },

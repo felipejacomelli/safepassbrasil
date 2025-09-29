@@ -28,19 +28,12 @@ export async function createEvent(
     const rawData = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
-      category: formData.get("category") as string,
-      image: formData.get("image") as string || "",
-      organizer: formData.get("organizer") as string || "",
-      contact_email: formData.get("contact_email") as string || "",
-      contact_phone: formData.get("contact_phone") as string || "",
-      website: formData.get("website") as string || "",
-      age_restriction: (formData.get("age_restriction") as string) || "none",
-      additional_info: formData.get("additional_info") as string || "",
-      occurrences: JSON.parse(formData.get("occurrences") as string || "[]"),
+      category: formData.get("category") as string, // Nome da categoria
+      category_id: formData.get("category_id") as string, // ID da categoria
+      image: formData.get("image") as string,
     }
 
     console.log("Dados processados:", rawData)
-    console.log("Ocorrências:", JSON.stringify(rawData.occurrences, null, 2))
 
     // Validar dados com Zod
     const validationResult = eventFormSchema.safeParse(rawData)
@@ -68,6 +61,27 @@ export async function createEvent(
 
     const eventData = validationResult.data
 
+    // Validações adicionais
+    if (!eventData.image) {
+      return {
+        success: false,
+        message: "A imagem é obrigatória para criar o evento.",
+        errors: {
+          image: ["A imagem é obrigatória"]
+        }
+      }
+    }
+
+    if (!eventData.category || !eventData.category_id) {
+      return {
+        success: false,
+        message: "A categoria é obrigatória para criar o evento.",
+        errors: {
+          category: ["A categoria é obrigatória"]
+        }
+      }
+    }
+
     // Criar evento via API do backend
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/events/`, {
       method: "POST",
@@ -79,18 +93,10 @@ export async function createEvent(
       body: JSON.stringify({
         name: eventData.name,
         description: eventData.description,
-        category: eventData.category,
+        category_name: eventData.category, // Nome da categoria para o backend
         image: eventData.image,
-        organizer: eventData.organizer,
-        contact_email: eventData.contact_email,
-        contact_phone: eventData.contact_phone,
-        website: eventData.website,
-        age_restriction: eventData.age_restriction,
-        additional_info: eventData.additional_info,
         active: true,
         status: "open",
-        occurrences: eventData.occurrences,
-        unique_tickets: eventData.unique_tickets,
       }),
     })
 
@@ -137,64 +143,10 @@ export async function createEvent(
 
     const createdEvent = await response.json()
 
-    // Criar ocorrências para o evento
-    for (const occurrence of eventData.occurrences) {
-      const occurrenceResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/occurrences/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // TODO: Adicionar token de autenticação quando implementado
-        },
-        body: JSON.stringify({
-          event: createdEvent.id,
-          start_at: occurrence.start_at,
-          end_at: occurrence.end_at,
-          uf: occurrence.uf,
-          state: occurrence.state,
-          city: occurrence.city,
-          address: occurrence.address,
-          venue: occurrence.venue,
-          status: "ACTIVE",
-        }),
-      })
+    console.log("Evento criado com sucesso:", createdEvent)
 
-      if (!occurrenceResponse.ok) {
-        // Se falhar ao criar ocorrência, ainda consideramos sucesso parcial
-        console.error("Erro ao criar ocorrência:", await occurrenceResponse.text())
-        continue
-      }
-
-      const createdOccurrence = await occurrenceResponse.json()
-
-      // Criar tipos de ingresso para a ocorrência
-      for (const ticketType of occurrence.ticket_types) {
-        const ticketTypeResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ticket-types/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // TODO: Adicionar token de autenticação quando implementado
-          },
-          body: JSON.stringify({
-            occurrence: createdOccurrence.id,
-            name: ticketType.name,
-            description: ticketType.description,
-            price: ticketType.price,
-            total_stock: ticketType.quantity,
-            remaining_stock: ticketType.quantity,
-            max_per_purchase: ticketType.max_per_purchase,
-            status: "ACTIVE",
-          }),
-        })
-
-        if (!ticketTypeResponse.ok) {
-          console.error("Erro ao criar tipo de ingresso:", await ticketTypeResponse.text())
-        }
-      }
-    }
-
-    // Revalidar cache das páginas relacionadas
+    // Revalidar cache e redirecionar
     revalidatePath("/admin/events")
-    revalidatePath("/events")
 
     return {
       success: true,

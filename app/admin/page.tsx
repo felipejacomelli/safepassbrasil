@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, Calendar, ShoppingBag, DollarSign, TrendingUp, BarChart3 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Users, Calendar, ShoppingBag, DollarSign, TrendingUp, BarChart3, Plus, FileText, Ticket, Star, ArrowRight } from "lucide-react"
 import { adminApi } from "@/lib/api"
 
 // Interfaces para os dados do dashboard
@@ -28,6 +30,7 @@ interface RecentActivity {
 }
 
 export default function AdminDashboardPage() {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [stats, setStats] = useState<DashboardStats>({
     totalSales: 0,
@@ -213,6 +216,8 @@ export default function AdminDashboardPage() {
           {String(error)}
         </div>
       )}
+
+
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
