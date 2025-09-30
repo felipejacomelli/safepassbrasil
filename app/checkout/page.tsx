@@ -10,6 +10,8 @@ interface CartItem {
   date: string
   location: string
   image: string
+  occurrenceId?: string
+  ticketTypeId?: string
 }
 
 import type React from "react"
@@ -17,8 +19,9 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { CreditCard, Landmark, Banknote, QrCode, ShieldCheck, ChevronRight, AlertCircle } from "lucide-react"
-import { AsaasCheckout } from "@/components/asaas-checkout"
 import { useAuth } from "@/contexts/auth-context"
+import { checkoutApi, CheckoutRequest } from "@/lib/api"
+import { PAYMENT_METHODS, PaymentMethodType, PAYMENT_METHOD_LABELS } from "@/lib/constants"
 
 export default function CheckoutPage() {
   const [isDesktop, setIsDesktop] = useState(false)
@@ -26,7 +29,7 @@ export default function CheckoutPage() {
   const { user } = useAuth()
 
   // Payment method state
-  const [paymentMethod, setPaymentMethod] = useState("credit-card")
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>(PAYMENT_METHODS.PIX)
   const [cardNumber, setCardNumber] = useState("")
   const [cardName, setCardName] = useState("")
   const [cardExpiry, setCardExpiry] = useState("")
@@ -34,7 +37,7 @@ export default function CheckoutPage() {
   const [installments, setInstallments] = useState("1")
   const [isProcessing, setIsProcessing] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [useAsaas, setUseAsaas] = useState(false)
+  // Removido useAsaas - agora usa integração direta
 
   // Buyer information
   const [buyerName, setBuyerName] = useState("")
@@ -121,112 +124,137 @@ export default function CheckoutPage() {
     return digitsOnly.length >= 10 && digitsOnly.length <= 11
   }
 
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  // ✅ Handle form submission com integração real
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Reset errors
-    const newErrors: Record<string, string> = {}
+    try {
+      setIsProcessing(true)
+      setErrors({})
 
-    // Validate buyer information
-    if (!buyerName.trim()) {
-      newErrors.buyerName = "Nome é obrigatório"
-    }
+      // Validações
+      const newErrors: Record<string, string> = {}
 
-    if (!buyerEmail.trim()) {
-      newErrors.buyerEmail = "Email é obrigatório"
-    } else if (!validateEmail(buyerEmail)) {
-      newErrors.buyerEmail = "Email inválido"
-    }
-
-    if (!buyerCpf.trim()) {
-      newErrors.buyerCpf = "CPF é obrigatório"
-    } else if (!validateCpf(buyerCpf)) {
-      newErrors.buyerCpf = "CPF inválido"
-    }
-
-    if (!buyerPhone.trim()) {
-      newErrors.buyerPhone = "Telefone é obrigatório"
-    } else if (!validatePhone(buyerPhone)) {
-      newErrors.buyerPhone = "Telefone inválido"
-    }
-
-    // Validate payment method specific fields
-    if (paymentMethod === "credit-card") {
-      if (!cardNumber.trim()) {
-        newErrors.cardNumber = "Número do cartão é obrigatório"
-      } else if (!validateCardNumber(cardNumber)) {
-        newErrors.cardNumber = "Número do cartão inválido"
+      if (!paymentMethod) {
+        newErrors.payment = "Selecione um método de pagamento"
       }
 
-      if (!cardName.trim()) {
-        newErrors.cardName = "Nome no cartão é obrigatório"
+      if (!termsAccepted) {
+        newErrors.terms = "Você deve aceitar os termos e condições"
       }
 
-      if (!cardExpiry.trim()) {
-        newErrors.cardExpiry = "Data de validade é obrigatória"
-      } else if (!validateCardExpiry(cardExpiry)) {
-        newErrors.cardExpiry = "Data de validade inválida"
+      // Validações específicas por método
+      if (paymentMethod === PAYMENT_METHODS.CREDIT_CARD || paymentMethod === PAYMENT_METHODS.DEBIT_CARD) {
+        if (!cardName.trim()) {
+          newErrors.cardName = "Nome no cartão é obrigatório"
+        }
+        if (!validateCardNumber(cardNumber)) {
+          newErrors.cardNumber = "Número do cartão inválido"
+        }
+        if (!validateCardExpiry(cardExpiry)) {
+          newErrors.cardExpiry = "Validade inválida (MM/AA)"
+        }
+        if (!cardCvv || cardCvv.length < 3) {
+          newErrors.cardCvv = "CVV inválido (3 ou 4 dígitos)"
+        }
       }
 
-      if (!cardCvv.trim()) {
-        newErrors.cardCvv = "CVV é obrigatório"
-      } else if (!validateCvv(cardCvv)) {
-        newErrors.cardCvv = "CVV inválido"
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors)
+        setIsProcessing(false)
+        return
       }
-    }
 
-    if (!termsAccepted) {
-      newErrors.terms = "Você precisa aceitar os termos e condições"
-    }
+      // Obter dados do carrinho
+      const cartItem = cartItems[0]
+      if (!cartItem) {
+        setErrors({ cart: "Carrinho vazio" })
+        setIsProcessing(false)
+        return
+      }
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
-    }
+      if (!cartItem.occurrenceId || !cartItem.ticketTypeId) {
+        setErrors({ cart: "Dados do ingresso incompletos. Adicione o ingresso novamente ao carrinho." })
+        setIsProcessing(false)
+        return
+      }
 
-    // Process payment
-    setIsProcessing(true)
+      // ✅ Preparar dados do checkout
+      const checkoutData: CheckoutRequest = {
+        occurrence_id: cartItem.occurrenceId,
+        ticket_type_id: cartItem.ticketTypeId,
+        quantity: cartItem.quantity,
+        payment_method: paymentMethod,
+        buyer_cpf: buyerCpf,
+        buyer_phone: buyerPhone,
+      }
 
-    // Simulate API call with test cards
-    setTimeout(() => {
+      // Adicionar dados específicos por método
+      if (paymentMethod === PAYMENT_METHODS.CREDIT_CARD) {
+        const [expiryMonth, expiryYear] = cardExpiry.split('/')
+        
+        checkoutData.credit_card = {
+          holderName: cardName,
+          number: cardNumber.replace(/\s/g, ''),
+          expiryMonth: expiryMonth,
+          expiryYear: '20' + expiryYear,
+          ccv: cardCvv
+        }
+        checkoutData.installments = parseInt(installments)
+      } else if (paymentMethod === PAYMENT_METHODS.DEBIT_CARD) {
+        const [expiryMonth, expiryYear] = cardExpiry.split('/')
+        
+        checkoutData.credit_card = {
+          holderName: cardName,
+          number: cardNumber.replace(/\s/g, ''),
+          expiryMonth: expiryMonth,
+          expiryYear: '20' + expiryYear,
+          ccv: cardCvv
+        }
+      } else if (paymentMethod === PAYMENT_METHODS.BOLETO) {
+        // Data de vencimento: 3 dias a partir de hoje
+        const dueDate = new Date()
+        dueDate.setDate(dueDate.getDate() + 3)
+        checkoutData.due_date = dueDate.toISOString().split('T')[0]
+      }
+
+      // ✅ Chamar API de checkout
+      const response = await checkoutApi.createOrder(checkoutData)
+
+      if (response.success) {
+        // Limpar carrinho
+        localStorage.removeItem('cart')
+
+        // Redirecionar conforme método
+        if (paymentMethod === PAYMENT_METHODS.PIX) {
+          router.push(`/checkout/pix?order_id=${response.order_id}`)
+        } else if (paymentMethod === PAYMENT_METHODS.BOLETO) {
+          router.push(`/checkout/boleto?order_id=${response.order_id}`)
+        } else {
+          router.push(`/checkout/success?order_id=${response.order_id}`)
+        }
+      }
+    } catch (error: any) {
+      console.error('Erro no checkout:', error)
+      
+      // Extrair mensagem de erro
+      let errorMessage = 'Erro ao processar pagamento'
+      
+      if (error.message) {
+        errorMessage = error.message
+      } else if (error.response) {
+        try {
+          const errorData = await error.response.json()
+          errorMessage = errorData.error || errorData.detail || errorMessage
+        } catch {
+          errorMessage = 'Erro ao comunicar com o servidor'
+        }
+      }
+      
+      setErrors({ general: errorMessage })
+    } finally {
       setIsProcessing(false)
-
-      // Test card logic
-      if (paymentMethod === "credit-card") {
-        // All zeros card succeeds
-        if (cardNumber.replace(/\s+/g, "") === "0000000000000000") {
-          // Clear cart
-          localStorage.removeItem("cart")
-          // Redirect to success page
-          router.push("/checkout/success")
-        }
-        // All ones card fails
-        else if (cardNumber.replace(/\s+/g, "") === "1111111111111111") {
-          // Redirect to error page
-          router.push("/checkout/error?reason=payment_declined")
-        }
-        // Other cards have 50/50 chance
-        else {
-          const randomSuccess = Math.random() > 0.5
-          if (randomSuccess) {
-            // Clear cart
-            localStorage.removeItem("cart")
-            // Redirect to success page
-            router.push("/checkout/success")
-          } else {
-            // Redirect to error page
-            router.push("/checkout/error?reason=payment_failed")
-          }
-        }
-      } else {
-        // Non-credit card payments always succeed for demo
-        // Clear cart
-        localStorage.removeItem("cart")
-        // Redirect to success page
-        router.push("/checkout/success")
-      }
-    }, 2000)
+    }
   }
 
   // Format card number with spaces
@@ -360,67 +388,59 @@ export default function CheckoutPage() {
               <div className="bg-zinc-900 rounded-lg p-6 mb-6">
                 <h2 className="text-xl font-bold text-white mb-4">Método de Pagamento</h2>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                  {/* PIX */}
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border ${paymentMethod === "credit-card" ? "border-primary bg-blue-900 bg-opacity-20" : "border-zinc-700 bg-zinc-800"}`}
-                    onClick={() => setPaymentMethod("credit-card")}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.PIX ? "border-primary bg-blue-900 bg-opacity-20" : "border-zinc-700 bg-zinc-800 hover:border-zinc-600"}`}
+                    onClick={() => setPaymentMethod(PAYMENT_METHODS.PIX)}
                   >
-                    <CreditCard
-                      className={`w-8 h-8 mb-2 ${paymentMethod === "credit-card" ? "text-primary" : "text-gray-400"}`}
-                    />
-                    <span className={`text-sm ${paymentMethod === "credit-card" ? "text-primary" : "text-gray-300"}`}>
-                      Cartão de Crédito
-                    </span>
+                    <QrCode className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.PIX ? "text-primary" : "text-gray-400"}`} />
+                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.PIX ? "text-primary" : "text-gray-300"}`}>PIX</span>
                   </div>
 
+                  {/* Cartão de Crédito */}
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border ${paymentMethod === "bank-transfer" ? "border-primary bg-blue-900 bg-opacity-20" : "border-zinc-700 bg-zinc-800"}`}
-                    onClick={() => setPaymentMethod("bank-transfer")}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.CREDIT_CARD ? "border-primary bg-blue-900 bg-opacity-20" : "border-zinc-700 bg-zinc-800 hover:border-zinc-600"}`}
+                    onClick={() => setPaymentMethod(PAYMENT_METHODS.CREDIT_CARD)}
                   >
-                    <Landmark
-                      className={`w-8 h-8 mb-2 ${paymentMethod === "bank-transfer" ? "text-primary" : "text-gray-400"}`}
-                    />
-                    <span className={`text-sm ${paymentMethod === "bank-transfer" ? "text-primary" : "text-gray-300"}`}>
-                      Transferência
-                    </span>
+                    <CreditCard className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.CREDIT_CARD ? "text-primary" : "text-gray-400"}`} />
+                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.CREDIT_CARD ? "text-primary" : "text-gray-300"}`}>Crédito</span>
                   </div>
 
+                  {/* Cartão de Débito */}
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border ${paymentMethod === "boleto" ? "border-primary bg-blue-900 bg-opacity-20" : "border-zinc-700 bg-zinc-800"}`}
-                    onClick={() => setPaymentMethod("boleto")}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.DEBIT_CARD ? "border-primary bg-blue-900 bg-opacity-20" : "border-zinc-700 bg-zinc-800 hover:border-zinc-600"}`}
+                    onClick={() => setPaymentMethod(PAYMENT_METHODS.DEBIT_CARD)}
                   >
-                    <Banknote
-                      className={`w-8 h-8 mb-2 ${paymentMethod === "boleto" ? "text-primary" : "text-gray-400"}`}
-                    />
-                    <span className={`text-sm ${paymentMethod === "boleto" ? "text-primary" : "text-gray-300"}`}>
-                      Boleto
-                    </span>
+                    <CreditCard className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.DEBIT_CARD ? "text-primary" : "text-gray-400"}`} />
+                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.DEBIT_CARD ? "text-primary" : "text-gray-300"}`}>Débito</span>
                   </div>
 
+                  {/* Boleto */}
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border ${paymentMethod === "pix" ? "border-primary bg-blue-900 bg-opacity-20" : "border-zinc-700 bg-zinc-800"}`}
-                    onClick={() => setPaymentMethod("pix")}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.BOLETO ? "border-primary bg-blue-900 bg-opacity-20" : "border-zinc-700 bg-zinc-800 hover:border-zinc-600"}`}
+                    onClick={() => setPaymentMethod(PAYMENT_METHODS.BOLETO)}
                   >
-                    <QrCode className={`w-8 h-8 mb-2 ${paymentMethod === "pix" ? "text-primary" : "text-gray-400"}`} />
-                    <span className={`text-sm ${paymentMethod === "pix" ? "text-primary" : "text-gray-300"}`}>PIX</span>
+                    <Banknote className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.BOLETO ? "text-primary" : "text-gray-400"}`} />
+                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.BOLETO ? "text-primary" : "text-gray-300"}`}>Boleto</span>
+                  </div>
+
+                  {/* Transferência */}
+                  <div
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.TRANSFER ? "border-primary bg-blue-900 bg-opacity-20" : "border-zinc-700 bg-zinc-800 hover:border-zinc-600"}`}
+                    onClick={() => setPaymentMethod(PAYMENT_METHODS.TRANSFER)}
+                  >
+                    <Landmark className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.TRANSFER ? "text-primary" : "text-gray-400"}`} />
+                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.TRANSFER ? "text-primary" : "text-gray-300"}`}>Transfer</span>
                   </div>
                 </div>
 
                 {/* Credit Card Form */}
-                {paymentMethod === "credit-card" && !useAsaas && (
+                {(paymentMethod === PAYMENT_METHODS.CREDIT_CARD || paymentMethod === PAYMENT_METHODS.DEBIT_CARD) && (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-gray-300">Usar pagamento de teste</span>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setUseAsaas(true)}
-                        className="text-primary border-primary hover:bg-primary hover:text-black"
-                      >
-                        Usar Asaas
-                      </Button>
-                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-4">
+                      Dados do Cartão de {paymentMethod === PAYMENT_METHODS.CREDIT_CARD ? 'Crédito' : 'Débito'}
+                    </h3>
                     <div>
                       <label htmlFor="card-number" className="block text-sm font-medium text-gray-300 mb-1">
                         Número do Cartão
@@ -538,44 +558,6 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                {/* Asaas Integration */}
-                {paymentMethod === "credit-card" && useAsaas && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-gray-300">Pagamento via Asaas</span>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setUseAsaas(false)}
-                        className="text-gray-400 border-gray-600 hover:bg-gray-700"
-                      >
-                        Voltar ao teste
-                      </Button>
-                    </div>
-                    
-                    <AsaasCheckout
-                      amount={total}
-                      description={`Compra de ingressos - ${cartItems.map(item => item.eventName).join(', ')}`}
-                      userEmail={user?.email || buyerEmail}
-                      onSuccess={(paymentId: string, paymentData: any) => {
-                        console.log('Pagamento aprovado:', paymentId, paymentData)
-                        // Clear cart
-                        localStorage.removeItem("cart")
-                        // Redirect to success page
-                        router.push("/checkout/success")
-                      }}
-                      onError={(error: string) => {
-                        console.error('Erro no pagamento:', error)
-                        // Redirect to error page
-                        router.push(`/checkout/error?reason=payment_failed&message=${encodeURIComponent(error)}`)
-                      }}
-                      onLoading={(loading: boolean) => {
-                        setIsProcessing(loading)
-                      }}
-                    />
-                  </div>
-                )}
 
                 {/* PIX Payment */}
                 {paymentMethod === "pix" && (
@@ -774,6 +756,17 @@ export default function CheckoutPage() {
                   )}
                 </div>
               </div>
+
+              {/* Mensagem de Erro Geral */}
+              {errors.general && (
+                <div className="mb-6 p-4 bg-red-900/20 border border-red-500 rounded-lg flex items-start">
+                  <AlertCircle className="w-5 h-5 text-red-500 mr-3 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-red-500 font-medium">Erro no Pagamento</p>
+                    <p className="text-red-400 text-sm mt-1">{errors.general}</p>
+                  </div>
+                </div>
+              )}
 
               {/* Submit Button */}
               <Button

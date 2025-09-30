@@ -283,23 +283,14 @@ export const eventsApi = {
 
   // Purchase tickets and update event ticket count
   purchaseTickets: async (eventId: string | number, quantity: number): Promise<{ success: boolean; message: string; remaining_tickets?: number }> => {
-    // Get user ID from localStorage
-    let userId = 1; // Default fallback
-    if (typeof window !== 'undefined') {
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          userId = parseInt(user.id) || 1;
-        } catch (e) {
-          console.warn('Failed to parse user from localStorage:', e);
-        }
-      }
-    }
-
-    return apiRequestJson<{ success: boolean; message: string; remaining_tickets?: number }>(`/event_app/events/${eventId}/purchase/`, {
-      method: 'POST',
-      body: JSON.stringify({ quantity, user_id: userId }),
+    // ✅ DEPRECATED - Não usar mais este endpoint
+    // O checkout já cria o pedido durante o pagamento
+    console.warn('purchaseTickets está deprecated. Use checkout integrado.')
+    
+    return Promise.resolve({
+      success: true,
+      message: 'Compra já processada durante checkout',
+      remaining_tickets: 0
     });
   },
 
@@ -725,7 +716,7 @@ export interface AsaasConfig {
 }
 
 export interface AsaasPaymentRequest {
-  billing_type: 'PIX' | 'CREDIT_CARD' | 'BOLETO';
+  billing_type: 'PIX' | 'CREDIT_CARD' | 'BOLETO' | 'DEBIT_CARD' | 'TRANSFER';  // ✅ Todos os métodos
   value: number;
   description: string;
   customer_name: string;
@@ -742,6 +733,36 @@ export interface AsaasPaymentRequest {
     expiry_year: string;
     ccv: string;
   };
+}
+
+// ✅ NOVO: Interface para checkout integrado
+export interface CheckoutRequest {
+  occurrence_id: string
+  ticket_type_id: string
+  quantity: number
+  payment_method: 'PIX' | 'CREDIT_CARD' | 'BOLETO' | 'DEBIT_CARD' | 'TRANSFER'
+  credit_card?: {
+    holderName: string
+    number: string
+    expiryMonth: string
+    expiryYear: string
+    ccv: string
+  }
+  installments?: number
+  due_date?: string
+  buyer_cpf?: string
+  buyer_phone?: string
+}
+
+export interface CheckoutResponse {
+  success: boolean
+  order_id: string
+  transaction_id: string
+  order_item_id: string
+  reserved_quantity: number
+  remaining_stock: number
+  total_amount: number
+  message: string
 }
 
 export interface AsaasPaymentResponse {
@@ -878,5 +899,16 @@ export const categoriesApi = {
   getAll: async (): Promise<ApiCategory[]> => {
     const response = await apiRequestJson<{results: ApiCategory[]}>('/api/categories/');
     return response.results;
+  },
+};
+
+// ✅ NOVO: API de Checkout Integrado
+export const checkoutApi = {
+  // Checkout completo com reserva de estoque e método de pagamento
+  createOrder: async (checkoutData: CheckoutRequest): Promise<CheckoutResponse> => {
+    return apiRequestJson<CheckoutResponse>('/orders/checkout/', {
+      method: 'POST',
+      body: JSON.stringify(checkoutData),
+    });
   },
 };

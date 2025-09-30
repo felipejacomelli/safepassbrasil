@@ -16,6 +16,8 @@ interface CartItem {
   date: string
   location: string
   image: string
+  occurrenceId?: string
+  ticketTypeId?: string
 }
 
 interface FormData {
@@ -268,41 +270,10 @@ export default function CartPage() {
       return
     }
 
-    // Submit form
-    setIsSubmitting(true)
-
-    // Process purchase for each cart item
-    const processPurchases = async () => {
-      try {
-        const { eventsApi } = await import('@/lib/api')
-        
-        for (const item of cartItems) {
-          const result = await eventsApi.purchaseTickets(item.eventId, item.quantity)
-          
-          // Atualizar o contador local se a resposta incluir remaining_tickets
-          if (result.remaining_tickets !== undefined) {
-            // Aqui você pode implementar uma atualização global do estado
-            // Por exemplo, usando um contexto ou evento customizado
-            window.dispatchEvent(new CustomEvent('ticketCountUpdated', {
-              detail: { eventId: item.eventId, newCount: result.remaining_tickets }
-            }))
-          }
-        }
-        
-        setIsSubmitting(false)
-        setOrderComplete(true)
-        
-        // Clear cart
-        setCartItems([])
-      } catch (error) {
-        console.error('Erro ao processar compra:', error)
-        setIsSubmitting(false)
-        // You might want to show an error message to the user here
-        alert('Erro ao processar a compra. Tente novamente.')
-      }
-    }
-    
-    processPurchases()
+    // ✅ DEPRECATED - Esta função não deve mais ser usada
+    // O checkout agora é feito através do AsaasCheckout component
+    console.warn('handleCheckout está deprecated. Use AsaasCheckout component.')
+    alert('Use o componente de pagamento Asaas para finalizar a compra.')
   }
 
   const handleLogout = () => {
@@ -324,26 +295,24 @@ export default function CartPage() {
     try {
       setIsSubmitting(true)
       
-      // Processar compra para cada item do carrinho
-      const { eventsApi } = await import('@/lib/api')
+      console.log('✅ Pagamento aprovado:', paymentId)
+      console.log('📦 Dados do pagamento:', paymentData)
       
-      for (const item of cartItems) {
-        const result = await eventsApi.purchaseTickets(item.eventId, item.quantity)
-        
-        // Atualizar o contador local se a resposta incluir remaining_tickets
-        if (result.remaining_tickets !== undefined) {
-          window.dispatchEvent(new CustomEvent('ticketCountUpdated', {
-            detail: { eventId: item.eventId, newCount: result.remaining_tickets }
-          }))
-        }
-      }
-      
+      // ✅ O pedido já foi criado durante o checkout
+      // Não precisamos fazer compra separada
       setOrderComplete(true)
       setCartItems([]) // Limpar carrinho
       
+      // ✅ Atualizar contadores de ingressos se necessário
+      for (const item of cartItems) {
+        window.dispatchEvent(new CustomEvent('ticketCountUpdated', {
+          detail: { eventId: item.eventId, newCount: item.quantity }
+        }))
+      }
+      
     } catch (error) {
-      console.error('Erro ao processar compra após pagamento:', error)
-      alert('Pagamento aprovado, mas houve erro ao processar os ingressos. Entre em contato com o suporte.')
+      console.error('Erro ao processar sucesso do pagamento:', error)
+      alert('Pagamento aprovado, mas houve erro ao finalizar. Entre em contato com o suporte.')
     } finally {
       setIsSubmitting(false)
     }
@@ -1208,6 +1177,7 @@ export default function CartPage() {
                   <AsaasCheckout
                     amount={total}
                     description={`Compra de ${cartItems.length} ingresso(s) - ${cartItems.map(item => item.eventName).join(', ')}`}
+                    cartItems={cartItems}
                     onSuccess={handleAsaasSuccess}
                     onError={handleAsaasError}
                     userEmail={user?.email}

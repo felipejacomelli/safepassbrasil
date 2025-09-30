@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CreditCard, QrCode, FileText, Loader2, AlertCircle, CheckCircle } from "lucide-react"
 import { formatCurrency } from "@/utils/formatCurrency"
+import { paymentClient } from "@/lib/payment-api-client"
+import { PaymentErrorHandler } from "@/lib/payment-error-handler"
 
 interface AsaasCheckoutProps {
   amount: number
@@ -17,6 +19,7 @@ interface AsaasCheckoutProps {
   userName?: string
   userPhone?: string
   userCpf?: string
+  cartItems?: Array<{ occurrenceId?: string; ticketTypeId?: string; quantity: number }>
   onSuccess: (paymentId: string, paymentData: any) => void
   onError: (error: string) => void
   onLoading?: (loading: boolean) => void
@@ -50,6 +53,7 @@ export function AsaasCheckout({
   userName,
   userPhone,
   userCpf,
+  cartItems,
   onSuccess,
   onError,
   onLoading
@@ -129,20 +133,40 @@ export function AsaasCheckout({
   }
 
   const handlePayment = async () => {
+    console.log('🚀 Iniciando processo de pagamento...')
+    console.log('📊 Dados atuais:', {
+      paymentMethod,
+      amount,
+      customerData,
+      creditCard: paymentMethod === "CREDIT_CARD" ? creditCard : null
+    })
+
     setIsLoading(true)
     onLoading?.(true)
 
     try {
       const authToken = localStorage.getItem('authToken')
-      console.log('Token de autenticação:', authToken ? 'Presente' : 'Ausente')
+      console.log('🔑 Token de autenticação:', authToken ? 'Presente' : 'Ausente')
       
       if (!authToken) {
+        console.error('❌ Token não encontrado')
         onError('Token de autenticação não encontrado. Faça login novamente.')
+        setIsLoading(false)
+        onLoading?.(false)
         return
       }
 
+      // ✅ Validação básica antes de prosseguir
+      if (!customerData.name || !customerData.email || !customerData.cpf) {
+        console.error('❌ Dados do cliente incompletos:', customerData)
+        onError('Dados do cliente incompletos. Preencha todos os campos.')
+        setIsLoading(false)
+        onLoading?.(false)
+        return
+      }
+
+      // ✅ Construir dados do pagamento
       const paymentData: any = {
-        customer_id: "temp", // O backend vai criar/obter o customer
         billing_type: paymentMethod,
         value: amount,
         description,
@@ -151,40 +175,69 @@ export function AsaasCheckout({
         customer_mobile_phone: customerData.mobilePhone
       }
 
+      console.log('📦 Dados base do pagamento:', paymentData)
+
+      if (cartItems && cartItems.length > 0) {
+        paymentData.items = cartItems.map(item => ({
+          occurrence_id: item.occurrenceId,
+          ticket_type_id: item.ticketTypeId,
+          quantity: item.quantity
+        }))
+        console.log('🛒 Itens do carrinho:', paymentData.items)
+      }
+
       // Adicionar dados específicos do método de pagamento
       if (paymentMethod === "CREDIT_CARD") {
+        if (!creditCard.holderName || !creditCard.number || !creditCard.expiryMonth || !creditCard.expiryYear || !creditCard.ccv) {
+          console.error('❌ Dados do cartão incompletos:', creditCard)
+          onError('Dados do cartão incompletos. Preencha todos os campos.')
+          setIsLoading(false)
+          onLoading?.(false)
+          return
+        }
+
         paymentData.credit_card = {
           holder_name: creditCard.holderName,
-          number: creditCard.number.replace(/\s/g, ''),
+          number: creditCard.number,
           expiry_month: creditCard.expiryMonth,
           expiry_year: creditCard.expiryYear,
-          ccv: creditCard.ccv
+          ccv: creditCard.ccv,
+          holderName: creditCard.holderName,
+          expiryMonth: creditCard.expiryMonth,
+          expiryYear: creditCard.expiryYear,
+          cardNumber: creditCard.number,
+          cardNumberMasked: creditCard.number
+        }
+
+        paymentData.credit_card_holder_info = {
+          name: customerData.name,
+          email: customerData.email,
+          cpf_cnpj: customerData.cpf,
+          phone: customerData.phone,
+          mobile_phone: customerData.mobilePhone,
+          postal_code: "01310-100", // CEP válido para teste
+          address_number: "123", // Número padrão para teste
+          address_complement: "Apto 45" // Complemento padrão para teste
         }
         paymentData.installment_count = selectedInstallments
+        
+        console.log('💳 Dados do cartão:', paymentData.credit_card)
       } else if (paymentMethod === "BOLETO") {
-        // Para boleto, definir data de vencimento (7 dias a partir de hoje)
         const dueDate = new Date()
         dueDate.setDate(dueDate.getDate() + 7)
         paymentData.due_date = dueDate.toISOString().split('T')[0]
+        console.log('📄 Data de vencimento do boleto:', paymentData.due_date)
       }
 
-      console.log('Dados enviados para pagamento:', paymentData)
+      console.log('📦 Dados finais do pagamento:', paymentData)
+      console.log('📡 Enviando para PaymentApiClient...')
 
-      const response = await fetch('/api/payment/create/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${authToken}`
-        },
-        body: JSON.stringify(paymentData)
-      })
+      // ✅ Usar cliente robusto com retry e timeout
+      const result = await paymentClient.createPayment(paymentData, authToken)
 
-      console.log('Status da resposta:', response.status)
-      
-      const result = await response.json()
-      console.log('Resposta do pagamento:', result)
+      console.log('✅ Pagamento processado:', result)
 
-      if (response.ok && result.success) {
+      if (result.success) {
         setPaymentResult(result)
         
         // Configurar dados específicos do método de pagamento
@@ -195,20 +248,17 @@ export function AsaasCheckout({
           setBoletoUrl(result.bank_slip_url || "")
         }
         
-        onSuccess(result.payment_id, result)
+        onSuccess(result.payment_id || '', result)
       } else {
-        console.error('Erro no pagamento:', result)
-        if (response.status === 401) {
-          onError('Sessão expirada. Faça login novamente.')
-        } else if (response.status === 500) {
-          onError('Erro interno do servidor. Tente novamente em alguns minutos.')
-        } else {
-          onError(result.error || result.errors || result.detail || 'Erro ao processar pagamento')
-        }
+        console.error('❌ Pagamento falhou:', result.error)
+        onError(result.error || 'Erro ao processar pagamento')
       }
-    } catch (error) {
-      console.error('Erro no pagamento:', error)
-      onError('Erro de conexão. Verifique sua internet e tente novamente.')
+    } catch (error: any) {
+      console.error('❌ Erro no pagamento:', error)
+      console.error('❌ Stack trace:', error.stack)
+      const errorInfo = PaymentErrorHandler.handlePaymentError(error)
+      console.error('❌ Informações do erro:', errorInfo)
+      onError(errorInfo.userMessage)
     } finally {
       setIsLoading(false)
       onLoading?.(false)

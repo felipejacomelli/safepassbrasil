@@ -51,6 +51,8 @@ interface CartTicket {
   time: string
   attendance: string
   gallery: string[]
+  occurrenceId?: string  // ✅ ADICIONADO
+  ticketTypeId?: string  // ✅ ADICIONADO
 }
 
 // Página de detalhes do evento - integrada com API real
@@ -186,6 +188,8 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
       time: event.time,
       attendance: event.attendance,
       gallery: event.gallery || [],
+      occurrenceId: event.occurrenceId,  // ✅ ADICIONADO - ID da ocorrência
+      ticketTypeId: ticketType.id,       // ✅ ADICIONADO - ID do tipo de ingresso
     }
 
     // Get existing cart or create new one
