@@ -123,6 +123,16 @@ export default function Page() {
                                                 Minha Conta
                                             </button>
                                             <button
+                                                onClick={() => {
+                                                    router.push("/cart")
+                                                    setIsUserMenuOpen(false)
+                                                }}
+                                                className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-800 transition-colors text-left"
+                                            >
+                                                <ShoppingCart size={16} />
+                                                Carrinho
+                                            </button>
+                                            <button
                                                 onClick={handleLogoutFromDropdown}
                                                 className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-800 transition-colors text-left text-red-400"
                                             >

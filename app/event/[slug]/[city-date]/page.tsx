@@ -101,13 +101,13 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
           attendance: targetOccurrence.max_capacity ? `${targetOccurrence.max_capacity} pessoas` : '1k+ pessoas',
           price: apiEventWithOccurrences.price || 'A partir de R$ 0,00',
           startingPrice: occurrenceWithTickets.ticket_types.length > 0 
-            ? Math.min(...occurrenceWithTickets.ticket_types.map(t => parseFloat(t.price.replace(/[^\d,]/g, '').replace(',', '.') || '0')))
+            ? Math.min(...occurrenceWithTickets.ticket_types.map(t => parseFloat(t.price) || 0))
             : 0,
           availableTickets: targetOccurrence.available_tickets,
           ticketTypes: occurrenceWithTickets.ticket_types.map((ticketType: any) => ({
             id: ticketType.id,
             name: ticketType.name,
-            price: parseFloat(ticketType.price.replace(/[^\d,]/g, '').replace(',', '.') || '0'),
+            price: parseFloat(ticketType.price) || 0,
             available: ticketType.remaining_stock,
             description: ticketType.description,
             max_per_order: ticketType.max_per_order
