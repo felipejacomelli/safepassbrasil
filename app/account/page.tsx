@@ -274,7 +274,7 @@ export default function AccountPage() {
                 fontSize: "14px",
               }}
             >
-              Como Funciona
+              {/* Como Funciona */}
             </a>
             <a
               href="#"

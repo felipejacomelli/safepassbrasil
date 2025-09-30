@@ -430,7 +430,7 @@ export default function CartPage() {
                     fontSize: "14px",
                   }}
                 >
-                  Como Funciona
+                  {/* Como Funciona */}
                 </a>
                 <a
                   href="#"
