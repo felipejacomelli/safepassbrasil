@@ -14,6 +14,9 @@ interface AsaasCheckoutProps {
   amount: number
   description: string
   userEmail?: string
+  userName?: string
+  userPhone?: string
+  userCpf?: string
   onSuccess: (paymentId: string, paymentData: any) => void
   onError: (error: string) => void
   onLoading?: (loading: boolean) => void
@@ -44,6 +47,9 @@ export function AsaasCheckout({
   amount,
   description,
   userEmail,
+  userName,
+  userPhone,
+  userCpf,
   onSuccess,
   onError,
   onLoading
@@ -65,11 +71,11 @@ export function AsaasCheckout({
   
   // Dados do cliente
   const [customerData, setCustomerData] = useState({
-    name: "",
+    name: userName || "",
     email: userEmail || "",
-    cpf: "",
-    phone: "",
-    mobilePhone: ""
+    cpf: userCpf || "",
+    phone: userPhone || "",
+    mobilePhone: userPhone || ""
   })
   
   // Estados de pagamento
@@ -105,11 +111,17 @@ export function AsaasCheckout({
 
   const loadInstallmentOptions = async () => {
     try {
+      console.log('Carregando opções de parcelamento para valor:', amount)
       const response = await fetch(`/api/payment/installments/?amount=${amount}`)
       const data = await response.json()
       
+      console.log('Resposta das opções de parcelamento:', data)
+      
       if (data.success) {
         setInstallmentOptions(data.options)
+        console.log('Opções de parcelamento carregadas:', data.options.length, 'opções')
+      } else {
+        console.error('Erro ao carregar opções de parcelamento:', data.error)
       }
     } catch (error) {
       console.error('Erro ao carregar opções de parcelamento:', error)
@@ -121,12 +133,19 @@ export function AsaasCheckout({
     onLoading?.(true)
 
     try {
+      const authToken = localStorage.getItem('authToken')
+      console.log('Token de autenticação:', authToken ? 'Presente' : 'Ausente')
+      
+      if (!authToken) {
+        onError('Token de autenticação não encontrado. Faça login novamente.')
+        return
+      }
+
       const paymentData: any = {
+        customer_id: "temp", // O backend vai criar/obter o customer
         billing_type: paymentMethod,
         value: amount,
         description,
-        customer_name: customerData.name,
-        customer_email: customerData.email,
         customer_cpf: customerData.cpf,
         customer_phone: customerData.phone,
         customer_mobile_phone: customerData.mobilePhone
@@ -149,18 +168,23 @@ export function AsaasCheckout({
         paymentData.due_date = dueDate.toISOString().split('T')[0]
       }
 
+      console.log('Dados enviados para pagamento:', paymentData)
+
       const response = await fetch('/api/payment/create/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Token ${localStorage.getItem('token')}`
+          'Authorization': `Token ${authToken}`
         },
         body: JSON.stringify(paymentData)
       })
 
+      console.log('Status da resposta:', response.status)
+      
       const result = await response.json()
+      console.log('Resposta do pagamento:', result)
 
-      if (result.success) {
+      if (response.ok && result.success) {
         setPaymentResult(result)
         
         // Configurar dados específicos do método de pagamento
@@ -173,11 +197,18 @@ export function AsaasCheckout({
         
         onSuccess(result.payment_id, result)
       } else {
-        onError(result.error || 'Erro ao processar pagamento')
+        console.error('Erro no pagamento:', result)
+        if (response.status === 401) {
+          onError('Sessão expirada. Faça login novamente.')
+        } else if (response.status === 500) {
+          onError('Erro interno do servidor. Tente novamente em alguns minutos.')
+        } else {
+          onError(result.error || result.errors || result.detail || 'Erro ao processar pagamento')
+        }
       }
     } catch (error) {
       console.error('Erro no pagamento:', error)
-      onError('Erro interno. Tente novamente.')
+      onError('Erro de conexão. Verifique sua internet e tente novamente.')
     } finally {
       setIsLoading(false)
       onLoading?.(false)
@@ -420,30 +451,53 @@ export function AsaasCheckout({
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <Label className="text-gray-300">Mês</Label>
-                  <Select value={creditCard.expiryMonth} onValueChange={(value) => setCreditCard(prev => ({ ...prev, expiryMonth: value }))}>
-                    <SelectTrigger className="bg-zinc-800 text-white border-zinc-600">
+                  <Select 
+                    value={creditCard.expiryMonth} 
+                    onValueChange={(value) => {
+                      console.log('Mês selecionado:', value)
+                      setCreditCard(prev => ({ ...prev, expiryMonth: value }))
+                    }}
+                  >
+                    <SelectTrigger className="bg-zinc-800 text-white border-zinc-600 hover:bg-zinc-700">
                       <SelectValue placeholder="MM" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 12 }, (_, i) => (
-                        <SelectItem key={i + 1} value={String(i + 1).padStart(2, '0')}>
-                          {String(i + 1).padStart(2, '0')}
-                        </SelectItem>
-                      ))}
+                    <SelectContent className="bg-zinc-800 border-zinc-600 text-white z-[9999] max-h-60 overflow-y-auto">
+                      {Array.from({ length: 12 }, (_, i) => {
+                        const month = String(i + 1).padStart(2, '0')
+                        return (
+                          <SelectItem 
+                            key={month} 
+                            value={month} 
+                            className="text-white hover:bg-zinc-700 focus:bg-zinc-700 cursor-pointer"
+                          >
+                            {month}
+                          </SelectItem>
+                        )
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <Label className="text-gray-300">Ano</Label>
-                  <Select value={creditCard.expiryYear} onValueChange={(value) => setCreditCard(prev => ({ ...prev, expiryYear: value }))}>
-                    <SelectTrigger className="bg-zinc-800 text-white border-zinc-600">
+                  <Select 
+                    value={creditCard.expiryYear} 
+                    onValueChange={(value) => {
+                      console.log('Ano selecionado:', value)
+                      setCreditCard(prev => ({ ...prev, expiryYear: value }))
+                    }}
+                  >
+                    <SelectTrigger className="bg-zinc-800 text-white border-zinc-600 hover:bg-zinc-700">
                       <SelectValue placeholder="AAAA" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-zinc-800 border-zinc-600 text-white z-[9999] max-h-60 overflow-y-auto">
                       {Array.from({ length: 10 }, (_, i) => {
                         const year = new Date().getFullYear() + i
                         return (
-                          <SelectItem key={year} value={String(year)}>
+                          <SelectItem 
+                            key={year} 
+                            value={String(year)} 
+                            className="text-white hover:bg-zinc-700 focus:bg-zinc-700 cursor-pointer"
+                          >
                             {year}
                           </SelectItem>
                         )
