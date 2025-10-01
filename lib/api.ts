@@ -177,7 +177,6 @@ async function apiRequestJson<T>(
       }
     } catch (parseError) {
       // Se não conseguir fazer parse, usar a mensagem padrão
-      console.warn('Erro ao fazer parse da resposta de erro:', parseError);
     }
     
     const error = new Error(errorMessage);
@@ -208,7 +207,6 @@ async function apiRequestJson<T>(
     const result = await response.json();
     return result;
   } catch (parseError) {
-    console.error('Erro ao fazer parse do JSON da resposta:', parseError);
     // Se falhar ao fazer parse, retornar um objeto indicando sucesso
     return { success: true, message: 'Operação realizada com sucesso' } as T;
   }
@@ -285,7 +283,6 @@ export const eventsApi = {
   purchaseTickets: async (eventId: string | number, quantity: number): Promise<{ success: boolean; message: string; remaining_tickets?: number }> => {
     // ✅ DEPRECATED - Não usar mais este endpoint
     // O checkout já cria o pedido durante o pagamento
-    console.warn('purchaseTickets está deprecated. Use checkout integrado.')
     
     return Promise.resolve({
       success: true,
@@ -309,7 +306,6 @@ export const eventsApi = {
           const user = JSON.parse(userStr);
           userId = parseInt(user.id) || 1;
         } catch (e) {
-          console.warn('Failed to parse user from localStorage:', e);
         }
       }
     }
@@ -351,7 +347,6 @@ export const occurrencesApi = {
       
       return response;
     } catch (error) {
-      console.error('Erro ao reservar ingressos:', error);
       return {
         success: false,
         message: 'Erro interno do servidor'

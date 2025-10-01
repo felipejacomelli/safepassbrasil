@@ -91,7 +91,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const storedUser = localStorage.getItem("user")
       const storedToken = localStorage.getItem("authToken")
       
-      console.log('AuthContext Init - storedUser:', !!storedUser, 'storedToken:', !!storedToken)
       
       if (storedUser) {
         setUser(JSON.parse(storedUser))
@@ -103,7 +102,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         // Se não há token válido, limpar dados antigos e finalizar loading
         if (storedUser) {
-          console.log('Removendo dados de usuário sem token válido');
           localStorage.removeItem('user');
           setUser(null);
         }
@@ -123,7 +121,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const storedToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
       
       if (!storedToken) {
-        console.log('Nenhum token encontrado, pulando verificação de sessão');
         setIsLoading(false);
         return;
       }
@@ -131,7 +128,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Tentar obter perfil com a API para verificar se há sessão ativa
       const profile = await authApi.getProfile()
       // Se conseguiu obter o perfil, significa que há uma sessão válida
-      console.log('Sessão válida encontrada:', profile)
       
       // Determine if user is admin based on backend fields
       const isAdmin = profile.is_staff || profile.is_superuser || false
@@ -154,7 +150,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         memberSince: profile.created_at ? new Date(profile.created_at).getFullYear().toString() : ''
       }
       
-      console.log('Auto-login - isAdmin:', isAdmin, 'is_staff:', profile.is_staff, 'is_superuser:', profile.is_superuser)
       
       setUser(updatedUser)
       if (typeof window !== 'undefined') {
@@ -165,11 +160,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         document.cookie = `userData=${JSON.stringify(updatedUser)}; path=/; max-age=${7 * 24 * 60 * 60}`; // 7 dias
       }
     } catch (error: any) {
-      console.log('Erro ao verificar sessão:', error.message || error);
       
       // Se o erro for de token inválido, limpar dados de autenticação
       if (error.message && (error.message.includes('Invalid token') || error.message.includes('401') || error.message.includes('Unauthorized'))) {
-        console.log('Token inválido detectado, limpando dados de autenticação');
         if (typeof window !== 'undefined') {
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');
@@ -230,7 +223,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         document.cookie = `userData=${JSON.stringify(loggedInUser)}; path=/; max-age=${7 * 24 * 60 * 60}`; // 7 dias
       }
 
-      console.log('Login successful - isAdmin:', isAdmin, 'is_staff:', profile.is_staff, 'is_superuser:', profile.is_superuser);
 
       return { success: true, isAdmin: loggedInUser.isAdmin };
     } catch (error) {
@@ -270,7 +262,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         memberSince: response.created_at ? new Date(response.created_at).getFullYear().toString() : ''
       }
 
-      console.log('Register - isAdmin:', isAdmin, 'is_staff:', response.is_staff, 'is_superuser:', response.is_superuser);
 
       setUser(registeredUser);
       if (typeof window !== 'undefined') {
@@ -349,22 +340,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
       
       if (!token) {
-        console.error('❌ Token de autenticação não encontrado');
         return { success: false, message: 'Token de autenticação não encontrado. Faça login novamente.' };
       }
 
       // Verificar se o usuário está autenticado no estado
       if (!user) {
-        console.error('❌ Usuário não está autenticado no estado');
         return { success: false, message: 'Usuário não autenticado. Faça login novamente.' };
       }
 
       // Verificar se o token ainda é válido fazendo uma requisição de teste
       try {
         await authApi.getProfile();
-        console.log('✅ Token validado com sucesso');
       } catch (tokenError) {
-        console.error('❌ Token inválido ou expirado:', tokenError);
         // Limpar dados de autenticação inválidos
         setUser(null);
         if (typeof window !== 'undefined') {
@@ -421,7 +408,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           return JSON.parse(stored)
         } catch (error) {
-          console.error('Erro ao recuperar contexto de ocorrência:', error)
           localStorage.removeItem('pendingOccurrenceContext')
         }
       }

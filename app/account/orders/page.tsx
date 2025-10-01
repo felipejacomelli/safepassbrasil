@@ -195,7 +195,6 @@ export default function OrdersPage() {
         if (purchasedResponse.ok) {
           const purchasedData = await purchasedResponse.json()
           setPurchasedTickets(purchasedData.tickets || [])
-          console.log('✅ Tickets comprados carregados:', purchasedData.count)
         }
       } catch (error) {
         console.error('Erro ao carregar dados:', error)
@@ -241,7 +240,6 @@ export default function OrdersPage() {
   const pendingBalance = realPendingBalance
 
   const handleWithdrawal = () => {
-    console.log("Withdrawal requested:", withdrawalAmount, selectedPaymentMethod)
     setShowWithdrawalForm(false)
     setWithdrawalAmount("")
   }
