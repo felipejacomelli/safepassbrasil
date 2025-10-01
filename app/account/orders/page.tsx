@@ -28,9 +28,19 @@ interface Ticket {
   name: string
   quantity: number
   price: string
-  status: number
-  event: string
-  event_name?: string
+  status: string | number
+  event: {
+    id: string
+    name: string
+    slug: string
+    status: string
+  }
+  occurrence?: {
+    id: string
+    start_at: string
+    city: string
+    state: string
+  }
   order?: string
   created_at: string
   updated_at: string
@@ -43,8 +53,19 @@ interface Sale {
   name: string
   quantity: number
   price: string
-  status: number
-  event: string
+  status: string | number
+  event: {
+    id: string
+    name: string
+    slug: string
+    status: string
+  }
+  occurrence?: {
+    id: string
+    start_at: string
+    city: string
+    state: string
+  }
   order?: string
   created_at: string
   updated_at: string
@@ -67,6 +88,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/contexts/auth-context"
 import { formatCurrency } from "@/utils/formatCurrency"
+import { ShareTicketModal } from "@/components/ShareTicketModal"
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -78,6 +100,7 @@ import {
   Landmark,
   CreditCard,
   User,
+  Share,
 } from "lucide-react"
 
 export default function OrdersPage() {
@@ -101,6 +124,10 @@ export default function OrdersPage() {
   const [soldTickets, setSoldTickets] = useState<Sale[]>([])
   const [purchasedTickets, setPurchasedTickets] = useState<Ticket[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // Estados para compartilhamento
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [selectedTicketForShare, setSelectedTicketForShare] = useState<Ticket | null>(null)
   const [realBalance, setRealBalance] = useState(0)
   const [realPendingBalance, setRealPendingBalance] = useState(0)
   const [activeSalesTab, setActiveSalesTab] = useState("for-sale")
@@ -129,21 +156,20 @@ export default function OrdersPage() {
         }
         
         // Carregar pedidos do usuário
-        const orderFilter = encodeURIComponent(JSON.stringify({"user": parseInt(user?.id || '0')}))
-        const ordersResponse = await apiRequest(`/order_app/orders/by/?filter_by=${orderFilter}`)
+        const ordersResponse = await apiRequest(`/api/orders`)
         if (ordersResponse.ok) {
           const ordersData = await ordersResponse.json()
           setOrders(ordersData.orders || [])
         }
 
         // Carregar vendas (tickets à venda pelo usuário - sem comprador)
-        const salesResponse = await apiRequest(`/ticket_app/tickets?user=${parseInt(user?.id || '0')}&buyer__isnull=true`)
+        const salesResponse = await apiRequest(`/api/tickets/`)
         if (salesResponse.ok) {
           const salesData = await salesResponse.json()
-          setSales(salesData.Ticket || [])
+          setSales(salesData.tickets || [])
           
           // Calcular saldo pendente baseado nos tickets à venda
-          const totalPendingBalance = salesData.Ticket?.reduce((sum: number, ticket: any) => {
+          const totalPendingBalance = salesData.tickets?.reduce((sum: number, ticket: any) => {
             return sum + (parseFloat(ticket.price) * ticket.quantity)
           }, 0) || 0
           
@@ -151,25 +177,25 @@ export default function OrdersPage() {
         }
 
         // Carregar tickets vendidos (com comprador)
-        const soldResponse = await apiRequest(`/ticket_app/tickets/sold`)
+        const soldResponse = await apiRequest(`/api/tickets/sold/`)
         if (soldResponse.ok) {
           const soldData = await soldResponse.json()
-          setSoldTickets(soldData.Ticket || [])
+          setSoldTickets(soldData.tickets || [])
           
           // Calcular saldo disponível baseado nos tickets vendidos efetivamente
-          const totalSoldBalance = soldData.Ticket?.reduce((sum: number, ticket: any) => {
+          const totalSoldBalance = soldData.tickets?.reduce((sum: number, ticket: any) => {
             return sum + (parseFloat(ticket.price) * ticket.quantity)
           }, 0) || 0
           
           setRealBalance(totalSoldBalance)
         }
 
-        // Carregar tickets comprados pelo usuário
-        const purchasedFilter = encodeURIComponent(JSON.stringify({"buyer": parseInt(user?.id || '0')}))
-        const purchasedResponse = await apiRequest(`/ticket_app/tickets/by/?filter_by=${purchasedFilter}`)
+        // ✅ FASE 6: Carregar tickets comprados pelo usuário
+        const purchasedResponse = await apiRequest(`/api/tickets/purchased/`)
         if (purchasedResponse.ok) {
           const purchasedData = await purchasedResponse.json()
-          setPurchasedTickets(purchasedData.Ticket || [])
+          setPurchasedTickets(purchasedData.tickets || [])
+          console.log('✅ Tickets comprados carregados:', purchasedData.count)
         }
       } catch (error) {
         console.error('Erro ao carregar dados:', error)
@@ -203,6 +229,12 @@ export default function OrdersPage() {
     if (statusFilter !== "all" && ticket.status.toString() !== statusFilter) return false
     return true
   })
+
+  // Função para abrir modal de compartilhamento
+  const handleShareTicket = (ticket: Ticket) => {
+    setSelectedTicketForShare(ticket)
+    setShareModalOpen(true)
+  }
 
   // Calculate balance from real data
   const balance = realBalance
@@ -408,7 +440,7 @@ export default function OrdersPage() {
                           <h3 className="text-white font-medium">{ticket.name}</h3>
                         </div>
                         <p className="text-gray-300 mt-1">Quantidade: {ticket.quantity}</p>
-                        <p className="text-gray-300">Evento ID: {ticket.event}</p>
+                        <p className="text-gray-300">{ticket.event?.name || 'Evento'}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-red-500 font-semibold text-lg">
@@ -436,10 +468,21 @@ export default function OrdersPage() {
                     </div>
                     <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
                       <p className="text-gray-400 text-xs">ID: {ticket.id}</p>
-                      <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
-                        <ExternalLink className="w-4 h-4 mr-1" />
-                        Detalhes
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-green-500 hover:text-green-400"
+                          onClick={() => handleShareTicket(ticket)}
+                        >
+                          <Share className="w-4 h-4 mr-1" />
+                          Compartilhar
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
+                          <ExternalLink className="w-4 h-4 mr-1" />
+                          Detalhes
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -478,7 +521,7 @@ export default function OrdersPage() {
                               <ArrowDownToLine className="w-5 h-5 text-blue-500 mr-2" />
                               <h3 className="text-white font-medium">{sale.name}</h3>
                             </div>
-                            <p className="text-gray-300 mt-1">Evento #{sale.event}</p>
+                            <p className="text-gray-300 mt-1">{sale.event?.name || 'Evento'}</p>
                             <p className="text-gray-400 text-sm">Quantidade: {sale.quantity}</p>
                           </div>
                           <div className="text-right">
@@ -537,7 +580,7 @@ export default function OrdersPage() {
                               <ArrowDownToLine className="w-5 h-5 text-green-500 mr-2" />
                               <h3 className="text-white font-medium">{ticket.name}</h3>
                             </div>
-                            <p className="text-gray-300 mt-1">Evento #{ticket.event}</p>
+                            <p className="text-gray-300 mt-1">{ticket.event?.name || 'Evento'}</p>
                             <p className="text-gray-400 text-sm">Quantidade: {ticket.quantity}</p>
                             <p className="text-gray-400 text-sm">Comprador: #{ticket.buyer}</p>
                           </div>
@@ -570,6 +613,19 @@ export default function OrdersPage() {
           </Tabs>
         </div>
       </div>
+      
+      {/* Modal de Compartilhamento */}
+      {selectedTicketForShare && (
+        <ShareTicketModal
+          isOpen={shareModalOpen}
+          onClose={() => {
+            setShareModalOpen(false)
+            setSelectedTicketForShare(null)
+          }}
+          ticketId={selectedTicketForShare.id}
+          eventName={selectedTicketForShare.event?.name || 'Evento'}
+        />
+      )}
     </div>
   )
 }

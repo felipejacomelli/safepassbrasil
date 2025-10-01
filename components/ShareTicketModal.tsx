@@ -40,7 +40,7 @@ export function ShareTicketModal({ isOpen, onClose, ticketId, eventName }: Share
         message: message || undefined
       }
 
-      const response = await fetch(`${apiUrl}/api/v1/sharing/links/`, {
+      const response = await fetch(`${apiUrl}/links/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

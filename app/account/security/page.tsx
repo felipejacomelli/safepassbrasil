@@ -85,12 +85,12 @@ export default function SecurityPage() {
         }
 
         // Carregar vendas (tickets à venda pelo usuário - sem comprador)
-        const salesResponse = await apiRequest(`/ticket_app/tickets?user=${parseInt(user?.id || '0')}&buyer__isnull=true`)
+        const salesResponse = await apiRequest(`/api/tickets/`)
         if (salesResponse.ok) {
           const salesData = await salesResponse.json()
           
           // Calcular saldo pendente baseado nos tickets à venda
-          const totalPendingBalance = salesData.Ticket?.reduce((sum: number, ticket: any) => {
+          const totalPendingBalance = salesData.tickets?.reduce((sum: number, ticket: any) => {
             return sum + (parseFloat(ticket.price) * ticket.quantity)
           }, 0) || 0
           
@@ -98,12 +98,12 @@ export default function SecurityPage() {
         }
 
         // Carregar tickets vendidos (com comprador)
-        const soldResponse = await apiRequest(`/ticket_app/tickets/sold`)
+        const soldResponse = await apiRequest(`/api/tickets/sold/`)
         if (soldResponse.ok) {
           const soldData = await soldResponse.json()
           
           // Calcular saldo disponível baseado nos tickets vendidos efetivamente
-          const totalSoldBalance = soldData.Ticket?.reduce((sum: number, ticket: any) => {
+          const totalSoldBalance = soldData.tickets?.reduce((sum: number, ticket: any) => {
             return sum + (parseFloat(ticket.price) * ticket.quantity)
           }, 0) || 0
           
