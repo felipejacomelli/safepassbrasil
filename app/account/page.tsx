@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AccountSidebar } from "@/components/AccountSidebar"
-import { CheckCircle, Clock, Edit, Mail, Phone, MapPin, Shield, User, CreditCard, Bell, Lock } from "lucide-react"
+import { CheckCircle, Clock, Edit, Mail, Phone, MapPin, Shield, User, CreditCard, Bell, Lock, Upload, Trash2, Camera } from "lucide-react"
 import { formatCpf } from "@/utils/cpf"
+import { validateImageFile, uploadImage } from "@/lib/upload"
 
 export default function AccountPage() {
   const { user, logout, updateUser, isAuthenticated, isLoading } = useAuth()
@@ -30,6 +31,14 @@ export default function AccountPage() {
   const [realPendingBalance, setRealPendingBalance] = useState(0)
   const [loading, setLoading] = useState(true)
 
+  // Estados para upload de foto
+  const [profileImage, setProfileImage] = useState<string>("")
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
+  const [photoError, setPhotoError] = useState("")
+  const [showPhotoDialog, setShowPhotoDialog] = useState(false)
+  const [photoPreview, setPhotoPreview] = useState<string>("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   // Verificar autenticação
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -46,6 +55,7 @@ export default function AccountPage() {
         email: user.email || "",
         phone: user.phone || "",
       })
+      setProfileImage(user.profileImage || "")
     }
   }, [user])
 
@@ -193,6 +203,108 @@ export default function AccountPage() {
       })
     }
     setIsEditing(false)
+  }
+
+  // Função para abrir seletor de arquivo
+  const handleChangePhotoClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  // Função para lidar com seleção de arquivo
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Limpar estados anteriores
+    setPhotoError("")
+    
+    // Validar arquivo
+    const validation = validateImageFile(file)
+    if (!validation.valid) {
+      setPhotoError(validation.error || "Arquivo inválido")
+      return
+    }
+
+    // Criar preview local
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setPhotoPreview(event.target?.result as string)
+      setShowPhotoDialog(true)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  // Função para confirmar upload da foto
+  const handleConfirmPhotoUpload = async () => {
+    const file = fileInputRef.current?.files?.[0]
+    if (!file) return
+
+    setIsUploadingPhoto(true)
+    setPhotoError("")
+
+    try {
+      // Fazer upload da imagem usando a mesma função de eventos
+      const uploadResult = await uploadImage(file)
+      
+      if (!uploadResult.success) {
+        setPhotoError(uploadResult.error || "Erro no upload")
+        return
+      }
+
+      // Atualizar foto de perfil no backend
+      const result = await updateUser({
+        profileImage: uploadResult.url,
+      })
+
+      if (result.success) {
+        setProfileImage(uploadResult.url || "")
+        setShowPhotoDialog(false)
+        setPhotoPreview("")
+        setSaveMessage("Foto de perfil atualizada com sucesso!")
+        setTimeout(() => setSaveMessage(""), 3000)
+      } else {
+        setPhotoError(result.message || "Erro ao atualizar foto de perfil")
+      }
+    } catch (error) {
+      console.error("Erro ao fazer upload:", error)
+      setPhotoError("Erro inesperado ao fazer upload")
+    } finally {
+      setIsUploadingPhoto(false)
+      // Limpar input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+    }
+  }
+
+  // Função para cancelar upload
+  const handleCancelPhotoUpload = () => {
+    setShowPhotoDialog(false)
+    setPhotoPreview("")
+    setPhotoError("")
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  // Função para remover foto
+  const handleRemovePhoto = async () => {
+    try {
+      const result = await updateUser({
+        profileImage: "",
+      })
+
+      if (result.success) {
+        setProfileImage("")
+        setSaveMessage("Foto de perfil removida com sucesso!")
+        setTimeout(() => setSaveMessage(""), 3000)
+      } else {
+        setPhotoError(result.message || "Erro ao remover foto de perfil")
+      }
+    } catch (error) {
+      console.error("Erro ao remover foto:", error)
+      setPhotoError("Erro inesperado ao remover foto")
+    }
   }
 
   return (
@@ -482,12 +594,29 @@ export default function AccountPage() {
             {/* Profile Card */}
             <div className="bg-zinc-900 rounded-lg p-6 mb-6">
               <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
-                <div className="w-24 h-24 bg-zinc-800 rounded-full overflow-hidden">
-                  <img
-                    src={user?.profileImage || "/placeholder.svg?height=100&width=100"}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="relative">
+                  <div className="w-24 h-24 bg-zinc-800 rounded-full overflow-hidden">
+                    {profileImage ? (
+                      <img
+                        src={profileImage}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <User className="w-12 h-12 text-zinc-600" />
+                      </div>
+                    )}
+                  </div>
+                  {profileImage && (
+                    <button
+                      onClick={handleRemovePhoto}
+                      className="absolute -top-1 -right-1 w-6 h-6 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center transition-colors"
+                      title="Remover foto"
+                    >
+                      <Trash2 className="w-3 h-3 text-white" />
+                    </button>
+                  )}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -506,10 +635,27 @@ export default function AccountPage() {
                     )}
                   </div>
                   <p className="text-gray-400">Membro desde {user?.memberSince}</p>
-                  <Button variant="outline" size="sm" className="mt-2 border-zinc-700 text-white bg-transparent">
-                    <Edit className="w-4 h-4 mr-2" />
-                    Alterar foto
-                  </Button>
+                  <div className="flex items-center gap-2 mt-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="border-zinc-700 text-white bg-transparent hover:bg-zinc-800"
+                      onClick={handleChangePhotoClick}
+                    >
+                      <Camera className="w-4 h-4 mr-2" />
+                      Alterar foto
+                    </Button>
+                  </div>
+                  {photoError && (
+                    <p className="text-red-400 text-sm mt-2">{photoError}</p>
+                  )}
                 </div>
               </div>
 
@@ -746,6 +892,69 @@ export default function AccountPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Confirmação de Upload de Foto */}
+      {showPhotoDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-900 rounded-lg p-6 max-w-md w-full border border-zinc-700">
+            <h3 className="text-xl font-bold text-white mb-4">Confirmar Nova Foto</h3>
+            
+            {/* Preview da foto */}
+            <div className="mb-6">
+              <div className="w-32 h-32 mx-auto bg-zinc-800 rounded-full overflow-hidden">
+                {photoPreview && (
+                  <img
+                    src={photoPreview}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Mensagem de erro */}
+            {photoError && (
+              <div className="mb-4 p-3 bg-red-900 bg-opacity-20 border border-red-800 rounded-md">
+                <p className="text-red-400 text-sm">{photoError}</p>
+              </div>
+            )}
+
+            {/* Informação */}
+            <p className="text-gray-400 text-sm mb-6">
+              Deseja atualizar sua foto de perfil com esta imagem?
+            </p>
+
+            {/* Botões */}
+            <div className="flex gap-3">
+              <Button
+                onClick={handleCancelPhotoUpload}
+                variant="outline"
+                className="flex-1 border-zinc-700 text-white bg-transparent hover:bg-zinc-800"
+                disabled={isUploadingPhoto}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleConfirmPhotoUpload}
+                className="flex-1 bg-primary hover:bg-blue-600 text-black"
+                disabled={isUploadingPhoto}
+              >
+                {isUploadingPhoto ? (
+                  <>
+                    <Upload className="w-4 h-4 mr-2 animate-pulse" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Confirmar
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
