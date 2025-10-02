@@ -45,8 +45,7 @@ export function validateImageFile(file: File): { valid: boolean; error?: string 
 }
 
 /**
- * Processa upload de imagem (por enquanto converte para base64)
- * No futuro pode ser substituído por upload para storage (AWS S3, Cloudinary, etc.)
+ * Processa upload de imagem usando Vercel Blob Storage
  */
 export async function uploadImage(file: File): Promise<UploadResult> {
   try {
@@ -63,18 +62,9 @@ export async function uploadImage(file: File): Promise<UploadResult> {
     const formData = new FormData()
     formData.append('image', compressedFile)
 
-    // Obter token de autenticação
-    const token = localStorage.getItem('authToken')
-    if (!token) {
-      return { success: false, error: 'Token de autenticação não encontrado' }
-    }
-
-    // Fazer upload para o backend
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/upload-image/`, {
+    // Fazer upload para a API route do Next.js (que usa Vercel Blob)
+    const response = await fetch('/api/upload', {
       method: 'POST',
-      headers: {
-        'Authorization': `Token ${token}`,
-      },
       body: formData,
     })
 
