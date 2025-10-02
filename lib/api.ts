@@ -37,6 +37,7 @@ export interface ApiUser {
   email: string;
   phone?: string;
   location?: string;
+  profile_image?: string;
   created_at?: string;
   cpf?: string;
   country?: string;
@@ -51,6 +52,7 @@ export interface UpdateUserRequest {
   location?: string
   cpf?: string
   country?: string
+  profile_image?: string
 }
 
 // Tipos para os dados da API
@@ -410,7 +412,7 @@ export const authApi = {
   // Atualizar perfil do usuário
   updateProfile: async (userData: UpdateUserRequest): Promise<ApiUser> => {
     return apiRequestJson<ApiUser>('/api/profile/', {
-      method: 'PATCH',
+      method: 'PUT',
       body: JSON.stringify(userData),
     });
   },

@@ -23,6 +23,7 @@ export default function AccountPage() {
     phone: "",
   })
   const [phoneError, setPhoneError] = useState("")
+  const [emailError, setEmailError] = useState("")
   const [saveMessage, setSaveMessage] = useState("")
   const [saveError, setSaveError] = useState("")
   
@@ -152,10 +153,30 @@ export default function AccountPage() {
     return ""
   }
 
+  const validateEmail = (email: string) => {
+    if (!email) return "Email é obrigatório"
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return "Email inválido"
+    }
+    
+    return ""
+  }
+
   const handleSave = async () => {
     // Limpar mensagens anteriores
     setSaveMessage("")
     setSaveError("")
+    setPhoneError("")
+    setEmailError("")
+    
+    // Validar email antes de salvar
+    const emailValidationError = validateEmail(formData.email)
+    if (emailValidationError) {
+      setEmailError(emailValidationError)
+      return
+    }
     
     // Validar telefone antes de salvar
     const phoneValidationError = validatePhone(formData.phone)
@@ -163,8 +184,6 @@ export default function AccountPage() {
       setPhoneError(phoneValidationError)
       return
     }
-    
-    setPhoneError("")
     
     // Atualizar perfil usando a API
     try {
@@ -193,6 +212,7 @@ export default function AccountPage() {
     setSaveMessage("")
     setSaveError("")
     setPhoneError("")
+    setEmailError("")
     
     // Restaurar dados originais do usuário
     if (user) {
@@ -686,13 +706,23 @@ export default function AccountPage() {
                       Email
                     </Label>
                     {isEditing ? (
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="bg-zinc-800 border-zinc-700 text-white"
-                      />
+                      <div>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => {
+                            setFormData({ ...formData, email: e.target.value })
+                            // Limpar erro quando o usuário começar a digitar
+                            if (emailError) setEmailError("")
+                          }}
+                          className={`bg-zinc-800 border-zinc-700 text-white ${emailError ? 'border-red-500' : ''}`}
+                          placeholder="seu@email.com"
+                        />
+                        {emailError && (
+                          <p className="text-red-500 text-sm mt-1">{emailError}</p>
+                        )}
+                      </div>
                     ) : (
                       <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded-md">
                         <Mail className="w-5 h-5 text-primary" />
@@ -708,6 +738,7 @@ export default function AccountPage() {
                     <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded-md">
                       <Shield className="w-5 h-5 text-primary" />
                       <span className="text-white">{formatCpf(user?.cpf) || "Não informado"}</span>
+                      <span className="text-xs text-gray-500 ml-auto">Não editável</span>
                     </div>
                   </div>
 
@@ -747,6 +778,7 @@ export default function AccountPage() {
                     <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded-md">
                       <MapPin className="w-5 h-5 text-primary" />
                       <span className="text-white">{user?.country || "Não informado"}</span>
+                      <span className="text-xs text-gray-500 ml-auto">Não editável</span>
                     </div>
                   </div>
                 </div>

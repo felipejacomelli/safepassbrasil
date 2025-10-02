@@ -361,14 +361,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, message: 'Sessão expirada. Faça login novamente.' };
       }
 
-      // Atualizar com a API real - mapear address do frontend para location do backend
+      // Atualizar com a API real - mapear campos corretamente
       const response = await authApi.updateProfile({
         name: data.name,
         email: data.email,
         phone: data.phone,
-        location: data.address, // Frontend usa address, backend espera location
-        cpf: data.cpf,
         country: data.country,
+        profile_image: data.profileImage, // Mapear profileImage para profile_image
       });
 
       // Atualizar o usuário local com os dados retornados da API
@@ -380,6 +379,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         address: response.location, // Backend retorna location, frontend usa address
         cpf: response.cpf,
         country: response.country,
+        profileImage: response.profile_image, // Mapear profile_image para profileImage
       };
 
       setUser(updatedUser);
