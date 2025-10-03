@@ -405,16 +405,6 @@ export default function OrdersPage() {
                   <option value="2">Concluído</option>
                   <option value="3">Cancelado</option>
                 </select>
-                
-                <Button variant="outline" size="sm" className="border-zinc-700 text-white hover:bg-zinc-800">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filtros
-                </Button>
-                
-                <Button variant="outline" size="sm" className="border-zinc-700 text-white hover:bg-zinc-800">
-                  <Download className="w-4 h-4 mr-2" />
-                  Exportar
-                </Button>
               </div>
             </div>
 
@@ -475,10 +465,6 @@ export default function OrdersPage() {
                         >
                           <Share className="w-4 h-4 mr-1" />
                           Compartilhar
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
-                          <ExternalLink className="w-4 h-4 mr-1" />
-                          Detalhes
                         </Button>
                       </div>
                     </div>
@@ -549,10 +535,17 @@ export default function OrdersPage() {
                         </div>
                         <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
                           <p className="text-gray-400 text-xs">ID: {sale.id}</p>
-                          <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
-                            <ExternalLink className="w-4 h-4 mr-1" />
-                            Detalhes
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-green-500 hover:text-green-400"
+                              onClick={() => handleShareTicket(sale)}
+                            >
+                              <Share className="w-4 h-4 mr-1" />
+                              Compartilhar
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))
@@ -597,10 +590,6 @@ export default function OrdersPage() {
                         </div>
                         <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
                           <p className="text-gray-400 text-xs">ID: {ticket.id}</p>
-                          <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
-                            <ExternalLink className="w-4 h-4 mr-1" />
-                            Detalhes
-                          </Button>
                         </div>
                       </div>
                     ))
