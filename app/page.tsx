@@ -15,6 +15,7 @@ import {
     ChevronDown,
     LogOut,
     UserCircle,
+    Ticket,
 } from "lucide-react"
 
 export default function Page() {
@@ -299,84 +300,88 @@ export default function Page() {
                 </div>
             </section>
 
-            {/* Localizações */}
+            {/* Eventos Populares */}
             <section className="bg-zinc-900 py-12 px-4 border-t border-zinc-800">
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="text-2xl font-bold mb-6">Eventos por localização</h2>
-                    {locations.length === 0 ? (
-                        <p>Nenhum local encontrado.</p>
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-bold">Eventos populares</h2>
+                        <button
+                            onClick={() => router.push("/search")}
+                            className="text-blue-500 hover:text-blue-400 font-medium text-sm transition-colors"
+                        >
+                            Ver tudo
+                        </button>
+                    </div>
+                    
+                    {isLoading ? (
+                        <p>Carregando...</p>
+                    ) : error ? (
+                        <p className="text-red-500">Erro ao carregar eventos.</p>
+                    ) : events.length === 0 ? (
+                        <p>Nenhum evento encontrado.</p>
                     ) : (
-                        <>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                                {paginatedLocations.map((loc: any) => {
-                                    // Função para obter imagem da cidade baseada no UF
-                                    const getCityImage = (uf: string) => {
-                                        const cityImages: { [key: string]: string } = {
-                                            'SP': 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400&h=300&fit=crop&crop=entropy&auto=format&q=60',
-                                            'RJ': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=400&h=300&fit=crop&crop=entropy&auto=format&q=60',
-                                            'MG': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop&crop=entropy&auto=format&q=60',
-                                            'RS': 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=400&h=300&fit=crop&crop=entropy&auto=format&q=60',
-                                            'PR': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop&crop=entropy&auto=format&q=60',
-                                            'SC': 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=400&h=300&fit=crop&crop=entropy&auto=format&q=60',
-                                            'BA': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop&crop=entropy&auto=format&q=60',
-                                            'GO': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop&crop=entropy&auto=format&q=60',
-                                            'PE': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop&crop=entropy&auto=format&q=60',
-                                            'CE': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop&crop=entropy&auto=format&q=60',
-                                            'DF': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop&crop=entropy&auto=format&q=60',
-                                            'ES': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop&crop=entropy&auto=format&q=60'
-                                        }
-                                        return cityImages[uf] || 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&h=300&fit=crop&crop=entropy&auto=format&q=60'
-                                    }
-
-                                    return (
-                                        <button
-                                            key={loc.state || loc.uf}
-                                            onClick={() => router.push(`/search?location=${encodeURIComponent(loc.state || loc.uf)}`)}
-                                            className="bg-zinc-800 rounded overflow-hidden hover:shadow-lg hover:scale-105 transition"
-                                        >
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                            {events
+                                .sort((a: any, b: any) => {
+                                    // Ordenar por número de ingressos vendidos (assumindo que existe uma propriedade tickets_sold)
+                                    const ticketsSoldA = a.tickets_sold || 0
+                                    const ticketsSoldB = b.tickets_sold || 0
+                                    return ticketsSoldB - ticketsSoldA
+                                })
+                                .slice(0, 8)
+                                .map((event: any) => (
+                                    <div
+                                        key={event.id}
+                                        className="bg-zinc-800 rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition cursor-pointer"
+                                        onClick={() => {
+                                            if (event.occurrences && event.occurrences.length > 0) {
+                                                const firstOccurrence = event.occurrences[0]
+                                                const cityDate = `${firstOccurrence.city}-${new Date(firstOccurrence.start_at).toISOString().split('T')[0]}`
+                                                router.push(`/event/${event.slug}/${cityDate}`)
+                                            }
+                                        }}
+                                    >
+                                        <div className="relative">
                                             <img
-                                                src={getCityImage(loc.uf || loc.state)}
-                                                alt={`Imagem de ${loc.state || loc.uf}`}
+                                                src={event.image || "/placeholder.jpg"}
+                                                alt={event.name}
                                                 className="w-full h-32 object-cover"
                                             />
-                                            <div className="p-3 text-left">
-                                                <span className="font-semibold">{loc.state || loc.uf}</span>
-                                                <span className="block text-sm text-zinc-400">
-                                                    {loc.event_count} eventos
+                                            <div className="absolute top-2 right-2 bg-blue-500 text-black text-xs font-bold px-2 py-1 rounded">
+                                                {event.occurrences && event.occurrences.length > 0 && (
+                                                    <>
+                                                        {new Date(event.occurrences[0].start_at).toLocaleDateString('pt-BR', {
+                                                            day: '2-digit',
+                                                            month: '2-digit'
+                                                        })}
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="p-3">
+                                            <h3 className="font-semibold text-white text-sm mb-1 line-clamp-2">
+                                                {event.name}
+                                            </h3>
+                                            <div className="flex items-center gap-1 text-zinc-400 text-xs mb-2">
+                                                <MapPin size={12} />
+                                                <span>
+                                                    {event.occurrences && event.occurrences.length > 0 && (
+                                                        `${event.occurrences[0].city}, ${event.occurrences[0].uf}`
+                                                    )}
                                                 </span>
                                             </div>
-                                        </button>
-                                    )
-                                })}
-                            </div>
-
-                            {/* Controles de paginação para locais */}
-                            {totalLocationsPages > 1 && (
-                                <div className="flex justify-center items-center mt-8 gap-4">
-                                    <button
-                                        onClick={() => setLocationsPage(Math.max(1, locationsPage - 1))}
-                                        disabled={locationsPage === 1}
-                                        className="flex items-center gap-2 px-4 py-2 bg-zinc-800 text-white rounded hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                    >
-                                        <ChevronLeft className="w-4 h-4" />
-                                        {/*Anterior*/}
-                                    </button>
-                                    
-                                    <span className="text-zinc-400">
-                                        Página {locationsPage} de {totalLocationsPages}
-                                    </span>
-                                    
-                                    <button
-                                        onClick={() => setLocationsPage(Math.min(totalLocationsPages, locationsPage + 1))}
-                                        disabled={locationsPage === totalLocationsPages}
-                                        className="flex items-center gap-2 px-4 py-2 bg-zinc-800 text-white rounded hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                    >
-                                        {/*Próximo*/}
-                                        <ChevronRight className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            )}
-                        </>
+                                            <div className="flex items-center gap-1 text-blue-500 text-xs">
+                                                <Ticket size={12} className="mr-1" />
+                                                <span>
+                                                    {event.total_available_tickets !== undefined 
+                                                        ? `${event.total_available_tickets} ingressos` 
+                                                        : "Ingressos esgotados"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                        </div>
                     )}
                 </div>
             </section>
@@ -583,23 +588,26 @@ export function EventCard({ event }: { event: any }) {
                         <MapPin className="w-4 h-4 mr-1" />
                         <span>{getEventLocations(event)}</span>
                     </div>
-                    <div className="text-lg font-bold text-blue-500 mb-3">
-                        {event.total_available_tickets !== undefined 
-                            ? `${event.total_available_tickets} ingressos` 
-                            : "Ingressos esgotados"}
+                    <div className="flex items-center text-lg font-bold text-blue-500 mb-3">
+                        <Ticket size={16} className="mr-2" />
+                        <span>
+                            {event.total_available_tickets !== undefined 
+                                ? `${event.total_available_tickets}` 
+                                : "Ingressos esgotados"}
+                        </span>
                     </div>
                 </div>
             </div>
             
             {/* Botão Venda seu ingresso */}
-            <div className="px-4 pb-4">
+            {/* <div className="px-4 pb-4">
                 <button
                     onClick={handleSellClick}
                     className="w-full bg-blue-500 hover:bg-blue-600 text-black font-semibold py-2 px-4 rounded transition-colors"
                 >
                     Venda seu ingresso
                 </button>
-            </div>
+            </div> */}
         </div>
     )
 }
