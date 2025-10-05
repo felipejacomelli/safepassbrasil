@@ -1,6 +1,6 @@
 "use client"
 
-import {useEffect, useState} from "react"
+import {useEffect, useState, useMemo} from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { useData } from "@/contexts/data-context"
@@ -27,6 +27,9 @@ export default function Page() {
     const [locationsPage, setLocationsPage] = useState(1)
     const [selectedState, setSelectedState] = useState<string | null>(null)
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+    const [isSellModalOpen, setIsSellModalOpen] = useState(false)
+    const [isLoadingRedirect, setIsLoadingRedirect] = useState(false)
+    const [searchTerm, setSearchTerm] = useState('')
     const pageSize = 4
     const locationsPageSize = 8
 
@@ -89,6 +92,69 @@ export default function Page() {
     const clearFilter = () => {
         setSelectedState(null)
     }
+
+    // Função para lidar com a seleção de evento para venda
+    const handleSellEventSelect = async (event: any) => {
+        if (!isAuthenticated) {
+            // Se não estiver autenticado, redireciona para login com parâmetro de retorno
+            const returnUrl = encodeURIComponent(`/event/${event.slug}/sell`)
+            router.push(`/login?returnUrl=${returnUrl}`)
+            return
+        }
+
+        setIsLoadingRedirect(true)
+        setIsSellModalOpen(false)
+        
+        // Simular um pequeno delay para feedback visual
+        setTimeout(() => {
+            router.push(`/event/${event.slug}/sell`)
+            setIsLoadingRedirect(false)
+        }, 300)
+    }
+
+    // Função para abrir modal de venda
+    const handleSellClick = () => {
+        setIsSellModalOpen(true)
+    }
+
+    // Função para fechar modal
+    const closeSellModal = () => {
+        setIsSellModalOpen(false)
+        setSearchTerm('') // Limpar busca ao fechar modal
+    }
+
+    // Função para filtrar eventos baseado no termo de busca (modal de venda)
+    const filteredSellEvents = useMemo(() => {
+        if (!searchTerm.trim()) {
+            return events
+        }
+        
+        return events.filter(event => 
+            event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            event.date.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+    }, [events, searchTerm])
+
+    // Função para lidar com teclas de atalho
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape' && isSellModalOpen) {
+                closeSellModal()
+            }
+        }
+
+        if (isSellModalOpen) {
+            document.addEventListener('keydown', handleKeyDown)
+            // Prevenir scroll do body quando modal estiver aberta
+            document.body.style.overflow = 'hidden'
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown)
+            document.body.style.overflow = 'unset'
+        }
+    }, [isSellModalOpen])
 
     return (
         <div className="min-h-screen rounded flex flex-col bg-black text-white">
@@ -193,11 +259,21 @@ export default function Page() {
                         Buscar Eventos
                     </button>
                     <button
-                        onClick={() => router.push("/sell")}
-                        className="border-2 border-blue-500 text-blue-500 font-bold py-3 px-6 rounded flex items-center justify-center gap-2 flex-1"
+                        onClick={handleSellClick}
+                        disabled={isLoadingRedirect}
+                        className="border-2 border-blue-500 text-blue-500 font-bold py-3 px-6 rounded flex items-center justify-center gap-2 flex-1 hover:bg-blue-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <Plus size={18} />
-                        Vender Ingressos
+                        {isLoadingRedirect ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                Redirecionando...
+                            </>
+                        ) : (
+                            <>
+                                <Plus size={18} />
+                                Vender Ingressos
+                            </>
+                        )}
                     </button>
                 </div>
             </section>
@@ -385,6 +461,206 @@ export default function Page() {
                     )}
                 </div>
             </section>
+
+            {/* Modal de Seleção de Evento para Venda */}
+            {isSellModalOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    onClick={closeSellModal}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="sell-modal-title"
+                >
+                    <div 
+                        className="bg-zinc-900 rounded-xl border border-zinc-700 w-full max-w-2xl max-h-[80vh] flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header da Modal */}
+                        <div className="flex items-center justify-between p-6 border-b border-zinc-700 flex-shrink-0">
+                            <h2 id="sell-modal-title" className="text-xl font-bold text-white">
+                                Selecione um evento para vender
+                            </h2>
+                            <button
+                                onClick={closeSellModal}
+                                className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                                aria-label="Fechar modal"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Campo de Busca */}
+                        <div className="p-6 border-b border-zinc-700 flex-shrink-0">
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    placeholder="Buscar por nome do evento, localização ou data..."
+                                    className="w-full px-4 py-3 pl-10 bg-zinc-800 border border-zinc-600 rounded-xl text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    aria-label="Campo de busca de eventos"
+                                />
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                                    <svg className="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                {searchTerm && (
+                                    <button
+                                        onClick={() => setSearchTerm('')}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-zinc-700 rounded transition-colors"
+                                        aria-label="Limpar busca"
+                                    >
+                                        <X size={16} className="text-zinc-400" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Conteúdo da Modal */}
+                        <div className="flex-1 overflow-y-auto min-h-0 p-6">
+                            {isLoading ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                    <span className="ml-3 text-zinc-400">Carregando eventos...</span>
+                                </div>
+                            ) : error ? (
+                                <div className="text-center py-8">
+                                    <p className="text-red-500 mb-4">Erro ao carregar eventos.</p>
+                                    <button
+                                        onClick={() => window.location.reload()}
+                                        className="bg-blue-500 hover:bg-blue-600 text-black font-semibold py-2 px-4 rounded transition-colors"
+                                    >
+                                        Tentar novamente
+                                    </button>
+                                </div>
+                            ) : events.length === 0 ? (
+                                <div className="text-center py-8">
+                                    <p className="text-zinc-400 mb-4">Nenhum evento disponível no momento.</p>
+                                    <button
+                                        onClick={closeSellModal}
+                                        className="bg-zinc-700 hover:bg-zinc-600 text-white font-semibold py-2 px-4 rounded transition-colors"
+                                    >
+                                        Fechar
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="grid gap-4">
+                                    {filteredSellEvents.length === 0 ? (
+                                        <div className="text-center py-8">
+                                            <p className="text-zinc-400 mb-2">Nenhum evento encontrado para "{searchTerm}"</p>
+                                            <button
+                                                onClick={() => setSearchTerm('')}
+                                                className="text-blue-400 hover:text-blue-300 text-sm underline"
+                                            >
+                                                Limpar busca
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {searchTerm && (
+                                                <div className="mb-4 p-3 bg-zinc-800/50 rounded-xl">
+                                                    <p className="text-sm text-zinc-300">
+                                                        Encontrados <span className="font-semibold text-blue-400">{filteredSellEvents.length}</span> eventos para "{searchTerm}"
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {filteredSellEvents.map((event: any) => (
+                                        <button
+                                            key={event.id}
+                                            onClick={() => handleSellEventSelect(event)}
+                                            className="flex items-center gap-4 p-4 bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-colors text-left w-full group"
+                                            aria-label={`Selecionar evento ${event.name}`}
+                                        >
+                                            <div className="flex-shrink-0">
+                                                <img
+                                                    src={event.image || "/placeholder.svg"}
+                                                    alt={event.name}
+                                                    className="w-16 h-16 object-cover rounded-xl"
+                                                />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors truncate">
+                                                    {event.name}
+                                                </h3>
+                                                <div className="flex items-center gap-2 text-sm text-zinc-400 mt-1">
+                                                    <MapPin size={14} />
+                                                    <span className="truncate">
+                                                        {(() => {
+                                                            if (event.occurrences && event.occurrences.length > 0) {
+                                                                const ufs = event.occurrences
+                                                                    .map((occ: any) => occ.uf)
+                                                                    .filter((uf: string) => uf && uf.trim() !== '')
+                                                                    .filter((uf: string, index: number, array: string[]) => array.indexOf(uf) === index);
+                                                                
+                                                                if (ufs.length > 0) {
+                                                                    return ufs.join(', ');
+                                                                }
+                                                            }
+                                                            return 'Local não informado';
+                                                        })()}
+                                                    </span>
+                                                </div>
+                                                {event.occurrences && event.occurrences.length > 0 && (
+                                                    <div className="text-sm text-blue-400 mt-1 font-medium">
+                                                        {event.occurrences.length === 1 
+                                                            ? new Date(event.occurrences[0].start_at).toLocaleDateString('pt-BR', {
+                                                                day: '2-digit',
+                                                                month: '2-digit',
+                                                                year: 'numeric'
+                                                            })
+                                                            : (() => {
+                                                                const dates = event.occurrences
+                                                                    .map((occ: any) => new Date(occ.start_at))
+                                                                    .sort((a: Date, b: Date) => a.getTime() - b.getTime());
+                                                                const firstDate = dates[0].toLocaleDateString('pt-BR', {
+                                                                    day: '2-digit',
+                                                                    month: '2-digit',
+                                                                    year: 'numeric'
+                                                                });
+                                                                const lastDate = dates[dates.length - 1].toLocaleDateString('pt-BR', {
+                                                                    day: '2-digit',
+                                                                    month: '2-digit',
+                                                                    year: 'numeric'
+                                                                });
+                                                                return `${firstDate} até ${lastDate}`;
+                                                            })()
+                                                        }
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex-shrink-0">
+                                                <ChevronRight size={20} className="text-zinc-400 group-hover:text-blue-400 transition-colors" />
+                                            </div>
+                                        </button>
+                                    ))}
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer da Modal */}
+                        <div className="p-6 border-t border-zinc-700 bg-zinc-800/30 flex-shrink-0">
+                            <div className="flex items-center justify-center gap-2 mb-3">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <p className="text-sm font-medium text-zinc-300">
+                                    Precisa de ajuda?
+                                </p>
+                            </div>
+                            <p className="text-sm text-zinc-400 text-center leading-relaxed">
+                                Caso não encontre o evento desejado, entre em contato com nosso suporte através do email{' '}
+                                <a 
+                                    href="mailto:suporte@reticket.com" 
+                                    className="text-blue-400 hover:text-blue-300 underline transition-colors"
+                                >
+                                    suporte@reticket.com
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Seção Como funciona */}
             <section className="py-16 bg-black">
