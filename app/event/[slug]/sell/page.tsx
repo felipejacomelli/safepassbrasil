@@ -20,7 +20,10 @@ import {
   AlertCircle, 
   CheckCircle,
   LogOut,
-  User
+  User,
+  Plus,
+  Minus,
+  DollarSign
 } from "lucide-react"
 import { 
   DropdownMenu,
@@ -32,8 +35,12 @@ import {
 import { useAuth } from "@/contexts/auth-context"
 import { eventsApi, type ApiEvent, type ApiOccurrence } from "@/lib/api"
 import { cn } from "@/lib/utils"
+import Header from "@/components/Header"
 
 import useSWR from "swr"
+
+// Taxa de serviço da plataforma (7,5%)
+const PLATFORM_FEE_RATE = 0.075
 
 // Fetcher function for API calls
 const fetcher = (url: string) =>
@@ -142,6 +149,12 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
       return
     }
 
+    // Validate maximum quantity for multiple ticket publication
+    if (Number(quantity) > 10) {
+      setFormError("Máximo de 10 ingressos podem ser publicados por vez")
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -161,64 +174,127 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
         return
       }
 
-      // Call the create ticket API using the correct endpoint
-       const response = await fetch(`${baseUrl}/api/tickets/`, {
-         method: 'POST',
-         headers: {
-           'Content-Type': 'application/json',
-           ...(typeof window !== 'undefined' && localStorage.getItem('authToken') && {
-             'Authorization': `Token ${localStorage.getItem('authToken')}`
-           })
-         },
-         body: JSON.stringify({
-          ticket_type: selectedTicketTypeId,
-          name: user?.name || 'Vendedor',
-          quantity: Number(quantity),
-          price: Number(price),
-          owner: user?.id
+      const quantityNumber = Number(quantity)
+      let successfulTickets = 0
+      let failedTickets = 0
+      const errors: string[] = []
+
+      // Se quantidade > 1, publicar cada ingresso individualmente
+      if (quantityNumber > 1) {
+        for (let i = 0; i < quantityNumber; i++) {
+          try {
+            const response = await fetch(`${baseUrl}/api/tickets/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(typeof window !== 'undefined' && localStorage.getItem('authToken') && {
+                  'Authorization': `Token ${localStorage.getItem('authToken')}`
+                })
+              },
+              body: JSON.stringify({
+                ticket_type: selectedTicketTypeId,
+                name: user?.name || 'Vendedor',
+                quantity: 1, // Sempre 1 para publicação individual
+                price: Number(price),
+                owner: user?.id
+              })
+            })
+
+            if (!response.ok) {
+              let errorData;
+              const contentType = response.headers.get('content-type');
+              
+              if (contentType && contentType.includes('application/json')) {
+                errorData = await response.json();
+              } else {
+                const textResponse = await response.text();
+                console.error('Non-JSON response:', textResponse);
+                errorData = { error: 'Erro de comunicação com o servidor' };
+              }
+              
+              errors.push(`Ingresso ${i + 1}: ${errorData.error || 'Erro ao anunciar ingresso'}`)
+              failedTickets++
+            } else {
+              // Parse response safely
+              try {
+                const result = await response.json();
+                console.log(`Ticket ${i + 1} created successfully:`, result);
+              } catch (parseError) {
+                console.error('Error parsing success response:', parseError);
+              }
+              successfulTickets++
+            }
+          } catch (err) {
+            console.error(`Erro ao criar ingresso ${i + 1}:`, err)
+            errors.push(`Ingresso ${i + 1}: Erro de conexão`)
+            failedTickets++
+          }
+        }
+
+        // Verificar resultados da publicação múltipla
+        if (successfulTickets === quantityNumber) {
+          setSuccess(true)
+          setTimeout(() => {
+            router.push(`/event/${resolvedParams.slug}`)
+          }, 3000)
+        } else if (successfulTickets > 0) {
+          setFormError(`✅ ${successfulTickets} ingressos publicados com sucesso. ❌ ${failedTickets} falharam. Detalhes: ${errors.slice(0, 3).join('; ')}${errors.length > 3 ? '...' : ''}`)
+        } else {
+          setFormError(`❌ Falha ao publicar todos os ingressos. Detalhes: ${errors.slice(0, 3).join('; ')}${errors.length > 3 ? '...' : ''}`)
+        }
+      } else {
+        // Publicação única (quantidade = 1)
+        const response = await fetch(`${baseUrl}/api/tickets/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(typeof window !== 'undefined' && localStorage.getItem('authToken') && {
+              'Authorization': `Token ${localStorage.getItem('authToken')}`
+            })
+          },
+          body: JSON.stringify({
+            ticket_type: selectedTicketTypeId,
+            name: user?.name || 'Vendedor',
+            quantity: 1,
+            price: Number(price),
+            owner: user?.id
+          })
         })
-       })
 
-       if (!response.ok) {
-         // Try to parse as JSON first, fallback to text if it fails
-         let errorData;
-         const contentType = response.headers.get('content-type');
-         
-         if (contentType && contentType.includes('application/json')) {
-           errorData = await response.json();
-         } else {
-           // If response is HTML or other format, create a generic error
-           const textResponse = await response.text();
-           console.error('Non-JSON response:', textResponse);
-           errorData = { error: 'Erro de comunicação com o servidor' };
-         }
-         
-         throw new Error(errorData.error || 'Erro ao anunciar ingresso')
-       }
+        if (!response.ok) {
+          let errorData;
+          const contentType = response.headers.get('content-type');
+          
+          if (contentType && contentType.includes('application/json')) {
+            errorData = await response.json();
+          } else {
+            const textResponse = await response.text();
+            console.error('Non-JSON response:', textResponse);
+            errorData = { error: 'Erro de comunicação com o servidor' };
+          }
+          
+          throw new Error(errorData.error || 'Erro ao anunciar ingresso')
+        }
 
-       // Parse response safely
-       let result;
-       try {
-         result = await response.json();
-         console.log('Ticket created successfully:', result);
-       } catch (parseError) {
-         console.error('Error parsing success response:', parseError);
-         // Even if we can't parse the response, if response.ok is true, consider it successful
-         result = { success: true };
-       }
+        // Parse response safely
+        try {
+          const result = await response.json();
+          console.log('Ticket created successfully:', result);
+        } catch (parseError) {
+          console.error('Error parsing success response:', parseError);
+        }
 
-       // Se chegou até aqui e response.ok é true, significa que foi criado com sucesso
-       setSuccess(true)
-       // Redirect after success
-       setTimeout(() => {
-         router.push(`/event/${resolvedParams.slug}`)
-       }, 3000)
-     } catch (err) {
-       console.error('Erro ao vender ingressos:', err)
-       setFormError("Erro ao conectar com o servidor. Tente novamente.")
-     } finally {
-       setIsSubmitting(false)
-     }
+        setSuccess(true)
+        setTimeout(() => {
+          router.push(`/event/${resolvedParams.slug}`)
+        }, 3000)
+      }
+    } catch (err) {
+      console.error('Erro ao vender ingressos:', err)
+      setFormError("Erro ao conectar com o servidor. Tente novamente.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -231,60 +307,7 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
         flexDirection: "column",
       }}
     >
-      {/* Header/Navigation */}
-      <header className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <a
-              href="/"
-              className="flex items-center gap-2 text-decoration-none"
-            >
-              <div className="bg-blue-600 p-1.5 rounded flex items-center justify-center">
-                <div className="w-6 h-6 bg-black rounded" />
-              </div>
-              <span className="text-white text-xl font-bold">
-                reticket
-              </span>
-            </a>
-
-            {/* User Menu with Avatar and Logout */}
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-2 hover:bg-zinc-800">
-                    <div className="h-8 w-8 rounded-full bg-zinc-700 flex items-center justify-center text-white text-sm font-medium">
-                      {user.name?.charAt(0) || "U"}
-                    </div>
-                    <span className="text-sm font-medium">{user.name}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-zinc-900 border-zinc-800">
-                  <div className="px-3 py-2">
-                    <p className="text-sm font-medium text-white">{user.name}</p>
-                    <p className="text-xs text-zinc-400">{user.email}</p>
-                  </div>
-                  <DropdownMenuSeparator className="bg-zinc-800" />
-                  <DropdownMenuItem 
-                    onClick={handleLogout}
-                    className="text-red-400 hover:text-red-300 hover:bg-zinc-800 cursor-pointer"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sair
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm" onClick={() => router.push('/login')}>
-                  <User className="h-4 w-4 mr-2" />
-                  Entrar
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main
@@ -526,7 +549,7 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
                     marginBottom: "16px",
                   }}
                 >
-                  Ingresso publicado com sucesso!
+                  {Number(quantity) > 1 ? "Ingressos publicados com sucesso!" : "Ingresso publicado com sucesso!"}
                 </h2>
                 <p
                   style={{
@@ -534,7 +557,10 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
                     marginBottom: "24px",
                   }}
                 >
-                  Seu ingresso para {event?.name || "este evento"} foi publicado e já está disponível para compradores.
+                  {Number(quantity) > 1 
+                    ? `Seus ${quantity} ingressos para ${event?.name || "este evento"} foram publicados individualmente e já estão disponíveis para compradores.`
+                    : `Seu ingresso para ${event?.name || "este evento"} foi publicado e já está disponível para compradores.`
+                  }
                 </p>
                 <a
                   href={`/event/${event?.slug || resolvedParams.slug}`}
@@ -671,7 +697,7 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
                         fontWeight: "500",
                       }}
                     >
-                      Preço (R$)
+                      Preço unitário de cada ingresso
                     </label>
                     <div
                       style={{
@@ -706,6 +732,48 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
                         R$
                       </span>
                     </div>
+                    {price && !isNaN(Number(price)) && Number(price) > 0 && (
+                      <div
+                        style={{
+                          marginTop: "8px",
+                          padding: "16px",
+                          backgroundColor: "rgba(34, 197, 94, 0.1)",
+                          borderRadius: "8px",
+                          border: "1px solid rgba(34, 197, 94, 0.3)",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "12px",
+                        }}
+                      >
+                        <DollarSign 
+                          size={20} 
+                          style={{ 
+                            color: "#22C55E",
+                            flexShrink: 0 
+                          }} 
+                        />
+                        <div style={{ flex: 1 }}>
+                          <div
+                            style={{
+                              fontSize: "14px",
+                              color: "#A1A1AA",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            Você receberá:
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "18px",
+                              fontWeight: "bold",
+                              color: "#22C55E",
+                            }}
+                          >
+                            R$ {(Number(price) * (1 - PLATFORM_FEE_RATE)).toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Quantity */}
@@ -724,27 +792,93 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
                     >
                       Quantidade
                     </label>
-                    <select
-                      id="quantity"
-                      value={quantity}
-                      onChange={(e) => setQuantity(e.target.value)}
+                    <div
                       style={{
-                        width: "100%",
-                        backgroundColor: "#27272A",
-                        color: "white",
-                        padding: "12px",
-                        borderRadius: "8px",
-                        border: "1px solid #3F3F46",
-                        fontSize: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        marginBottom: "8px",
                       }}
                     >
-                      <option value="1">1</option>
-                      <option value="2">2</option>
-                      <option value="3">3</option>
-                      <option value="4">4</option>
-                      <option value="5">5</option>
-                      <option value="6">6</option>
-                    </select>
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(String(Math.max(1, Number(quantity) - 1)))}
+                        disabled={Number(quantity) <= 1}
+                        style={{
+                          backgroundColor: "#27272A",
+                          color: "white",
+                          border: "1px solid #3F3F46",
+                          borderRadius: "8px",
+                          width: "40px",
+                          height: "40px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: Number(quantity) <= 1 ? "not-allowed" : "pointer",
+                          opacity: Number(quantity) <= 1 ? 0.5 : 1,
+                        }}
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <div
+                        style={{
+                          backgroundColor: "#27272A",
+                          color: "white",
+                          padding: "12px 16px",
+                          borderRadius: "8px",
+                          border: "1px solid #3F3F46",
+                          fontSize: "16px",
+                          fontWeight: "bold",
+                          minWidth: "60px",
+                          textAlign: "center",
+                        }}
+                      >
+                        {quantity}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(String(Math.min(6, Number(quantity) + 1)))}
+                        disabled={Number(quantity) >= 6}
+                        style={{
+                          backgroundColor: "#27272A",
+                          color: "white",
+                          border: "1px solid #3F3F46",
+                          borderRadius: "8px",
+                          width: "40px",
+                          height: "40px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: Number(quantity) >= 6 ? "not-allowed" : "pointer",
+                          opacity: Number(quantity) >= 6 ? 0.5 : 1,
+                        }}
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                    <div
+                      style={{
+                        padding: "12px",
+                        backgroundColor: "rgba(251, 191, 36, 0.1)",
+                        borderRadius: "8px",
+                        border: "1px solid rgba(251, 191, 36, 0.3)",
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: "8px",
+                      }}
+                    >
+                      <AlertCircle size={16} style={{ color: "#F59E0B", marginTop: "2px", flexShrink: 0 }} />
+                      <p
+                        style={{
+                          color: "#F59E0B",
+                          fontSize: "14px",
+                          lineHeight: "1.4",
+                          margin: 0,
+                        }}
+                      >
+                        Se você tiver mais de um ingresso para venda, eles serão vendidos separadamente. Você receberá o pagamento após a validação de cada ingresso.
+                      </p>
+                    </div>
                   </div>
 
                   {/* Description */}
@@ -776,82 +910,6 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
                         resize: "vertical",
                       }}
                     />
-                  </div>
-                </div>
-
-                {/* Upload Section */}
-                <div
-                  style={{
-                    backgroundColor: "#18181B",
-                    borderRadius: "12px",
-                    padding: "24px",
-                    marginBottom: "24px",
-                  }}
-                >
-                  <h2
-                    style={{
-                      fontSize: "20px",
-                      fontWeight: "bold",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    Comprovante do Ingresso
-                  </h2>
-                  <p
-                    style={{
-                      color: "#A1A1AA",
-                      marginBottom: "16px",
-                      fontSize: "14px",
-                    }}
-                  >
-                    Faça upload de uma foto ou PDF do seu ingresso para verificação. Não se preocupe, ocultaremos
-                    informações sensíveis como códigos de barras e QR codes.
-                  </p>
-                  <div
-                    style={{
-                      border: "2px dashed #3F3F46",
-                      borderRadius: "8px",
-                      padding: "32px 16px",
-                      textAlign: "center",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <svg
-                      width="48"
-                      height="48"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      style={{ margin: "0 auto 16px auto" }}
-                    >
-                      <path d="M7 16.2V14.2H17V16.2H7ZM7 11.5V9.5H17V11.5H7ZM7 6.8V4.8H17V6.8H7Z" fill="#A1A1AA" />
-                      <path
-                        d="M3 20.5V3.5C3 2.4 3.9 1.5 5 1.5H19C20.1 1.5 21 2.4 21 3.5V20.5C21 21.6 20.1 22.5 19 22.5H5C3.9 22.5 3 21.6 3 20.5ZM5 20.5H19V3.5H5V20.5Z"
-                        fill="#A1A1AA"
-                      />
-                    </svg>
-                    <p
-                      style={{
-                        color: "#A1A1AA",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      Arraste e solte arquivos aqui ou
-                    </p>
-                    <button
-                      type="button"
-                      style={{
-                        backgroundColor: "#27272A",
-                        color: "white",
-                        border: "none",
-                        padding: "8px 16px",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "14px",
-                      }}
-                    >
-                      Selecionar Arquivo
-                    </button>
                   </div>
                 </div>
 
@@ -945,7 +1003,16 @@ function SellTicketPageClient({ params }: { params: Promise<{ slug: string }> })
                     opacity: isSubmitting ? 0.7 : 1,
                   }}
                 >
-                  {isSubmitting ? "Publicando..." : "Publicar Ingresso"}
+                  {isSubmitting 
+                    ? (Number(quantity) > 1 
+                        ? `Publicando ${quantity} ingressos...` 
+                        : "Publicando..."
+                      )
+                    : (Number(quantity) > 1 
+                        ? `Publicar ${quantity} Ingressos` 
+                        : "Publicar Ingresso"
+                      )
+                  }
                 </button>
               </form>
             )}

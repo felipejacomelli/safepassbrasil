@@ -106,8 +106,7 @@ export default function CartPage() {
 
   // Calculate total
   const subtotal = cartItems.reduce((total: number, item: CartItem) => total + item.price * item.quantity, 0)
-  const serviceFee = subtotal * 0.1 // 10% service fee
-  const total = subtotal + serviceFee
+  const total = subtotal
 
   // Update quantity
   const updateQuantity = (id: string, newQuantity: number) => {
@@ -647,6 +646,15 @@ export default function CartPage() {
                             style={{
                               fontSize: "12px",
                               color: "#A1A1AA",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            {item.date} • {item.location}
+                          </p>
+                          <p
+                            style={{
+                              fontSize: "12px",
+                              color: "#A1A1AA",
                             }}
                           >
                             R$ {item.price.toFixed(2).replace(".", ",")} cada
@@ -773,16 +781,6 @@ export default function CartPage() {
                   >
                     <span style={{ color: "#D4D4D8" }}>Subtotal</span>
                     <span>R$ {subtotal.toFixed(2).replace(".", ",")}</span>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    <span style={{ color: "#D4D4D8" }}>Taxa de serviço</span>
-                    <span>R$ {serviceFee.toFixed(2).replace(".", ",")}</span>
                   </div>
                   <div
                     style={{
