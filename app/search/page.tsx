@@ -1,865 +1,148 @@
 "use client"
 
-import { useSearchParams } from "next/navigation"
-import { useEffect, useState, useMemo } from "react"
-import { useData } from "@/contexts/data-context"
-import { EventCard } from "@/app/page"
+import { useRouter } from "next/navigation"
+import { useCallback } from "react"
 import Header from "@/components/Header"
-
-// Função para buscar contadores dinâmicos das categorias
-const fetchCategoryCounts = async (): Promise<Category[]> => {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/counts/`)
-    if (!response.ok) {
-      throw new Error('Falha ao buscar contadores de categorias')
-    }
-    const data = await response.json()
-    
-    // Verificar se data é um array ou se tem uma propriedade que contém o array
-    const categories = Array.isArray(data) ? data : (data.categories || [])
-    
-    // Mapear os dados da API para o formato esperado pelo frontend
-    return categories.map((item: ApiCategoryItem) => ({
-      name: item.name,
-      count: item.event_count.toString(),
-      image: getCategoryImage(item.name)
-    }))
-  } catch (error) {
-    console.error('Erro ao buscar contadores de categorias:', error)
-    return []
-  }
-}
-
-// Função para buscar localizações dinâmicas
-const fetchLocations = async (): Promise<Location[]> => {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/locations/counts/`)
-    if (!response.ok) {
-      throw new Error('Falha ao buscar localizações')
-    }
-    const data = await response.json()
-    
-    // Mapear os dados da API para o formato esperado pelo frontend
-    return data.map((item: ApiLocationItem) => ({
-      name: item.name,
-      count: item.event_count.toString(),
-      image: item.image || getLocationImage(item.name)
-    }))
-  } catch (error) {
-    console.error('Erro ao buscar localizações:', error)
-    return []
-  }
-}
-
-// Função auxiliar para obter imagem da categoria
-const getCategoryImage = (categoryName: string): string => {
-  const imageMap: { [key: string]: string } = {
-    'Música': 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60',
-    'Esportes': 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&auto=format&fit=crop&q=60',
-    'Teatro': 'https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&auto=format&fit=crop&q=60',
-    'Festivais': 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&auto=format&fit=crop&q=60',
-    'Música Eletrônica': 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&auto=format&fit=crop&q=60'
-  }
-  return imageMap[categoryName] || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&auto=format&fit=crop&q=60'
-}
-
-// Função auxiliar para obter imagem da localização
-const getLocationImage = (locationName: string): string => {
-  const imageMap: { [key: string]: string } = {
-    'São Paulo': 'https://images.unsplash.com/photo-1543059080-f9b1272213d5?w=800&auto=format&fit=crop&q=60',
-    'Rio de Janeiro': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&auto=format&fit=crop&q=60',
-    'Belo Horizonte': 'https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60',
-    'Curitiba': 'https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60',
-    'Brasília': 'https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60',
-    'Salvador': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&auto=format&fit=crop&q=60'
-  }
-  return imageMap[locationName] || 'https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?w=800&auto=format&fit=crop&q=60'
-}
-
-// Interfaces
-// Interfaces para tipos da API
-interface ApiCategoryItem {
-  name: string
-  event_count: number
-}
-
-interface ApiLocationItem {
-  name: string
-  event_count: number
-  image?: string
-}
-
-interface ApiEvent {
-  id: string
-  image: string
-  image_url?: string
-  title: string
-  description?: string
-  date: string
-  location: string
-  price: string
-  slug: string
-  category: string
-  category_name?: string
-  category_slug: string
-  city: string
-  ticket_count: number
-  total_available_tickets?: number
-  occurrences?: Array<{
-    venue_city_slug?: string
-    venue?: {
-      city?: string
-    }
-  }>
-}
-
-interface ApiCategory {
-  name: string
-  slug: string
-}
-
-interface ApiLocation {
-  name: string
-  slug: string
-}
-
-interface Event {
-  id: string
-  image: string
-  title: string
-  date: string
-  location: string
-  price: string
-  slug: string
-  category: string
-  city: string
-  ticket_count: number
-}
-
-interface Category {
-  name: string
-  count: string
-  image: string
-}
-
-interface Location {
-  name: string
-  count: string
-  image: string
-}
-
-interface SearchResults {
-  events: Event[]
-  categories: Category[]
-  locations: Location[]
-  query: string
-  categoryFilter: string
-  locationFilter: string
-}
-
-
-
-
-
-
+import { SearchBar } from "@/components/search/SearchBar"
+import { FilterChips } from "@/components/search/FilterChips"
+import { SearchResults } from "@/components/search/SearchResults"
+import { SearchFooter } from "@/components/search/SearchFooter"
+import { useSearchFilters } from "@/hooks/use-search-filters"
+import { useSearchResults } from "@/hooks/use-search-results"
 
 export default function SearchPage() {
-  const searchParams = useSearchParams()
-  const query = searchParams.get('q') || ''
-  const categoryFilter = searchParams.get('category') || ''
-  const locationFilter = searchParams.get('location') || ''
-  const dateFilter = searchParams.get('date') || ''
-  const [isDesktop, setIsDesktop] = useState(false)
+  const router = useRouter()
+  const filters = useSearchFilters()
+  const { results, isLoading, error } = useSearchResults(filters)
 
-  const { events, categories, locations, isLoading, error } = useData()
+  const handleSearch = useCallback((query: string) => {
+    const params = new URLSearchParams()
+    if (query) params.set('q', query)
+    if (filters.category) params.set('category', filters.category)
+    if (filters.location) params.set('location', filters.location)
+    
+    router.push(`/search?${params.toString()}`)
+  }, [router, filters.category, filters.location])
 
-  useEffect(() => {
-    // Set desktop state after client mount to avoid hydration mismatch
-    setIsDesktop(window.matchMedia("(min-width: 640px)").matches)
-  }, [])
-  
-  // Filter events, categories, and locations based on search parameters
-  const { filteredEvents, filteredCategories, filteredLocations } = useMemo(() => {
+  const handleRemoveCategory = useCallback(() => {
+    const params = new URLSearchParams()
+    if (filters.query) params.set('q', filters.query)
+    if (filters.location) params.set('location', filters.location)
+    
+    router.push(`/search?${params.toString()}`)
+  }, [router, filters.query, filters.location])
 
-    if (!events || !categories || !locations) return {
-      filteredEvents: [],
-      filteredCategories: [],
-      filteredLocations: []
-    }
+  const handleRemoveLocation = useCallback(() => {
+    const params = new URLSearchParams()
+    if (filters.query) params.set('q', filters.query)
+    if (filters.category) params.set('category', filters.category)
+    
+    router.push(`/search?${params.toString()}`)
+  }, [router, filters.query, filters.category])
 
-    // Filter events based on search query and category
-    const filteredEvts = events.filter((event: any) => { // Use 'any' type to access all API fields
-      // Convert category name to slug for comparison (lowercase and replace spaces with hyphens)
-      console.log('categoryFilter: ', categoryFilter);
-      const eventCategorySlug = event.category ? event.category.toLowerCase().replace(/\s+/g, '-') : ''
-      console.log('eventCategorySlug: ', eventCategorySlug);
+  const handleClearAll = useCallback(() => {
+    const params = new URLSearchParams()
+    if (filters.query) params.set('q', filters.query)
+    
+    router.push(`/search?${params.toString()}`)
+  }, [router, filters.query])
 
-      if (categoryFilter && eventCategorySlug !== categoryFilter) return false
-      
-      // Filter by location (state/UF)
-      if (locationFilter) {
-        // Check if event has occurrences with matching state/UF
-        if (event.occurrences && event.occurrences.length > 0) {
-          const hasMatchingLocation = event.occurrences.some((occ: any) => 
-            occ.uf === locationFilter || occ.state === locationFilter
-          )
-          if (!hasMatchingLocation) return false
-        } else {
-          // Fallback: check if event city/location matches
-          const eventLocation = event.city || event.location || ''
-          if (!eventLocation.toLowerCase().includes(locationFilter.toLowerCase())) {
-            return false
-          }
-        }
-      }
-      
-      // Enhanced search logic - search in multiple fields with better matching
-      if (query) {
-        const searchQuery = query.toLowerCase().trim()
-        
-        // Primary searchable fields - use both API data and transformed data
-        const searchableFields = [
-          event.title || event.name, // Support both title and name fields from API
-          event.category || event.category_name, // Support both category formats
-          event.location,
-          event.city
-        ].filter(Boolean) // Remove undefined/null values
-        
-        // Secondary searchable fields (description, etc.)
-        const secondaryFields = [
-          event.description
-        ].filter(Boolean)
-        
-        // Combine all fields for comprehensive search
-        const allFields = [...searchableFields, ...secondaryFields]
-        
-        // Check for exact matches first (higher priority)
-        const hasExactMatch = allFields.some(field => 
-          field.toLowerCase().includes(searchQuery)
-        )
-        
-        // Check for partial word matches
-        const searchWords = searchQuery.split(' ').filter(word => word.length > 2)
-        const hasPartialMatch = searchWords.length > 0 && searchWords.some(word =>
-          allFields.some(field => field.toLowerCase().includes(word))
-        )
-        
-        if (!hasExactMatch && !hasPartialMatch) return false
-      }
-      
-      return true
-    })
-
-    // Filter categories based on search query
-    const filteredCats = categories.filter((category) => {
-      if (categoryFilter && category.slug !== categoryFilter) return false
-      if (query && !category.name.toLowerCase().includes(query.toLowerCase())) return false
-      return true
-    })
-
-    // Filter locations based on search query
-    const filteredLocs = locations.filter((location) => {
-      if (locationFilter && location.uf !== locationFilter) return false
-      if (query && !location.state.toLowerCase().includes(query.toLowerCase())) return false
-      return true
-    })
-
-    return {
-      filteredEvents: filteredEvts,
-      filteredCategories: filteredCats,
-      filteredLocations: filteredLocs
-    }
-  }, [events, categories, locations, query, categoryFilter, locationFilter])
-
-  // Determine the title based on filters
   const getSearchTitle = () => {
-    if (categoryFilter) {
-      return `Eventos de ${categoryFilter}`
-    } else if (locationFilter) {
-      return `Eventos em ${locationFilter}`
-    } else if (query) {
-      return `Resultados para "${query}"`
+    if (filters.category) {
+      return `Eventos de ${filters.category}`
+    } else if (filters.location) {
+      return `Eventos em ${filters.location}`
+    } else if (filters.query) {
+      return `Resultados para "${filters.query}"`
     } else {
       return "Todos os eventos"
     }
   }
 
-  // Transform event data to match EventCard component expectations
-  const transformEventForCard = (event: any) => {
-    return {
-      ...event,
-      name: event.name || event.title, // EventCard expects 'name', use event.name or fallback to title
-      total_available_tickets: event.total_available_tickets || event.ticket_count || event.available_tickets
-    }
-  }
-
   return (
-    <div
-      style={{
-        backgroundColor: "black",
-        color: "white",
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <div className="min-h-screen bg-black text-white flex flex-col">
       <Header />
 
       {/* Search Bar */}
-      <div
-        style={{
-          backgroundColor: "#18181B",
-          padding: "24px 16px",
-          borderBottom: "1px solid #333",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            width: "100%",
-          }}
-        >
-          <form
-            action="/search"
-            method="get"
-            style={{
-              width: "100%",
-              position: "relative",
-            }}
-          >
-            <input
-              type="search"
-              name="q"
-              placeholder="Busque por evento, categoria ou palavra-chave"
-              defaultValue={query}
-              style={{
-                width: "100%",
-                padding: "16px 48px",
-                backgroundColor: "rgba(39, 39, 42, 0.8)",
-                border: "1px solid #333",
-                borderRadius: "8px",
-                color: "white",
-                fontSize: "16px",
-                outline: "none",
-              }}
-            />
-            <span
-              style={{
-                position: "absolute",
-                left: "16px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "#71717A",
-              }}
-            >
-              🔍
-            </span>
-            <button
-              type="submit"
-              style={{
-                position: "absolute",
-                right: "8px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                backgroundColor: "#3B82F6",
-                border: "none",
-                color: "black",
-                borderRadius: "4px",
-                padding: "8px 16px",
-                cursor: "pointer",
-                fontWeight: "bold",
-              }}
-            >
-              Buscar
-            </button>
+      <SearchBar
+        query={filters.query}
+        onQueryChange={() => {}} // Handled by URL params
+        onSubmit={handleSearch}
+      />
 
-            {/* Hidden inputs to preserve filters when searching */}
-            {categoryFilter && <input type="hidden" name="category" value={categoryFilter} />}
-            {locationFilter && <input type="hidden" name="location" value={locationFilter} />}
-          </form>
-        </div>
-      </div>
+      {/* Search Footer */}
+      <SearchFooter />
 
       {/* Filter Chips */}
-      {(categoryFilter || locationFilter) && (
-        <div
-          style={{
-            backgroundColor: "#18181B",
-            padding: "0 16px 16px 16px",
-            borderBottom: "1px solid #333",
-          }}
-        >
-          <div
-            style={{
-              maxWidth: "1200px",
-              margin: "0 auto",
-              width: "100%",
-              display: "flex",
-              gap: "8px",
-              flexWrap: "wrap",
-            }}
-          >
-            {categoryFilter && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  backgroundColor: "rgba(59, 130, 246, 0.2)",
-                  borderRadius: "16px",
-                  padding: "4px 12px",
-                }}
-              >
-                <span style={{ marginRight: "8px" }}>Categoria: {categoryFilter}</span>
-                <a
-                  href={
-                    locationFilter
-                      ? `/search?location=${encodeURIComponent(locationFilter)}${query ? `&q=${encodeURIComponent(query)}` : ""}`
-                      : `/search${query ? `?q=${encodeURIComponent(query)}` : ""}`
-                  }
-                  style={{
-                    color: "#3B82F6",
-                    textDecoration: "none",
-                    fontSize: "16px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  ✕
-                </a>
-              </div>
-            )}
-
-            {locationFilter && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  backgroundColor: "rgba(59, 130, 246, 0.2)",
-                  borderRadius: "16px",
-                  padding: "4px 12px",
-                }}
-              >
-                <span style={{ marginRight: "8px" }}>Local: {locationFilter}</span>
-                <a
-                  href={
-                    categoryFilter
-                      ? `/search?category=${encodeURIComponent(categoryFilter)}${query ? `&q=${encodeURIComponent(query)}` : ""}`
-                      : `/search${query ? `?q=${encodeURIComponent(query)}` : ""}`
-                  }
-                  style={{
-                    color: "#3B82F6",
-                    textDecoration: "none",
-                    fontSize: "16px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  ✕
-                </a>
-              </div>
-            )}
-
-            {(categoryFilter || locationFilter) && (
-              <a
-                href={query ? `/search?q=${encodeURIComponent(query)}` : "/search"}
-                style={{
-                  color: "#3B82F6",
-                  textDecoration: "none",
-                  fontSize: "14px",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                Limpar todos os filtros
-              </a>
-            )}
-          </div>
-        </div>
-      )}
+      <FilterChips
+        categoryFilter={filters.category}
+        locationFilter={filters.location}
+        query={filters.query}
+        onRemoveCategory={handleRemoveCategory}
+        onRemoveLocation={handleRemoveLocation}
+        onClearAll={handleClearAll}
+      />
 
       {/* Search Results */}
-      <main
-        style={{
-          padding: "48px 16px",
-          backgroundColor: "#18181B",
-          flex: 1,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            width: "100%",
-          }}
-        >
-          <h1
-            style={{
-              fontSize: "28px",
-              fontWeight: "bold",
-              marginBottom: "8px",
-            }}
-          >
+      <main className="flex-1 bg-zinc-800 px-4 py-12">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-3xl font-bold mb-8">
             {getSearchTitle()}
           </h1>
 
-          {isLoading ? (
-            <div style={{ 
-              display: "flex", 
-              alignItems: "center", 
-              justifyContent: "center", 
-              padding: "40px",
-              color: "#A1A1AA" 
-            }}>
-              <div style={{ marginRight: "12px" }}>🔄</div>
-              <span>Carregando eventos...</span>
-            </div>
-          ) : error ? (
-            <div style={{ 
-              padding: "20px", 
-              backgroundColor: "#7F1D1D", 
-              borderRadius: "8px", 
-              marginBottom: "32px",
-              color: "#FEF2F2" 
-            }}>
-              <div style={{ marginBottom: "8px", fontWeight: "600" }}>⚠️ Erro ao carregar eventos</div>
-              <div>Erro ao carregar eventos. Tente novamente.</div>
-            </div>
-          ) : filteredEvents.length === 0 ? (
-            <p style={{ color: "#A1A1AA", marginBottom: "32px" }}>
-              Nenhum resultado encontrado. Tente outra busca ou remova os filtros.
-            </p>
-          ) : (
-            <p style={{ color: "#A1A1AA", marginBottom: "32px" }}>
-              Encontramos {filteredEvents.length} eventos.
-            </p>
-          )}
-
-          {filteredEvents.length > 0 && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                gap: "24px",
-                marginBottom: "32px",
-              }}
-            >
-              {filteredEvents.map((event: Event, index: number) => (
-                <EventCard key={`search-event-${event.id}`} event={transformEventForCard(event)} />
-              ))}
-            </div>
-          )}
-
-          {!categoryFilter && !locationFilter && query && filteredCategories.length > 0 && (
-            <>
-              <h2
-                style={{
-                  fontSize: "20px",
-                  fontWeight: "bold",
-                  marginBottom: "16px",
-                  marginTop: "24px",
-                }}
-              >
-                Categorias ({filteredCategories.length})
-              </h2>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : "repeat(2, 1fr)",
-                  gap: "16px",
-                  marginBottom: "32px",
-                }}
-              >
-                {filteredCategories.map((category) => (
-                  <a
-                    key={`search-category-${category.name}`}
-                    href={`/search?category=${encodeURIComponent(category.slug)}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
-                    style={{
-                      textDecoration: "none",
-                    }}
-                  >
-                    <div
-                      style={{
-                        position: "relative",
-                        borderRadius: "12px",
-                        overflow: "hidden",
-                        aspectRatio: "1/1",
-                      }}
-                    >
-                      <img
-                        src={category.image || "/placeholder.svg"}
-                        alt={category.name}
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          background:
-                            "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%)",
-                          display: "flex",
-                          flexDirection: "column",
-                          justifyContent: "flex-end",
-                          padding: "16px",
-                        }}
-                      >
-                        <h3
-                          style={{
-                            color: "white",
-                            fontSize: "18px",
-                            fontWeight: "bold",
-                            marginBottom: "4px",
-                          }}
-                        >
-                          {category.name}
-                        </h3>
-                        <p
-                          style={{
-                            color: "#A1A1AA",
-                            fontSize: "14px",
-                          }}
-                        >
-                          {category.event_count || 0} eventos
-                        </p>
-                      </div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </>
-          )}
-
-          {!categoryFilter && !locationFilter && query && filteredLocations.length > 0 && (
-            <>
-              <h2
-                style={{
-                  fontSize: "20px",
-                  fontWeight: "bold",
-                  marginBottom: "16px",
-                  marginTop: "24px",
-                }}
-              >
-                Localizações ({filteredLocations.length})
-              </h2>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : "repeat(2, 1fr)",
-                  gap: "16px",
-                }}
-              >
-                {filteredLocations.map((location) => (
-                  <a
-                    key={`search-location-${location.state}`}
-                    href={`/search?location=${encodeURIComponent(location.uf)}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
-                    style={{
-                      textDecoration: "none",
-                    }}
-                  >
-                    <div
-                      style={{
-                        position: "relative",
-                        borderRadius: "12px",
-                        overflow: "hidden",
-                        aspectRatio: "1/1",
-                      }}
-                    >
-                      <img
-                        src="/placeholder.svg"
-                        alt={location.state}
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          background:
-                            "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%)",
-                          display: "flex",
-                          flexDirection: "column",
-                          justifyContent: "flex-end",
-                          padding: "16px",
-                        }}
-                      >
-                        <h3
-                          style={{
-                            color: "white",
-                            fontSize: "18px",
-                            fontWeight: "bold",
-                            marginBottom: "4px",
-                          }}
-                        >
-                          {location.state}
-                        </h3>
-                        <p
-                          style={{
-                            color: "#A1A1AA",
-                            fontSize: "14px",
-                          }}
-                        >
-                          {location.event_count || 0} eventos
-                        </p>
-                      </div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </>
-          )}
+          <SearchResults
+            events={results.events}
+            categories={results.categories}
+            locations={results.locations}
+            isLoading={isLoading}
+            error={error}
+            query={filters.query}
+            categoryFilter={filters.category}
+            locationFilter={filters.location}
+          />
         </div>
       </main>
 
       {/* Footer Section */}
-      <footer
-        style={{
-          backgroundColor: "#18181B",
-          borderTop: "1px solid #27272A",
-          padding: "64px 16px 32px",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            width: "100%",
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : "repeat(1, 1fr)",
-              gap: "32px",
-            }}
-          >
+      <footer className="bg-zinc-800 border-t border-zinc-700 px-4 py-16">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* About Section */}
             <div>
-              <h3
-                style={{
-                  fontSize: "18px",
-                  fontWeight: "bold",
-                  marginBottom: "16px",
-                  color: "white",
-                }}
-              >
+              <h3 className="text-lg font-bold mb-4 text-white">
                 Sobre
               </h3>
-              <p
-                style={{
-                  color: "#A1A1AA",
-                  fontSize: "14px",
-                  lineHeight: "1.6",
-                  marginBottom: "12px",
-                }}
-              >
+              <p className="text-zinc-400 text-sm leading-relaxed mb-3">
                 ReTicket é uma plataforma confiável para compra e venda de ingressos diretamente entre fãs.
               </p>
-              <p
-                style={{
-                  color: "#A1A1AA",
-                  fontSize: "14px",
-                  lineHeight: "1.6",
-                  marginBottom: "12px",
-                }}
-              >
+              <p className="text-zinc-400 text-sm leading-relaxed mb-3">
                 Nossa missão é conectar pessoas, que desejam revender seus ingressos devido a imprevistos, com
                 compradores que procuram as melhores ofertas de última hora.
               </p>
-              <p
-                style={{
-                  color: "#A1A1AA",
-                  fontSize: "14px",
-                  lineHeight: "1.6",
-                }}
-              >
+              <p className="text-zinc-400 text-sm leading-relaxed">
                 Seja bem bem vindo, seja feliz, seja ReTicket!
               </p>
             </div>
 
             {/* Quick Access */}
             <div>
-              <h3
-                style={{
-                  fontSize: "18px",
-                  fontWeight: "bold",
-                  marginBottom: "16px",
-                  color: "white",
-                }}
-              >
+              <h3 className="text-lg font-bold mb-4 text-white">
                 Acesso Rápido
               </h3>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "8px",
-                }}
-              >
-                <a
-                  href="#"
-                  style={{
-                    color: "#A1A1AA",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                  }}
-                >
+              <div className="flex flex-col gap-2">
+                <a href="#" className="text-zinc-400 hover:text-white text-sm transition-colors">
                   Como Funciona
                 </a>
-                <a
-                  href="#"
-                  style={{
-                    color: "#A1A1AA",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                  }}
-                >
+                <a href="#" className="text-zinc-400 hover:text-white text-sm transition-colors">
                   Login
                 </a>
-                <a
-                  href="#"
-                  style={{
-                    color: "#A1A1AA",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                  }}
-                >
+                <a href="#" className="text-zinc-400 hover:text-white text-sm transition-colors">
                   Termos de Uso
                 </a>
-                <a
-                  href="#"
-                  style={{
-                    color: "#A1A1AA",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                  }}
-                >
+                <a href="#" className="text-zinc-400 hover:text-white text-sm transition-colors">
                   Política de Privacidade
                 </a>
-                <a
-                  href="#"
-                  style={{
-                    color: "#A1A1AA",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                  }}
-                >
+                <a href="#" className="text-zinc-400 hover:text-white text-sm transition-colors">
                   Início
                 </a>
               </div>
@@ -867,35 +150,12 @@ export default function SearchPage() {
 
             {/* Guarantee Section */}
             <div>
-              <h3
-                style={{
-                  fontSize: "18px",
-                  fontWeight: "bold",
-                  marginBottom: "16px",
-                  color: "white",
-                }}
-              >
+              <h3 className="text-lg font-bold mb-4 text-white">
                 Garantia ReTicket
               </h3>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "16px",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "12px",
-                  }}
-                >
-                  <div
-                    style={{
-                      marginTop: "4px",
-                      flexShrink: 0,
-                    }}
-                  >
+              <div className="space-y-4">
+                <div className="flex gap-3">
+                  <div className="mt-1 flex-shrink-0">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path
                         d="M9 12L11 14L15 10M12 3L4 7V13C4 17.4183 7.58172 21 12 21C16.4183 21 20 17.4183 20 13V7L12 3Z"
@@ -907,40 +167,17 @@ export default function SearchPage() {
                     </svg>
                   </div>
                   <div>
-                    <p
-                      style={{
-                        color: "white",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        marginBottom: "4px",
-                      }}
-                    >
+                    <p className="text-white text-sm font-medium mb-1">
                       Ingresso Garantido
                     </p>
-                    <p
-                      style={{
-                        color: "#A1A1AA",
-                        fontSize: "14px",
-                        lineHeight: "1.6",
-                      }}
-                    >
+                    <p className="text-zinc-400 text-sm leading-relaxed">
                       Para o comprador: garantimos sua entrada ou seu dinheiro de volta.
                     </p>
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "12px",
-                  }}
-                >
-                  <div
-                    style={{
-                      marginTop: "4px",
-                      flexShrink: 0,
-                    }}
-                  >
+                <div className="flex gap-3">
+                  <div className="mt-1 flex-shrink-0">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path
                         d="M9 12L11 14L15 10M12 3L4 7V13C4 17.4183 7.58172 21 12 21C16.4183 21 20 17.4183 20 13V7L12 3Z"
@@ -952,40 +189,17 @@ export default function SearchPage() {
                     </svg>
                   </div>
                   <div>
-                    <p
-                      style={{
-                        color: "white",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        marginBottom: "4px",
-                      }}
-                    >
+                    <p className="text-white text-sm font-medium mb-1">
                       Pagamento Garantido
                     </p>
-                    <p
-                      style={{
-                        color: "#A1A1AA",
-                        fontSize: "14px",
-                        lineHeight: "1.6",
-                      }}
-                    >
+                    <p className="text-zinc-400 text-sm leading-relaxed">
                       Para o vendedor: garantimos seu pagamento por ingressos válidos.
                     </p>
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "12px",
-                  }}
-                >
-                  <div
-                    style={{
-                      marginTop: "4px",
-                      flexShrink: 0,
-                    }}
-                  >
+                <div className="flex gap-3">
+                  <div className="mt-1 flex-shrink-0">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path
                         d="M12 2L2 7L12 12L22 7L12 2Z"
@@ -1011,23 +225,10 @@ export default function SearchPage() {
                     </svg>
                   </div>
                   <div>
-                    <p
-                      style={{
-                        color: "white",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        marginBottom: "4px",
-                      }}
-                    >
+                    <p className="text-white text-sm font-medium mb-1">
                       Plataforma Confiável
                     </p>
-                    <p
-                      style={{
-                        color: "#A1A1AA",
-                        fontSize: "14px",
-                        lineHeight: "1.6",
-                      }}
-                    >
+                    <p className="text-zinc-400 text-sm leading-relaxed">
                       Transações autenticadas, suporte humano e conformidade com as leis brasileiras.
                     </p>
                   </div>
@@ -1037,36 +238,14 @@ export default function SearchPage() {
 
             {/* Social Media */}
             <div>
-              <h3
-                style={{
-                  fontSize: "18px",
-                  fontWeight: "bold",
-                  marginBottom: "16px",
-                  color: "white",
-                }}
-              >
+              <h3 className="text-lg font-bold mb-4 text-white">
                 Redes Sociais
               </h3>
-              <div
-                style={{
-                  display: "flex",
-                  gap: "12px",
-                  marginBottom: "24px",
-                }}
-              >
+              <div className="flex gap-3 mb-6">
                 <a
                   href="#"
-                  style={{
-                    backgroundColor: "#27272A",
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "white",
-                    textDecoration: "none",
-                  }}
+                  className="bg-zinc-700 w-10 h-10 rounded-full flex items-center justify-center text-white hover:bg-zinc-600 transition-colors"
+                  aria-label="Facebook"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
@@ -1080,17 +259,8 @@ export default function SearchPage() {
                 </a>
                 <a
                   href="#"
-                  style={{
-                    backgroundColor: "#27272A",
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "white",
-                    textDecoration: "none",
-                  }}
+                  className="bg-zinc-700 w-10 h-10 rounded-full flex items-center justify-center text-white hover:bg-zinc-600 transition-colors"
+                  aria-label="Instagram"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect x="2" y="2" width="20" height="20" rx="5" stroke="white" strokeWidth="1.5" />
@@ -1100,17 +270,8 @@ export default function SearchPage() {
                 </a>
                 <a
                   href="#"
-                  style={{
-                    backgroundColor: "#27272A",
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "white",
-                    textDecoration: "none",
-                  }}
+                  className="bg-zinc-700 w-10 h-10 rounded-full flex items-center justify-center text-white hover:bg-zinc-600 transition-colors"
+                  aria-label="YouTube"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
@@ -1130,13 +291,7 @@ export default function SearchPage() {
                   </svg>
                 </a>
               </div>
-              <p
-                style={{
-                  color: "#A1A1AA",
-                  fontSize: "14px",
-                  lineHeight: "1.6",
-                }}
-              >
+              <p className="text-zinc-400 text-sm leading-relaxed">
                 © 2023 ReTicket. Todos os direitos reservados.
               </p>
             </div>
