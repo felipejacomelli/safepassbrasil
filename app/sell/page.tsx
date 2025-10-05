@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, Check, AlertCircle, Plus, Minus } from "lucide-react"
 import { eventsApi, transformEventForFrontend, Event } from "@/lib/api"
 import { useAuth } from "@/contexts/auth-context"
+import Header from "@/components/Header"
 
 // Interface para eventos na página de venda
 interface SellEvent {
@@ -367,51 +368,7 @@ export default function SellTicketsPage() {
         minHeight: "100vh",
       }}
     >
-      {/* Header */}
-      <header
-        style={{
-          padding: "16px",
-          borderBottom: "1px solid #333",
-          backgroundColor: "rgba(0,0,0,0.9)",
-          backdropFilter: "blur(10px)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "16px",
-            maxWidth: "1200px",
-            margin: "0 auto",
-          }}
-        >
-          <button
-            onClick={() => router.push("/")}
-            style={{
-              backgroundColor: "transparent",
-              border: "1px solid #3B82F6",
-              color: "#3B82F6",
-              padding: "8px",
-              borderRadius: "8px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <h1
-            style={{
-              fontSize: "24px",
-              fontWeight: "bold",
-              margin: 0,
-            }}
-          >
-            Vender Ingressos
-          </h1>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main

@@ -6,6 +6,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { formatCpf, validateCpfWithMessage } from "@/utils/cpf"
+import Header from "@/components/Header"
 
 export default function RegisterPage() {
   const [isDesktop, setIsDesktop] = useState(false)
@@ -134,134 +135,7 @@ export default function RegisterPage() {
         flexDirection: "column",
       }}
     >
-      {/* Header/Navigation */}
-      <header
-        style={{
-          padding: "16px",
-          borderBottom: "1px solid #333",
-          position: "sticky",
-          top: 0,
-          backgroundColor: "rgba(0,0,0,0.9)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-          zIndex: 10,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            maxWidth: "1200px",
-            margin: "0 auto",
-            width: "100%",
-          }}
-        >
-          {/* Logo */}
-          <a
-            href="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              textDecoration: "none",
-            }}
-          >
-            <div
-              style={{
-                backgroundColor: "#3B82F6",
-                padding: "6px",
-                borderRadius: "4px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <div
-                style={{
-                  width: "24px",
-                  height: "24px",
-                  backgroundColor: "black",
-                  borderRadius: "4px",
-                }}
-              />
-            </div>
-            <span
-              style={{
-                color: "white",
-                fontSize: "20px",
-                fontWeight: "bold",
-              }}
-            >
-              reticket
-            </span>
-          </a>
-
-          {/* Navigation Links */}
-          <nav
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-            }}
-          >
-            {isDesktop && (
-              <>
-                <a
-                  href="/#como-funciona"
-                  style={{
-                    color: "white",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                  }}
-                >
-                  Como Funciona
-                </a>
-                <a
-                  href="#"
-                  style={{
-                    color: "white",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                  }}
-                >
-                  WhatsApp
-                </a>
-              </>
-            )}
-            <button
-              style={{
-                backgroundColor: "transparent",
-                border: "1px solid #3B82F6",
-                color: "white",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "bold",
-              }}
-              onClick={() => router.push("/register")}
-            >
-              Cadastrar
-            </button>
-            <button
-              style={{
-                backgroundColor: "transparent",
-                border: "1px solid #3B82F6",
-                color: "white",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "bold",
-              }}
-              onClick={() => router.push("/login")}
-            >
-              Acessar
-            </button>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main

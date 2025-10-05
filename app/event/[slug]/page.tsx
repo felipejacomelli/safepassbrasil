@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Calendar, MapPin, Clock, Users, ArrowLeft, ChevronRight } from "lucide-react"
+import { Calendar, MapPin, Clock, Users, ArrowLeft, ChevronRight, Ticket } from "lucide-react"
 import { eventsApi, ApiEventWithOccurrences, ApiOccurrence } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -264,10 +264,11 @@ export default function EventPage({ params }: EventPageProps) {
                                                     <span>{occurrence.city}</span>
                                                 </div>
 
-                                                <div className="text-sm text-gray-400">
+                                                <div className="flex items-center gap-1 text-blue-500 text-xs">
+                                                    <Ticket size={16} className="mr-2" />
                                                     {occurrence.available_tickets > 0 ? (
-                                                        <span className="text-green-400">
-                              {occurrence.available_tickets} ingressos disponíveis
+                                                        <span>
+                              {occurrence.available_tickets}
                             </span>
                                                     ) : (
                                                         <span className="text-red-400">Esgotado</span>
