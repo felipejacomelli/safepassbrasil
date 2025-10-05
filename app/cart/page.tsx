@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
-import { User, ShoppingCart } from "lucide-react"
+import { User, ShoppingCart, ChevronRight } from "lucide-react"
 import { AsaasCheckout } from "@/components/asaas-checkout"
 
 interface CartItem {
@@ -656,6 +656,36 @@ export default function CartPage() {
           flex: 1,
         }}
       >
+        {/* Breadcrumb */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            marginBottom: "24px",
+            fontSize: "14px",
+            color: "#A1A1AA",
+          }}
+        >
+          <a
+            href="/"
+            style={{
+              color: "#A1A1AA",
+              textDecoration: "none",
+              transition: "color 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.color = "#3B82F6"
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.color = "#A1A1AA"
+            }}
+          >
+            Home
+          </a>
+          <ChevronRight size={16} />
+          <span style={{ color: "white" }}>Carrinho</span>
+        </div>
         {orderComplete ? (
           <div
             style={{

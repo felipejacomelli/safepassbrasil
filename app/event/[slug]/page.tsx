@@ -2,11 +2,10 @@
 
 import { useEffect, useState, use } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Calendar, MapPin, Clock, Users, ArrowLeft } from "lucide-react"
+import { Calendar, MapPin, Clock, Users, ArrowLeft, ChevronRight } from "lucide-react"
 import { eventsApi, ApiEventWithOccurrences, ApiOccurrence } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Breadcrumbs } from "@/components/ui/breadcrumbs"
 
 interface EventPageProps {
     params: Promise<{ slug: string }>
@@ -137,16 +136,56 @@ export default function EventPage({ params }: EventPageProps) {
         )
     }
 
-    const breadcrumbItems = [
-        { label: "Events", href: "/" },
-        { label: event.name, href: `/event/${slug}` }
-    ]
-
     return (
         <div className="min-h-screen bg-black text-white">
             <div className="container mx-auto px-4 py-8">
-                {/* Breadcrumbs */}
-                <Breadcrumbs items={breadcrumbItems} />
+                {/* Breadcrumb */}
+                <nav
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginBottom: "20px",
+                        fontSize: "14px",
+                        color: "#A1A1AA",
+                    }}
+                >
+                    <a
+                        href="/"
+                        style={{
+                            color: "#A1A1AA",
+                            textDecoration: "none",
+                            transition: "color 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLElement).style.color = "#3B82F6"
+                        }}
+                        onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLElement).style.color = "#A1A1AA"
+                        }}
+                    >
+                        Home
+                    </a>
+                    <ChevronRight size={16} />
+                    <a
+                        href="/"
+                        style={{
+                            color: "#A1A1AA",
+                            textDecoration: "none",
+                            transition: "color 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLElement).style.color = "#3B82F6"
+                        }}
+                        onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLElement).style.color = "#A1A1AA"
+                        }}
+                    >
+                        Eventos
+                    </a>
+                    <ChevronRight size={16} />
+                    <span style={{ color: "white" }}>{event.name}</span>
+                </nav>
 
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-8 mt-6">
