@@ -141,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         address: profile.location,
         cpf: profile.cpf,
         country: profile.country,
+        profileImage: profile.profile_image, // Mapear profile_image para profileImage
         has2FA: false,
         isVerified: true,
         isAdmin: isAdmin, // Use real admin status from backend

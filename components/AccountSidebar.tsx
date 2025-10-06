@@ -4,7 +4,11 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { cn } from "@/lib/utils"
-import { User, Package, Shield, BadgeCheck, LogOut, Settings } from "lucide-react"
+import { User, LogOut, Ticket, ShieldCheck } from "lucide-react"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 
 interface AccountSidebarProps {
   balance?: number
@@ -19,23 +23,22 @@ export function AccountSidebar({ balance, pendingBalance }: AccountSidebarProps 
 
   const navigation = [
     { name: "Minha Conta", href: "/account", icon: User },
-    { name: "Meus Pedidos", href: "/account/orders", icon: Package },
-    { name: "Segurança", href: "/account/security", icon: Shield },
+    { name: "Meus Ingressos", href: "/account/orders", icon: Ticket },
     {
       name: "Verificação",
       href: "/account/verification",
-      icon: BadgeCheck,
+      icon: ShieldCheck,
       status: isVerified ? "verified" : "pending",
     },
-    { name: "Configurações", href: "/account/settings", icon: Settings },
   ]
 
   return (
     <div className="w-full md:w-64 flex-shrink-0">
-      <div className="bg-zinc-900 border-r border-zinc-800 overflow-hidden relative h-full">
-        <div className="p-6 border-b border-zinc-800">
+      <Card className="bg-zinc-900 rounded border-zinc-800 flex flex-col h-full">
+        {/* Header */}
+        <CardHeader className="flex-shrink-0">
           <div className="flex items-center">
-            <div className="h-12 w-12 rounded-full bg-zinc-800 flex items-center justify-center text-white font-bold">
+            <div className="h-12 w-12 rounded bg-zinc-800 flex items-center justify-center text-white font-bold">
               {user?.name?.charAt(0) || "U"}
             </div>
             <div className="ml-3">
@@ -45,57 +48,72 @@ export function AccountSidebar({ balance, pendingBalance }: AccountSidebarProps 
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-2">
-            <div className="bg-zinc-800 p-2 rounded">
-              <p className="text-xs text-gray-400">Saldo</p>
-              <p className="font-medium text-white">R$ {(balance !== undefined ? balance : user?.balance || 0).toFixed(2)}</p>
-            </div>
-            <div className="bg-zinc-800 p-2 rounded">
-              <p className="text-xs text-gray-400">Pendente</p>
-              <p className="font-medium text-white">R$ {(pendingBalance !== undefined ? pendingBalance : user?.pendingBalance || 0).toFixed(2)}</p>
-            </div>
+            <Card className="bg-zinc-800 rounded border-zinc-700">
+              <CardContent className="p-2">
+                <p className="text-xs text-gray-400">Saldo</p>
+                <p className="font-medium text-white">R$ {(balance !== undefined ? balance : user?.balance || 0).toFixed(2)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-zinc-800 rounded border-zinc-700">
+              <CardContent className="p-2">
+                <p className="text-xs text-gray-400">Pendente</p>
+                <p className="font-medium text-white">R$ {(pendingBalance !== undefined ? pendingBalance : user?.pendingBalance || 0).toFixed(2)}</p>
+              </CardContent>
+            </Card>
           </div>
-        </div>
+        </CardHeader>
 
-        <nav className="p-4 space-y-1">
+        <Separator className="bg-zinc-800" />
+
+        {/* Navigation - Flex grow para ocupar espaço disponível */}
+        <CardContent className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navigation.map((item) => (
-            <Link
+            <Button
               key={item.name}
-              href={item.href}
+              variant="ghost"
+              asChild
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                "w-full justify-start h-auto p-3 rounded",
                 pathname === item.href
                   ? "bg-blue-900 bg-opacity-20 text-primary"
                   : "text-gray-400 hover:text-white hover:bg-zinc-800",
               )}
             >
-              <item.icon size={20} />
-              <span>{item.name}</span>
-              {item.status && (
-                <span
-                  className={cn(
-                    "ml-auto inline-flex items-center rounded-full px-2 py-0.5 text-xs",
-                    item.status === "verified"
-                      ? "bg-green-900 bg-opacity-20 text-green-500"
-                      : "bg-yellow-900 bg-opacity-20 text-yellow-500",
-                  )}
-                >
-                  {item.status === "verified" ? "Verificado" : "Pendente"}
-                </span>
-              )}
-            </Link>
+              <Link href={item.href}>
+                <item.icon size={20} />
+                <span className="ml-3">{item.name}</span>
+                {item.status && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "ml-auto",
+                      item.status === "verified"
+                        ? "bg-green-900 bg-opacity-20 text-green-500 border-green-800"
+                        : "bg-yellow-900 bg-opacity-20 text-yellow-500 border-yellow-800",
+                    )}
+                  >
+                    {item.status === "verified" ? "Verificado" : "Pendente"}
+                  </Badge>
+                )}
+              </Link>
+            </Button>
           ))}
-        </nav>
+        </CardContent>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-zinc-800">
-          <button
+        <Separator className="bg-zinc-800" />
+
+        {/* Logout Button - Flex shrink para ficar fixo no bottom */}
+        <CardContent className="flex-shrink-0 p-4">
+          <Button
+            variant="ghost"
             onClick={logout}
-            className="flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors w-full text-left"
+            className="w-full justify-start h-auto p-3 rounded text-gray-400 hover:text-white hover:bg-zinc-800"
           >
             <LogOut size={20} />
-            <span>Sair</span>
-          </button>
-        </div>
-      </div>
+            <span className="ml-3">Sair</span>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   )
 }

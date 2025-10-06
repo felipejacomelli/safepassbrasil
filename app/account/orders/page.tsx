@@ -84,6 +84,7 @@ interface PaymentMethod {
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { AccountSidebar } from "@/components/AccountSidebar"
+import Header from "@/components/Header"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/contexts/auth-context"
@@ -99,7 +100,6 @@ import {
   QrCode,
   Landmark,
   CreditCard,
-  User,
   Share,
 } from "lucide-react"
 
@@ -111,7 +111,8 @@ export default function OrdersPage() {
   const [showWithdrawalForm, setShowWithdrawalForm] = useState(false)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null)
   const [statusFilter, setStatusFilter] = useState("all")
-  const [showUserMenu, setShowUserMenu] = useState(false)
+  const [purchaseStatusFilter, setPurchaseStatusFilter] = useState("all")
+  const [salesStatusFilter, setSalesStatusFilter] = useState("all")
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>({
     method: "pix",
     details: {}
@@ -137,6 +138,15 @@ export default function OrdersPage() {
       router.push("/login")
     }
   }, [user, isLoading, router])
+
+  // Reset filters when switching tabs
+  useEffect(() => {
+    if (activeTab === "purchases") {
+      setPurchaseStatusFilter("all")
+    } else if (activeTab === "sales") {
+      setSalesStatusFilter("all")
+    }
+  }, [activeTab])
 
   // Carregar dados reais da API
   useEffect(() => {
@@ -210,23 +220,92 @@ export default function OrdersPage() {
 
   // Filter purchases based on selected filters
   const filteredPurchases = purchasedTickets.filter((ticket) => {
-    if (statusFilter !== "all" && ticket.status.toString() !== statusFilter) return false
-    return true
+    if (purchaseStatusFilter === "all") return true
+    
+    // Mapear filtros para status do backend (tanto string quanto number)
+    const statusMap: { [key: string]: string | number } = {
+      "1": "USED",      // Usado
+      "2": "ACTIVE",    // Ativo
+      "3": "CANCELLED", // Cancelado
+      "4": "EXPIRED",   // Expirado
+      "5": "TRANSFERRED" // Transferido
+    }
+    
+    // Mapear também para números (caso a API retorne números)
+    const numberStatusMap: { [key: string]: number } = {
+      "1": 1, // USED
+      "2": 2, // ACTIVE
+      "3": 3, // CANCELLED
+      "4": 4, // EXPIRED
+      "5": 5  // TRANSFERRED
+    }
+    
+    const expectedStringStatus = statusMap[purchaseStatusFilter] as string
+    const expectedNumberStatus = numberStatusMap[purchaseStatusFilter]
+    
+    // Verificar se o status corresponde (string ou number)
+    return ticket.status === expectedStringStatus || ticket.status === expectedNumberStatus
   })
 
   const filteredOrders = orders.filter((order) => {
-    if (statusFilter !== "all" && order.status.toString() !== statusFilter) return false
+    if (purchaseStatusFilter !== "all" && order.status.toString() !== purchaseStatusFilter) return false
     return true
   })
 
   const filteredSales = sales.filter((sale) => {
-    if (statusFilter !== "all" && sale.status.toString() !== statusFilter) return false
-    return true
+    if (salesStatusFilter === "all") return true
+    
+    // Mapear filtros para status do backend (tanto string quanto number)
+    const statusMap: { [key: string]: string | number } = {
+      "1": "USED",      // Usado
+      "2": "ACTIVE",    // Ativo
+      "3": "CANCELLED", // Cancelado
+      "4": "EXPIRED",   // Expirado
+      "5": "TRANSFERRED" // Transferido
+    }
+    
+    // Mapear também para números (caso a API retorne números)
+    const numberStatusMap: { [key: string]: number } = {
+      "1": 1, // USED
+      "2": 2, // ACTIVE
+      "3": 3, // CANCELLED
+      "4": 4, // EXPIRED
+      "5": 5  // TRANSFERRED
+    }
+    
+    const expectedStringStatus = statusMap[salesStatusFilter] as string
+    const expectedNumberStatus = numberStatusMap[salesStatusFilter]
+    
+    // Verificar se o status corresponde (string ou number)
+    return sale.status === expectedStringStatus || sale.status === expectedNumberStatus
   })
 
   const filteredSoldTickets = soldTickets.filter((ticket) => {
-    if (statusFilter !== "all" && ticket.status.toString() !== statusFilter) return false
-    return true
+    if (salesStatusFilter === "all") return true
+    
+    // Mapear filtros para status do backend (tanto string quanto number)
+    const statusMap: { [key: string]: string | number } = {
+      "1": "USED",      // Usado
+      "2": "ACTIVE",    // Ativo
+      "3": "CANCELLED", // Cancelado
+      "4": "EXPIRED",   // Expirado
+      "5": "TRANSFERRED" // Transferido
+    }
+    
+    // Mapear também para números (caso a API retorne números)
+    const numberStatusMap: { [key: string]: number } = {
+      "1": 1, // USED
+      "2": 2, // ACTIVE
+      "3": 3, // CANCELLED
+      "4": 4, // EXPIRED
+      "5": 5  // TRANSFERRED
+    }
+    
+    const expectedStringStatus = statusMap[salesStatusFilter] as string
+    const expectedNumberStatus = numberStatusMap[salesStatusFilter]
+    
+    // Verificar se o status corresponde (string ou number)
+    return ticket.status === expectedStringStatus || ticket.status === expectedNumberStatus
   })
 
   // Função para abrir modal de compartilhamento
@@ -258,39 +337,16 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      <Header />
+      
       <div className="flex">
         <AccountSidebar balance={realBalance} pendingBalance={realPendingBalance} />
         
         <div className="flex-1 p-8">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-white">Meus Pedidos</h1>
-              <p className="text-gray-400 mt-2">Gerencie seus pedidos, transações e saldo</p>
-            </div>
-            
-            <div className="relative">
-              <Button
-                variant="ghost"
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-2 text-white hover:bg-zinc-800"
-              >
-                <User className="w-5 h-5" />
-                <span>{user.name}</span>
-              </Button>
-              
-              {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-zinc-900 rounded-lg shadow-lg border border-zinc-800 z-10">
-                  <Button
-                    variant="ghost"
-                    onClick={logout}
-                    className="w-full text-left text-red-400 hover:bg-zinc-800 hover:text-red-300"
-                  >
-                    Sair
-                  </Button>
-                </div>
-              )}
-            </div>
+          {/* Page Title */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white">Meus Pedidos</h1>
+            <p className="text-gray-400 mt-2">Gerencie seus pedidos, transações e saldo</p>
           </div>
 
           {/* Balance Section */}
@@ -384,7 +440,7 @@ export default function OrdersPage() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <TabsList className="bg-zinc-900 border border-zinc-800">
                 <TabsTrigger value="purchases" className="data-[state=active]:bg-zinc-700">
                   Compras
@@ -394,29 +450,55 @@ export default function OrdersPage() {
                 </TabsTrigger>
               </TabsList>
               
-              <div className="flex items-center space-x-3">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                >
-                  <option value="all">Todos os Status</option>
-                  <option value="1">Pendente</option>
-                  <option value="2">Concluído</option>
-                  <option value="3">Cancelado</option>
-                </select>
+              <div className="flex items-center space-x-3 w-full sm:w-auto">
+                <label className="text-sm text-gray-400 whitespace-nowrap">
+                  Filtrar por status:
+                </label>
+                {activeTab === "purchases" ? (
+                  <select
+                    value={purchaseStatusFilter}
+                    onChange={(e) => setPurchaseStatusFilter(e.target.value)}
+                    className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors hover:border-zinc-700 w-full sm:w-auto min-w-[160px]"
+                    aria-label="Filtrar status das compras"
+                  >
+                    <option value="all">Todos os Status</option>
+                    <option value="1">Usado</option>
+                    <option value="2">Ativo</option>
+                    <option value="3">Cancelado</option>
+                    <option value="4">Expirado</option>
+                    <option value="5">Transferido</option>
+                  </select>
+                ) : (
+                  <select
+                    value={salesStatusFilter}
+                    onChange={(e) => setSalesStatusFilter(e.target.value)}
+                    className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors hover:border-zinc-700 w-full sm:w-auto min-w-[160px]"
+                    aria-label="Filtrar status das vendas"
+                  >
+                    <option value="all">Todos os Status</option>
+                    <option value="1">Usado</option>
+                    <option value="2">Ativo</option>
+                    <option value="3">Cancelado</option>
+                    <option value="4">Expirado</option>
+                    <option value="5">Transferido</option>
+                  </select>
+                )}
               </div>
             </div>
 
             {/* Purchases Tab */}
             <TabsContent value="purchases" className="space-y-4">
-              {purchasedTickets.length === 0 ? (
+              {filteredPurchases.length === 0 ? (
                 <div className="text-center py-12">
                   <ArrowUpFromLine className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-400">Nenhuma compra encontrada</p>
+                  <p className="text-gray-400">
+                    {purchaseStatusFilter === "all" 
+                      ? "Nenhuma compra encontrada" 
+                      : "Nenhuma compra encontrada com este status"}
+                  </p>
                 </div>
               ) : (
-                purchasedTickets.map((ticket) => (
+                filteredPurchases.map((ticket) => (
                   <div
                     key={ticket.id}
                     className="bg-zinc-900 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
@@ -439,18 +521,30 @@ export default function OrdersPage() {
                         </p>
                         <span
                           className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
-                            ticket.status === 2
+                            ticket.status === "ACTIVE" || ticket.status === 2
                               ? "bg-green-900 bg-opacity-20 text-green-500"
-                              : ticket.status === 1
-                                ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
-                                : "bg-red-900 bg-opacity-20 text-red-500"
+                              : ticket.status === "USED" || ticket.status === 1
+                                ? "bg-blue-900 bg-opacity-20 text-blue-500"
+                                : ticket.status === "EXPIRED" || ticket.status === 4
+                                  ? "bg-red-900 bg-opacity-20 text-red-500"
+                                  : ticket.status === "CANCELLED" || ticket.status === 3
+                                    ? "bg-gray-900 bg-opacity-20 text-gray-500"
+                                    : ticket.status === "TRANSFERRED" || ticket.status === 5
+                                      ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
+                                      : "bg-yellow-900 bg-opacity-20 text-yellow-500"
                           }`}
                         >
-                          {ticket.status === 2
+                          {ticket.status === "ACTIVE" || ticket.status === 2
                             ? "Ativo"
-                            : ticket.status === 1
-                              ? "Pendente"
-                              : "Cancelado"}
+                            : ticket.status === "USED" || ticket.status === 1
+                              ? "Usado"
+                              : ticket.status === "EXPIRED" || ticket.status === 4
+                                ? "Expirado"
+                                : ticket.status === "CANCELLED" || ticket.status === 3
+                                  ? "Cancelado"
+                                  : ticket.status === "TRANSFERRED" || ticket.status === 5
+                                    ? "Transferido"
+                                    : "Desconhecido"}
                         </span>
                       </div>
                     </div>
@@ -518,18 +612,28 @@ export default function OrdersPage() {
                             </div>
                             <span
                               className={`inline-block mt-2 px-2 py-1 rounded-full text-xs ${
-                                sale.status === 2
+                                sale.status === "ACTIVE"
                                   ? "bg-green-900 bg-opacity-20 text-green-500"
-                                  : sale.status === 1
-                                    ? "bg-yellow-900 bg-opacity-20 text-yellow-500"
-                                    : "bg-red-900 bg-opacity-20 text-red-500"
+                                  : sale.status === "USED"
+                                    ? "bg-blue-900 bg-opacity-20 text-blue-500"
+                                    : sale.status === "EXPIRED"
+                                      ? "bg-red-900 bg-opacity-20 text-red-500"
+                                      : sale.status === "CANCELLED"
+                                        ? "bg-gray-900 bg-opacity-20 text-gray-500"
+                                        : "bg-yellow-900 bg-opacity-20 text-yellow-500"
                               }`}
                             >
-                              {sale.status === 2
+                              {sale.status === "ACTIVE"
                                 ? "Ativo"
-                                : sale.status === 1
+                                : sale.status === "USED"
                                   ? "Usado"
-                                  : "Expirado"}
+                                  : sale.status === "EXPIRED"
+                                    ? "Expirado"
+                                    : sale.status === "CANCELLED"
+                                      ? "Cancelado"
+                                      : sale.status === "TRANSFERRED"
+                                        ? "Transferido"
+                                        : "Desconhecido"}
                             </span>
                           </div>
                         </div>
