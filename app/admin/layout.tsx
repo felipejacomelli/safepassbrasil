@@ -65,7 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="min-h-screen bg-black">
       {/* Mobile sidebar toggle */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-zinc-900 border-b border-zinc-800">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-zinc-900 border-b border-zinc-800 rounded-b-lg">
         <div className="flex items-center gap-2">
           <div className="bg-primary p-1.5 rounded">
             <div className="w-6 h-6 bg-black rounded" />
@@ -73,20 +73,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <span className="text-white text-xl font-bold">reticket</span>
           <span className="text-xs text-primary ml-1">ADMIN</span>
         </div>
-        <Button variant="ghost" size="icon" className="text-white" onClick={() => setSidebarOpen(!sidebarOpen)}>
+        <Button variant="ghost" size="icon" className="text-white rounded-lg" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </Button>
       </div>
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 bottom-0 z-40 w-64 bg-zinc-900 border-r border-zinc-800 transition-transform duration-300 transform ${
+        className={`fixed top-0 left-0 bottom-0 z-40 w-64 bg-zinc-900 border-r border-zinc-800 transition-transform duration-300 transform rounded-r-xl ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        <div className="flex items-center gap-2 p-6 border-b border-zinc-800">
-          <div className="bg-primary p-1.5 rounded">
-            <div className="w-6 h-6 bg-black rounded" />
+        <div className="flex items-center gap-2 p-6 border-b border-zinc-800 rounded-t-r-xl">
+          <div className="bg-primary p-1.5 rounded-lg">
+            <div className="w-6 h-6 bg-black rounded-lg" />
           </div>
           <span className="text-white text-xl font-bold">reticket</span>
           <span className="text-xs text-primary ml-1">ADMIN</span>
@@ -98,7 +98,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                   isActive
                     ? "bg-blue-900 bg-opacity-20 text-primary"
                     : "text-gray-400 hover:text-white hover:bg-zinc-800"
@@ -111,10 +111,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             )
           })}
         </nav>
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-zinc-800">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-zinc-800 rounded-b-r-xl">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors w-full text-left"
+            className="flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors w-full text-left"
           >
             <LogOut size={20} />
             <span>Sair</span>

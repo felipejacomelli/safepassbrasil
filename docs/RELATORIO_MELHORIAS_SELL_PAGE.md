@@ -1,4 +1,3 @@
-# Relatório de Melhorias - Página de Venda de Ingressos
 
 ## Análise Profunda do Arquivo `app/event/[slug]/sell/page.tsx`
 
@@ -321,7 +320,6 @@ describe('Sell Ticket Integration', () => {
 3. **Desenvolver custom hooks** em `hooks/`
 4. **Migrar estilos** para Tailwind CSS
 5. **Implementar testes** com Jest + RTL
-6. **Documentar componentes** com JSDoc
 
 ---
 

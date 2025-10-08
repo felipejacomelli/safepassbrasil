@@ -9,6 +9,7 @@ import {
     ChevronDown,
     LogOut,
     UserCircle,
+    Settings,
 } from "lucide-react"
 
 export default function Header() {
@@ -23,6 +24,11 @@ export default function Header() {
 
     const handleLogoutFromDropdown = () => {
         logout()
+        setIsUserMenuOpen(false)
+    }
+
+    const handleAdminPanelAccess = () => {
+        router.push("/admin")
         setIsUserMenuOpen(false)
     }
 
@@ -57,6 +63,15 @@ export default function Header() {
                                             <UserCircle size={16} />
                                             Minha Conta
                                         </button>
+                                        {user?.isAdmin && (
+                                            <button
+                                                onClick={handleAdminPanelAccess}
+                                                className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-800 transition-colors text-left text-blue-400"
+                                            >
+                                                <Settings size={16} />
+                                                Painel Admin
+                                            </button>
+                                        )}
                                         <button
                                             onClick={() => {
                                                 router.push("/cart")

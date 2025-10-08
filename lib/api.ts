@@ -687,6 +687,36 @@ export const adminApi = {
       return apiRequestJson<{tickets: any[]}>('/tickets/sold');
     },
   },
+
+  // Ocorrências
+  occurrences: {
+    getAll: async (params?: Record<string, string>): Promise<{occurrences: any[], count: number}> => {
+      const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+      return apiRequestJson<{occurrences: any[], count: number}>(`/occurrences${queryString}`);
+    },
+
+    getById: async (id: string): Promise<any> => {
+      return apiRequestJson<any>(`/occurrences/${id}/`);
+    },
+
+    create: async (data: any): Promise<any> => {
+      return apiRequestJson<any>('/occurrences/', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+    },
+
+    update: async (id: string, data: any): Promise<any> => {
+      return apiRequestJson<any>(`/occurrences/${id}/`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+    },
+
+    delete: async (id: string): Promise<void> => {
+      await apiRequest(`/occurrences/${id}/`, { method: 'DELETE' });
+    },
+  },
 };
 
 // Função para transformar dados da API para o formato esperado pelo frontend

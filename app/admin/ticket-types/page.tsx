@@ -1,202 +1,176 @@
-"use client"
+'use client'
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Ticket, Plus, Trash2, Save, AlertCircle, CheckCircle, DollarSign } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Ticket, Save, ArrowLeft, Plus, CheckCircle, Circle, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
-// Tipos para Tipo de Ingresso
-type TicketType = {
-  id?: string
-  occurrence_id?: string
-  name: string
-  price: string
-  quantity: string
-  max_per_purchase: string
-  description: string
-}
+// Hooks customizados
+import { useEvents } from '@/hooks/use-events'
+import { useOccurrenceLoader } from '@/hooks/use-occurrence-loader'
+import { useTicketTypes } from '@/hooks/use-ticket-types'
+import { useTicketTypeSubmission } from '@/hooks/use-ticket-type-submission'
 
-// Tipo para Ocorrência (para seleção)
-type Occurrence = {
-  id: string
-  event_name: string
-  start_at: string
-  venue: string
-  city: string
-  state: string
-}
+// Componentes customizados
+import { EventSelector } from '@/components/admin/event-selector'
+import { OccurrenceSelector } from '@/components/admin/OccurrenceSelector'
+import { TicketTypeForm } from '@/components/admin/TicketTypeForm'
+import { FeedbackMessage } from '@/components/admin/feedback-message'
+
+// Types
+import { Event, Occurrence } from '@/lib/types/occurrence'
+import { TicketTypeFormData } from '@/hooks/use-ticket-types'
 
 export default function TicketTypesPage() {
   const router = useRouter()
   
-  // Estados para controle de UI e dados
-  const [ticketTypes, setTicketTypes] = useState<TicketType[]>([
-    {
-      name: "",
-      price: "",
-      quantity: "",
-      max_per_purchase: "",
-      description: "",
-    },
-  ])
+  // Estados para seleção
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const [selectedOccurrence, setSelectedOccurrence] = useState<Occurrence | null>(null)
+  const [feedbackMessage, setFeedbackMessage] = useState<{
+    type: 'success' | 'error' | 'warning' | 'info'
+    message: string
+  } | null>(null)
+
+  // Hooks customizados
+  const { events, loading: eventsLoading, error: eventsError } = useEvents()
   
-  const [occurrences, setOccurrences] = useState<Occurrence[]>([])
-  const [selectedOccurrenceId, setSelectedOccurrenceId] = useState<string>("")
-  const [occurrencesLoading, setOccurrencesLoading] = useState(true)
-  const [occurrencesError, setOccurrencesError] = useState<string>("")
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const { 
+    occurrences, 
+    isLoading: occurrencesLoading, 
+    error: occurrencesError,
+    loadOccurrences 
+  } = useOccurrenceLoader({ eventId: selectedEvent?.id })
 
-  // Carregar ocorrências disponíveis
-  useEffect(() => {
-    const loadOccurrences = async () => {
-      try {
-        setOccurrencesLoading(true)
-        // Simulação de carregamento de ocorrências - substituir por API real
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        setOccurrences([
-          { 
-            id: "1", 
-            event_name: "Festival de Música 2024", 
-            start_at: "2024-03-15T20:00", 
-            venue: "Estádio do Morumbi", 
-            city: "São Paulo", 
-            state: "SP" 
-          },
-          { 
-            id: "2", 
-            event_name: "Conferência Tech", 
-            start_at: "2024-03-22T09:00", 
-            venue: "Centro de Convenções", 
-            city: "Belo Horizonte", 
-            state: "MG" 
-          },
-          { 
-            id: "3", 
-            event_name: "Show de Rock", 
-            start_at: "2024-03-28T21:00", 
-            venue: "Arena da Baixada", 
-            city: "Curitiba", 
-            state: "PR" 
-          }
-        ])
-        setOccurrencesError("")
-      } catch (error) {
-        setOccurrencesError("Erro ao carregar ocorrências")
-      } finally {
-        setOccurrencesLoading(false)
-      }
+  const {
+    ticketTypes,
+    addTicketType,
+    removeTicketType,
+    updateTicketType,
+    getFieldError,
+    resetForm,
+    clearErrors,
+    hasErrors
+  } = useTicketTypes()
+
+  const { 
+    isSubmitting, 
+    submissionError, 
+    createTicketTypes, 
+    clearError 
+  } = useTicketTypeSubmission({
+    onSuccess: (message) => {
+      setFeedbackMessage({ type: 'success', message })
+      resetForm()
+      setSelectedEvent(null)
+      setSelectedOccurrence(null)
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => setFeedbackMessage(null), 5000)
+    },
+    onError: (error) => {
+      setFeedbackMessage({ type: 'error', message: error })
     }
+  })
 
-    loadOccurrences()
-  }, [])
-
-  // Função para adicionar novo tipo de ingresso
-  const addTicketType = () => {
-    setTicketTypes([
-      ...ticketTypes,
-      {
-        name: "",
-        price: "",
-        quantity: "",
-        max_per_purchase: "",
-        description: "",
-      },
-    ])
+  // Manipular seleção de evento
+  const handleEventSelect = (event: Event | null) => {
+    setSelectedEvent(event)
+    setSelectedOccurrence(null)
+    clearErrors()
+    clearError()
+    setFeedbackMessage(null)
   }
 
-  // Função para remover tipo de ingresso
-  const removeTicketType = (index: number) => {
-    if (ticketTypes.length > 1) {
-      setTicketTypes(ticketTypes.filter((_, i) => i !== index))
-    }
+  // Manipular seleção de ocorrência
+  const handleOccurrenceSelect = (occurrence: Occurrence | null) => {
+    setSelectedOccurrence(occurrence)
+    clearErrors()
+    clearError()
+    setFeedbackMessage(null)
   }
 
-  // Função para atualizar tipo de ingresso
-  const updateTicketType = (index: number, field: keyof TicketType, value: string) => {
-    const updated = [...ticketTypes]
-    updated[index] = { ...updated[index], [field]: value }
-    setTicketTypes(updated)
-  }
-
-  // Função para salvar tipos de ingressos
-  const handleSave = async () => {
-    if (!selectedOccurrenceId) {
-      setMessage({ type: 'error', text: 'Selecione uma ocorrência antes de salvar os tipos de ingressos' })
+  // Manipular submissão do formulário
+  const handleSubmit = async () => {
+    if (!selectedOccurrence) {
+      setFeedbackMessage({
+        type: 'error',
+        message: 'Selecione uma ocorrência antes de criar os tipos de ingressos'
+      })
       return
     }
 
-    // Validação básica
-    const hasEmptyFields = ticketTypes.some(ticket => 
-      !ticket.name || !ticket.price || !ticket.quantity || !ticket.max_per_purchase
-    )
-
-    if (hasEmptyFields) {
-      setMessage({ type: 'error', text: 'Preencha todos os campos obrigatórios' })
-      return
-    }
-
-    // Validação de números
-    const hasInvalidNumbers = ticketTypes.some(ticket => {
-      const price = parseFloat(ticket.price)
-      const quantity = parseInt(ticket.quantity)
-      const maxPerPurchase = parseInt(ticket.max_per_purchase)
-      
-      return isNaN(price) || price <= 0 || 
-             isNaN(quantity) || quantity <= 0 || 
-             isNaN(maxPerPurchase) || maxPerPurchase <= 0
-    })
-
-    if (hasInvalidNumbers) {
-      setMessage({ type: 'error', text: 'Verifique se preço, quantidade e máximo por compra são números válidos' })
+    // Validar tipos de ingressos
+    const isValid = !hasErrors()
+    if (!isValid) {
+      setFeedbackMessage({
+        type: 'error',
+        message: 'Corrija os erros no formulário antes de continuar'
+      })
       return
     }
 
     try {
-      setSaving(true)
-      
-      // Simulação de salvamento - substituir por API real
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      setMessage({ type: 'success', text: 'Tipos de ingressos salvos com sucesso!' })
-      
-      // Limpar formulário após sucesso
-      setTimeout(() => {
-        setTicketTypes([{
-          name: "",
-          price: "",
-          quantity: "",
-          max_per_purchase: "",
-          description: "",
-        }])
-        setSelectedOccurrenceId("")
-        setMessage(null)
-      }, 2000)
-      
+      await createTicketTypes(selectedOccurrence.id!, ticketTypes)
     } catch (error) {
-      setMessage({ type: 'error', text: 'Erro ao salvar tipos de ingressos. Tente novamente.' })
-    } finally {
-      setSaving(false)
+      // Erro já tratado pelo hook
     }
   }
 
-  // Função para formatar data
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+  // Fechar mensagem de feedback
+  const closeFeedbackMessage = () => {
+    setFeedbackMessage(null)
+    clearError()
   }
+
+  // Componente de indicador de progresso
+  const ProgressStep = ({ step, currentStep, title, description, isCompleted }: {
+    step: number
+    currentStep: number
+    title: string
+    description: string
+    isCompleted: boolean
+  }) => {
+    const isActive = step === currentStep
+    const isPast = step < currentStep || isCompleted
+
+    return (
+      <div className="flex items-start gap-4">
+        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${
+          isCompleted 
+            ? 'bg-green-600 border-green-600 text-white' 
+            : isActive 
+            ? 'bg-blue-600 border-blue-600 text-white' 
+            : 'bg-zinc-800 border-zinc-600 text-zinc-400'
+        }`}>
+          {isCompleted ? (
+            <CheckCircle className="w-5 h-5" />
+          ) : (
+            <span className="text-sm font-semibold">{step}</span>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className={`text-sm font-medium transition-colors ${
+            isActive ? 'text-white' : isPast ? 'text-green-400' : 'text-zinc-400'
+          }`}>
+            {title}
+          </h3>
+          <p className="text-xs text-zinc-500 mt-1">{description}</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Determinar o passo atual
+  const getCurrentStep = () => {
+    if (!selectedEvent) return 1
+    if (!selectedOccurrence) return 2
+    if (ticketTypes.length === 0) return 3
+    return 4
+  }
+
+  const currentStep = getCurrentStep()
 
   return (
     <div className="space-y-6">
@@ -207,181 +181,267 @@ export default function TicketTypesPage() {
           <p className="text-gray-400">Configure preços, quantidades e tipos de ingressos para as ocorrências</p>
         </div>
         <Button 
-          onClick={addTicketType}
-          className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => router.push('/admin/events')}
+          variant="outline"
+          className="border-zinc-700 text-white hover:bg-zinc-800 rounded-lg"
         >
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Tipo de Ingresso
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar para Eventos
         </Button>
       </div>
 
+      {/* Indicador de Progresso */}
+      <Card className="bg-zinc-900 border-zinc-800 rounded-lg">
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-white mb-4">Progresso da Configuração</h2>
+            <div className="space-y-4">
+              <ProgressStep
+                step={1}
+                currentStep={currentStep}
+                title="Selecionar Evento"
+                description="Escolha o evento para configurar os tipos de ingressos"
+                isCompleted={!!selectedEvent}
+              />
+              <ProgressStep
+                step={2}
+                currentStep={currentStep}
+                title="Selecionar Ocorrência"
+                description="Escolha a data/horário específico do evento"
+                isCompleted={!!selectedOccurrence}
+              />
+              <ProgressStep
+                step={3}
+                currentStep={currentStep}
+                title="Configurar Tipos de Ingressos"
+                description="Adicione e configure os tipos de ingressos disponíveis"
+                isCompleted={ticketTypes.length > 0}
+              />
+              <ProgressStep
+                step={4}
+                currentStep={currentStep}
+                title="Salvar Configuração"
+                description="Revise e salve todas as configurações"
+                isCompleted={false}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Mensagem de feedback */}
-      {message && (
-        <div className={`flex items-center gap-2 p-4 rounded-lg ${
-          message.type === 'success' 
-            ? 'bg-green-900 bg-opacity-20 border border-green-800 text-green-400' 
-            : 'bg-red-900 bg-opacity-20 border border-red-800 text-red-400'
-        }`}>
-          {message.type === 'success' ? (
-            <CheckCircle className="h-5 w-5" />
-          ) : (
-            <AlertCircle className="h-5 w-5" />
-          )}
-          <span>{message.text}</span>
-        </div>
+      {(feedbackMessage || submissionError) && (
+        <FeedbackMessage
+          type={feedbackMessage?.type || 'error'}
+          message={feedbackMessage?.message || submissionError || ''}
+          onClose={closeFeedbackMessage}
+          autoClose={feedbackMessage?.type === 'success'}
+        />
       )}
 
-      {/* Seleção de Ocorrência */}
-      <Card className="bg-zinc-900 border-zinc-800">
-        <CardHeader>
+      {/* Seleção de Evento */}
+      <Card className={`bg-zinc-900 border-zinc-800 rounded-lg transition-all duration-200 ${
+        currentStep >= 1 ? 'ring-2 ring-blue-500 ring-opacity-20' : ''
+      }`}>
+        <CardHeader className="pb-4">
           <CardTitle className="text-white flex items-center gap-2">
-            <Ticket className="h-5 w-5" />
-            Selecionar Ocorrência
+            <div className={`p-1.5 rounded-lg ${
+              selectedEvent ? 'bg-green-600' : currentStep === 1 ? 'bg-blue-600' : 'bg-zinc-700'
+            }`}>
+              <Ticket className="h-5 w-5" />
+            </div>
+            Selecionar Evento
+            {selectedEvent && <Badge variant="secondary" className="ml-2 bg-green-600 text-white">Concluído</Badge>}
+            {eventsLoading && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {occurrencesLoading ? (
-            <div className="text-gray-400">Carregando ocorrências...</div>
-          ) : occurrencesError ? (
-            <div className="text-red-400">{occurrencesError}</div>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="occurrence-select" className="text-white">Ocorrência *</Label>
-              <Select value={selectedOccurrenceId} onValueChange={setSelectedOccurrenceId}>
-                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                  <SelectValue placeholder="Selecione uma ocorrência" />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
-                  {occurrences.map((occurrence) => (
-                    <SelectItem key={occurrence.id} value={occurrence.id} className="text-white hover:bg-zinc-700">
-                      <div className="flex flex-col">
-                        <span className="font-medium">{occurrence.event_name}</span>
-                        <span className="text-sm text-gray-400">
-                          {formatDate(occurrence.start_at)} - {occurrence.venue}, {occurrence.city}/{occurrence.state}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <CardContent>
+          <EventSelector
+            events={events}
+            selectedEventId={selectedEvent?.id || ''}
+            loading={eventsLoading}
+            error={eventsError}
+            onEventChange={(eventId) => {
+              const event = events.find(e => e.id === eventId) || null
+              handleEventSelect(event)
+            }}
+          />
+          {selectedEvent && (
+            <div className="mt-4 p-3 bg-green-900 bg-opacity-20 border border-green-800 rounded-lg">
+              <p className="text-green-400 text-sm">
+                <strong>Evento selecionado:</strong> {selectedEvent.name}
+              </p>
             </div>
           )}
         </CardContent>
       </Card>
 
+      {/* Seleção de Ocorrência */}
+      {selectedEvent && (
+        <Card className={`bg-zinc-900 border-zinc-800 rounded-lg transition-all duration-200 ${
+          currentStep >= 2 ? 'ring-2 ring-blue-500 ring-opacity-20' : ''
+        }`}>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-white flex items-center gap-2">
+              <div className={`p-1.5 rounded-lg ${
+                selectedOccurrence ? 'bg-green-600' : currentStep === 2 ? 'bg-blue-600' : 'bg-zinc-700'
+              }`}>
+                <Ticket className="h-5 w-5" />
+              </div>
+              Selecionar Ocorrência
+              {selectedOccurrence && <Badge variant="secondary" className="ml-2 bg-green-600 text-white">Concluído</Badge>}
+              {occurrencesLoading && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <OccurrenceSelector
+              occurrences={occurrences}
+              selectedOccurrence={selectedOccurrence}
+              onSelect={handleOccurrenceSelect}
+              isLoading={occurrencesLoading}
+              error={occurrencesError}
+              placeholder="Selecione uma ocorrência"
+              label="Ocorrência"
+              required
+            />
+            {selectedOccurrence && (
+              <div className="mt-4 p-3 bg-green-900 bg-opacity-20 border border-green-800 rounded-lg">
+                <p className="text-green-400 text-sm">
+                  <strong>Ocorrência selecionada:</strong> {new Date(selectedOccurrence.start_at).toLocaleDateString('pt-BR')} às {new Date(selectedOccurrence.start_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                </p>
+                <p className="text-green-400 text-sm mt-1">
+                  <strong>Local:</strong> {selectedOccurrence.city}, {selectedOccurrence.state}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Formulário de Tipos de Ingressos */}
-      <div className="space-y-4">
-        {ticketTypes.map((ticketType, index) => (
-          <Card key={index} className="bg-zinc-900 border-zinc-800">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-white flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Tipo de Ingresso {index + 1}
-                </CardTitle>
-                {ticketTypes.length > 1 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeTicketType(index)}
-                    className="text-red-400 hover:text-red-300 hover:bg-red-900 hover:bg-opacity-20"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
+      {selectedOccurrence && (
+        <Card className={`bg-zinc-900 border-zinc-800 rounded-lg transition-all duration-200 ${
+          currentStep >= 3 ? 'ring-2 ring-blue-500 ring-opacity-20' : ''
+        }`}>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-white flex items-center gap-2">
+              <div className={`p-1.5 rounded-lg ${
+                ticketTypes.length > 0 ? 'bg-green-600' : currentStep === 3 ? 'bg-blue-600' : 'bg-zinc-700'
+              }`}>
+                <Ticket className="h-5 w-5" />
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Nome e Preço */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor={`name-${index}`} className="text-white">Nome do Ingresso *</Label>
-                  <Input
-                    id={`name-${index}`}
-                    value={ticketType.name}
-                    onChange={(e) => updateTicketType(index, 'name', e.target.value)}
-                    placeholder="Ex: Pista, VIP, Camarote"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`price-${index}`} className="text-white">Preço (R$) *</Label>
-                  <Input
-                    id={`price-${index}`}
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={ticketType.price}
-                    onChange={(e) => updateTicketType(index, 'price', e.target.value)}
-                    placeholder="Ex: 50.00"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
+              Tipos de Ingressos
+              {ticketTypes.length > 0 && (
+                <Badge variant="secondary" className="ml-2 bg-green-600 text-white">
+                  {ticketTypes.length} {ticketTypes.length === 1 ? 'tipo' : 'tipos'} configurado{ticketTypes.length > 1 ? 's' : ''}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {ticketTypes.length === 0 ? (
+              <div className="text-center py-8">
+                <Ticket className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-zinc-400 mb-2">Nenhum tipo de ingresso configurado</h3>
+                <p className="text-zinc-500 mb-4">Adicione pelo menos um tipo de ingresso para continuar</p>
+                <Button
+                  onClick={addTicketType}
+                  disabled={isSubmitting}
+                  className="bg-blue-600 hover:bg-blue-700 rounded-lg"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Primeiro Tipo
+                </Button>
               </div>
-
-              {/* Quantidade e Máximo por Compra */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor={`quantity-${index}`} className="text-white">Quantidade Disponível *</Label>
-                  <Input
-                    id={`quantity-${index}`}
-                    type="number"
-                    min="1"
-                    value={ticketType.quantity}
-                    onChange={(e) => updateTicketType(index, 'quantity', e.target.value)}
-                    placeholder="Ex: 100"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`max-${index}`} className="text-white">Máximo por Compra *</Label>
-                  <Input
-                    id={`max-${index}`}
-                    type="number"
-                    min="1"
-                    value={ticketType.max_per_purchase}
-                    onChange={(e) => updateTicketType(index, 'max_per_purchase', e.target.value)}
-                    placeholder="Ex: 4"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Descrição */}
-              <div className="space-y-2">
-                <Label htmlFor={`description-${index}`} className="text-white">Descrição</Label>
-                <Textarea
-                  id={`description-${index}`}
-                  value={ticketType.description}
-                  onChange={(e) => updateTicketType(index, 'description', e.target.value)}
-                  placeholder="Descreva os benefícios e características deste tipo de ingresso..."
-                  className="bg-zinc-800 border-zinc-700 text-white min-h-[100px]"
+            ) : (
+              <div className="space-y-4">
+                <TicketTypeForm
+                  ticketTypes={ticketTypes}
+                  onAddTicketType={addTicketType}
+                  onRemoveTicketType={removeTicketType}
+                  onUpdateTicketType={updateTicketType}
+                  getFieldError={getFieldError}
+                  disabled={isSubmitting}
                 />
+                
+                {/* Preview dos tipos de ingressos */}
+                <div className="mt-6 p-4 bg-zinc-800 rounded-lg border border-zinc-700">
+                  <h4 className="text-white font-medium mb-3">Resumo dos Tipos de Ingressos</h4>
+                  <div className="space-y-2">
+                    {ticketTypes.map((ticketType, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-zinc-900 rounded-lg">
+                        <div className="flex-1">
+                          <p className="text-white font-medium">{ticketType.name}</p>
+                          <p className="text-zinc-400 text-sm">
+                            R$ {ticketType.price}
+                          </p>
+                          <p className="text-zinc-500 text-xs mt-1">
+                            {ticketType.description}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <Badge variant="outline" className="text-zinc-400 border-zinc-600">
+                            R$ {ticketType.price}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Botões de Ação */}
-      <div className="flex gap-4">
-        <Button
-          onClick={handleSave}
-          disabled={saving || !selectedOccurrenceId}
-          className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
-        >
-          <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Salvando...' : 'Salvar Tipos de Ingressos'}
-        </Button>
-        
-        <Button
-          variant="outline"
-          onClick={() => router.push('/admin/events')}
-          className="border-zinc-700 text-white hover:bg-zinc-800"
-        >
-          Voltar para Eventos
-        </Button>
-      </div>
+      {selectedOccurrence && ticketTypes.length > 0 && (
+        <Card className={`bg-zinc-900 border-zinc-800 rounded-lg transition-all duration-200 ${
+          currentStep >= 4 ? 'ring-2 ring-green-500 ring-opacity-20' : ''
+        }`}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-white font-medium">Pronto para salvar!</h3>
+                <p className="text-zinc-400 text-sm mt-1">
+                  {ticketTypes.length} {ticketTypes.length === 1 ? 'tipo de ingresso' : 'tipos de ingressos'} configurado{ticketTypes.length > 1 ? 's' : ''} para a ocorrência
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => {
+                    setSelectedEvent(null)
+                    setSelectedOccurrence(null)
+                    resetForm()
+                  }}
+                  variant="outline"
+                  className="border-zinc-700 text-white hover:bg-zinc-800 rounded-lg"
+                  disabled={isSubmitting}
+                >
+                  Limpar Tudo
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || !selectedOccurrence}
+                  className="bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-lg"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Salvar Tipos de Ingressos
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
