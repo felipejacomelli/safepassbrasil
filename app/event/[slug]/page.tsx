@@ -280,12 +280,28 @@ export default function EventPage({ params }: EventPageProps) {
                                                 <div className="text-lg font-bold text-primary mb-2">
                                                     A partir de R$ 50,00
                                                 </div>
-                                                <Button
-                                                    className="bg-primary text-black hover:bg-primary/90"
-                                                    disabled={occurrence.available_tickets === 0}
-                                                >
-                                                    {occurrence.available_tickets > 0 ? "Comprar" : "Esgotado"}
-                                                </Button>
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        className="bg-primary text-black hover:bg-primary/90"
+                                                        disabled={occurrence.available_tickets === 0}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            // O botão comprar não navega, apenas indica que está desabilitado ou ativo
+                                                        }}
+                                                    >
+                                                        {occurrence.available_tickets > 0 ? "Comprar" : "Esgotado"}
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        className="border-primary text-primary hover:bg-primary hover:text-black"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            router.push(`/event/${event.slug}/sell?occurrence=${occurrence.id}`)
+                                                        }}
+                                                    >
+                                                        Vender
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     </CardContent>
