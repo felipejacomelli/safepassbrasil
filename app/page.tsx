@@ -130,11 +130,18 @@ export default function Page() {
             return events
         }
         
-        return events.filter(event => 
-            event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            event.date.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        return events.filter(event => {
+            const searchLower = searchTerm.toLowerCase()
+            
+            // Verificar se as propriedades existem antes de chamar toLowerCase()
+            const title = event.title || event.name || ''
+            const location = event.location || ''
+            const date = event.date || ''
+            
+            return title.toLowerCase().includes(searchLower) ||
+                   location.toLowerCase().includes(searchLower) ||
+                   date.toLowerCase().includes(searchLower)
+        })
     }, [events, searchTerm])
 
     // Função para lidar com teclas de atalho
