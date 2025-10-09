@@ -220,8 +220,8 @@ export default function TicketTypesPage() {
               <ProgressStep
                 step={4}
                 currentStep={currentStep}
-                title="Salvar Configuração"
-                description="Revise e salve todas as configurações"
+                title="Salvar Tipos de Ingressos"
+                description="Revise e salve os tipos de ingressos configurados"
                 isCompleted={false}
               />
             </div>
@@ -442,6 +442,7 @@ export default function TicketTypesPage() {
           </CardContent>
         </Card>
       )}
+
     </div>
   )
 }

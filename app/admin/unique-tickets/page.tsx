@@ -1,504 +1,623 @@
 "use client"
 
-import type React from "react"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Star, Plus, Trash2, Save, AlertCircle, CheckCircle, Upload, X, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Separator } from "@/components/ui/separator"
+import { 
+  Plus, 
+  Save, 
+  AlertCircle, 
+  CheckCircle2, 
+  Loader2,
+  Sparkles,
+  Info,
+  Calendar
+} from "lucide-react"
 
-// Tipos para Ingresso Único
-type UniqueTicket = {
-  id?: string
-  occurrence_id?: string
+import { useUniqueTickets } from "@/hooks/use-unique-tickets"
+import { TicketForm } from "@/components/admin/unique-tickets/ticket-form"
+import { OccurrenceSelector } from "@/components/admin/unique-tickets/occurrence-selector"
+import { ProcessSummary } from "@/components/admin/unique-tickets/process-summary"
+import { uploadImage } from "@/lib/upload"
+
+interface Event {
+  id: string
   name: string
-  price: string
-  quantity: string
-  max_per_purchase: string
   description: string
-  image?: File | null
-  imagePreview?: string
+  location?: string
+  slug: string
 }
 
-// Tipo para Ocorrência (para seleção)
-type Occurrence = {
+interface Occurrence {
   id: string
-  event_name: string
+  event_id: string
+  event?: {
+    id: string
+    name: string
+    slug: string
+    status: string
+  }
   start_at: string
-  venue: string
-  city: string
-  state: string
+  end_at?: string
+  venue?: {
+    name: string
+    address: string
+  }
+  address?: string
+  city?: string
+  uf?: string
+  capacity?: number
+  status?: string
+}
+
+interface TicketType {
+  id: string
+  name: string
+  price: string
+  available_quantity: number
+  description: string
 }
 
 export default function UniqueTicketsPage() {
-  const router = useRouter()
-  
-  // Estados para controle de UI e dados
-  const [uniqueTickets, setUniqueTickets] = useState<UniqueTicket[]>([
-    {
-      name: "",
-      price: "",
-      quantity: "",
-      max_per_purchase: "",
-      description: "",
-      image: null,
-      imagePreview: "",
-    },
-  ])
-  
+  // Estados principais
+  const [events, setEvents] = useState<Event[]>([])
   const [occurrences, setOccurrences] = useState<Occurrence[]>([])
-  const [selectedOccurrenceId, setSelectedOccurrenceId] = useState<string>("")
-  const [occurrencesLoading, setOccurrencesLoading] = useState(true)
-  const [occurrencesError, setOccurrencesError] = useState<string>("")
+  const [selectedOccurrence, setSelectedOccurrence] = useState<Occurrence | null>(null)
+  const [ticketTypes, setTicketTypes] = useState<TicketType[]>([])
+  
+  // Estados de controle
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
-  const [qrObfuscated, setQrObfuscated] = useState<{ [key: number]: boolean }>({})
+  const [feedback, setFeedback] = useState<{
+    type: 'success' | 'error' | 'info'
+    message: string
+  } | null>(null)
 
-  // Carregar ocorrências disponíveis
+  // Hook personalizado para gerenciar ingressos únicos
+  const {
+    tickets,
+    errors,
+    addTicket,
+    removeTicket,
+    updateTicket,
+    validateTickets,
+    duplicateTicket,
+    getTotalTickets,
+    getTotalValue,
+    clearTickets
+  } = useUniqueTickets()
+
+  // Carregar dados iniciais
   useEffect(() => {
-    const loadOccurrences = async () => {
+    const fetchInitialData = async () => {
       try {
-        setOccurrencesLoading(true)
-        // Simulação de carregamento de ocorrências - substituir por API real
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        setOccurrences([
-          { 
-            id: "1", 
-            event_name: "Festival de Música 2024", 
-            start_at: "2024-03-15T20:00", 
-            venue: "Estádio do Morumbi", 
-            city: "São Paulo", 
-            state: "SP" 
-          },
-          { 
-            id: "2", 
-            event_name: "Conferência Tech", 
-            start_at: "2024-03-22T09:00", 
-            venue: "Centro de Convenções", 
-            city: "Belo Horizonte", 
-            state: "MG" 
-          },
-          { 
-            id: "3", 
-            event_name: "Show de Rock", 
-            start_at: "2024-03-28T21:00", 
-            venue: "Arena da Baixada", 
-            city: "Curitiba", 
-            state: "PR" 
-          }
-        ])
-        setOccurrencesError("")
+        setLoading(true)
+        
+         // Carregar eventos usando endpoint existente
+         const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+         const eventsResponse = await fetch(`${baseUrl}/api/events/events/`, {
+           headers: {
+             'Content-Type': 'application/json',
+             ...(typeof window !== 'undefined' && localStorage.getItem('authToken') && {
+               'Authorization': `Token ${localStorage.getItem('authToken')}`
+             })
+           }
+         })
+         if (eventsResponse.ok) {
+           const eventsData = await eventsResponse.json()
+           console.log('Eventos carregados:', eventsData)
+           const eventsArray = eventsData.results || eventsData
+           setEvents(eventsArray)
+           console.log('Eventos setados no estado:', eventsArray.length, 'eventos')
+         } else {
+           console.error('Erro ao carregar eventos:', eventsResponse.status, eventsResponse.statusText)
+         }
       } catch (error) {
-        setOccurrencesError("Erro ao carregar ocorrências")
+        console.error('Erro ao carregar dados:', error)
+        setFeedback({
+          type: 'error',
+          message: 'Erro ao carregar eventos. Tente recarregar a página.'
+        })
       } finally {
-        setOccurrencesLoading(false)
+        setLoading(false)
       }
     }
 
-    loadOccurrences()
+    fetchInitialData()
   }, [])
 
-  // Função para adicionar novo ingresso único
-  const addUniqueTicket = () => {
-    setUniqueTickets([
-      ...uniqueTickets,
-      {
-        name: "",
-        price: "",
-        quantity: "",
-        max_per_purchase: "",
-        description: "",
-        image: null,
-        imagePreview: "",
-      },
-    ])
-  }
+   // Função para carregar ocorrências quando evento for selecionado
+   const handleEventSelect = async (eventSlug: string) => {
+     try {
+       setLoading(true)
+       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+       
+       // Tentar diferentes formatos de filtro (priorizando slug)
+       const filterOptions = [
+         `event_slug=${eventSlug}`,
+         `event__slug=${eventSlug}`,
+         `event__id=${eventSlug}`,
+         `event=${eventSlug}`,
+         `event_id=${eventSlug}`
+       ]
+       
+       console.log('Tentando carregar ocorrências para slug:', eventSlug)
+       console.log('Filtros que serão testados:', filterOptions)
+       
+       let response = null
+       let lastError = null
+       
+       // Primeiro, testar se o endpoint básico funciona
+       try {
+         console.log('Testando endpoint básico...')
+         const basicResponse = await fetch(`${baseUrl}/api/events/occurrences/`, {
+           headers: {
+             'Content-Type': 'application/json',
+             'Authorization': `Token ${localStorage.getItem('authToken')}`
+           }
+         })
+         console.log('Endpoint básico status:', basicResponse.status)
+         if (basicResponse.ok) {
+           const basicData = await basicResponse.json()
+           console.log('Endpoint básico funcionou, dados:', basicData)
+         }
+       } catch (error) {
+         console.log('Erro no endpoint básico:', error)
+       }
+       
+       for (const filter of filterOptions) {
+         try {
+           console.log(`Tentando filtro: ${filter}`)
+           response = await fetch(`${baseUrl}/api/events/occurrences/?${filter}`, {
+             headers: {
+               'Content-Type': 'application/json',
+               'Authorization': `Token ${localStorage.getItem('authToken')}`
+             }
+           })
+           
+           if (response.ok) {
+             console.log(`Filtro ${filter} funcionou!`)
+             break
+           } else {
+             console.log(`Filtro ${filter} falhou:`, response.status)
+             lastError = response.status
+           }
+         } catch (error) {
+           console.log(`Erro com filtro ${filter}:`, error)
+           lastError = error
+         }
+       }
+       
+       if (response && response.ok) {
+         const data = await response.json()
+         console.log('Resposta completa de ocorrências:', data)
+         const occurrencesData = data.results || data
+         console.log('Ocorrências processadas:', occurrencesData)
+         
+         // Log da estrutura das ocorrências para debug
+         if (occurrencesData.length > 0) {
+           console.log('Primeira ocorrência estrutura:', occurrencesData[0])
+           console.log('Campo event da primeira ocorrência:', occurrencesData[0].event)
+         }
+         
+         setOccurrences(occurrencesData)
+         
+         // Log para debug
+         console.log('Estado atualizado - eventSlug:', eventSlug, 'occurrencesData.length:', occurrencesData.length)
+       } else {
+         console.error('Todos os filtros falharam. Último erro:', lastError)
+         setOccurrences([])
+       }
+     } catch (error) {
+       console.error('Erro ao carregar ocorrências:', error)
+       setOccurrences([])
+     } finally {
+       setLoading(false)
+     }
+   }
 
-  // Função para remover ingresso único
-  const removeUniqueTicket = (index: number) => {
-    if (uniqueTickets.length > 1) {
-      setUniqueTickets(uniqueTickets.filter((_, i) => i !== index))
-      // Remover estado de ofuscação do QR Code
-      const newQrObfuscated = { ...qrObfuscated }
-      delete newQrObfuscated[index]
-      setQrObfuscated(newQrObfuscated)
-    }
-  }
-
-  // Função para atualizar ingresso único
-  const updateUniqueTicket = (index: number, field: keyof UniqueTicket, value: string | File | null) => {
-    const updated = [...uniqueTickets]
-    updated[index] = { ...updated[index], [field]: value }
-    setUniqueTickets(updated)
-  }
-
-  // Função para lidar com upload de imagem
-  const handleImageUpload = (index: number, file: File | null) => {
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const updated = [...uniqueTickets]
-        updated[index] = { 
-          ...updated[index], 
-          image: file,
-          imagePreview: e.target?.result as string
+  // Carregar tipos de ingressos quando ocorrência for selecionada
+  useEffect(() => {
+    const fetchTicketTypes = async (occurrenceId: string) => {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+        console.log('Carregando ticket types para occurrence:', occurrenceId)
+        const response = await fetch(`${baseUrl}/api/ticket-types/?occurrence=${occurrenceId}&include_inactive=true`, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(typeof window !== 'undefined' && localStorage.getItem('authToken') && {
+              'Authorization': `Token ${localStorage.getItem('authToken')}`
+            })
+          }
+        })
+        console.log('Response status:', response.status)
+        if (response.ok) {
+          const data = await response.json()
+          console.log('Ticket types data:', data)
+          setTicketTypes(data.results || data)
+        } else {
+          console.error('Erro ao carregar ticket types:', response.status, response.statusText)
         }
-        setUniqueTickets(updated)
+      } catch (error) {
+        console.error('Erro ao carregar tipos de ingressos:', error)
       }
-      reader.readAsDataURL(file)
-    } else {
-      const updated = [...uniqueTickets]
-      updated[index] = { 
-        ...updated[index], 
-        image: null,
-        imagePreview: ""
-      }
-      setUniqueTickets(updated)
     }
-  }
 
-  // Função para alternar ofuscação do QR Code
-  const toggleQrObfuscation = (index: number) => {
-    setQrObfuscated(prev => ({
-      ...prev,
-      [index]: !prev[index]
-    }))
-  }
+    if (selectedOccurrence?.id) {
+      fetchTicketTypes(selectedOccurrence.id)
+    }
+  }, [selectedOccurrence?.id])
 
   // Função para salvar ingressos únicos
   const handleSave = async () => {
-    if (!selectedOccurrenceId) {
-      setMessage({ type: 'error', text: 'Selecione uma ocorrência antes de salvar os ingressos únicos' })
+    if (!selectedOccurrence) {
+      setFeedback({
+        type: 'error',
+        message: 'Selecione uma ocorrência antes de salvar.'
+      })
       return
     }
 
-    // Validação básica
-    const hasEmptyFields = uniqueTickets.some(ticket => 
-      !ticket.name || !ticket.price || !ticket.quantity || !ticket.max_per_purchase
-    )
-
-    if (hasEmptyFields) {
-      setMessage({ type: 'error', text: 'Preencha todos os campos obrigatórios' })
+    const validationErrors = validateTickets()
+    if (Object.keys(validationErrors).length > 0) {
+      setFeedback({
+        type: 'error',
+        message: 'Corrija os erros nos formulários antes de continuar.'
+      })
       return
     }
 
-    // Validação de números
-    const hasInvalidNumbers = uniqueTickets.some(ticket => {
-      const price = parseFloat(ticket.price)
-      const quantity = parseInt(ticket.quantity)
-      const maxPerPurchase = parseInt(ticket.max_per_purchase)
-      
-      return isNaN(price) || price <= 0 || 
-             isNaN(quantity) || quantity <= 0 || 
-             isNaN(maxPerPurchase) || maxPerPurchase <= 0
-    })
-
-    if (hasInvalidNumbers) {
-      setMessage({ type: 'error', text: 'Verifique se preço, quantidade e máximo por compra são números válidos' })
+    if (tickets.length === 0) {
+      setFeedback({
+        type: 'error',
+        message: 'Adicione pelo menos um ingresso único.'
+      })
       return
     }
 
     try {
       setSaving(true)
+      setFeedback(null)
+
+      // Preparar dados para envio
+      const ticketsToCreate = []
       
-      // Simulação de salvamento - substituir por API real
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Pegar o primeiro ticket type da ocorrência (ou criar um ticket único sem ticket_type)
+      const defaultTicketType = ticketTypes.length > 0 ? ticketTypes[0] : null
       
-      setMessage({ type: 'success', text: 'Ingressos únicos salvos com sucesso!' })
+      // Fazer upload das imagens primeiro usando Vercel Blob Storage
+      for (const ticket of tickets) {
+        const imageUrls = []
+        console.log('Processing ticket:', ticket.name, 'with', ticket.images.length, 'images')
+        
+        // Upload de imagens usando a função uploadImage do lib/upload.ts
+        if (ticket.images.length > 0) {
+          console.log('Iniciando upload de', ticket.images.length, 'imagens')
+          for (const imageFile of ticket.images) {
+            try {
+              console.log('Uploading image:', imageFile.name, 'type:', imageFile.type, 'size:', imageFile.size)
+              
+              const uploadResult = await uploadImage(imageFile)
+              
+              if (uploadResult.success && uploadResult.url) {
+                console.log('Upload successful:', uploadResult.url)
+                imageUrls.push(uploadResult.url)
+                console.log('Imagem enviada:', uploadResult.url)
+              } else {
+                console.error('Erro ao fazer upload da imagem:', uploadResult.error)
+                throw new Error(uploadResult.error || 'Erro no upload da imagem')
+              }
+            } catch (error) {
+              console.error('Erro ao fazer upload da imagem:', error)
+              throw error
+            }
+          }
+        } else {
+          console.log('Nenhuma imagem para upload')
+        }
+        
+        // Criar tickets com URLs das imagens
+        for (let i = 0; i < ticket.quantity; i++) {
+          const ticketData = {
+            name: ticket.name,
+            quantity: 1,
+            price: parseFloat(ticket.price.replace(/[^\d,]/g, '').replace(',', '.')),
+            price_blocked: ticket.price_blocked || false,
+            status: 'ACTIVE'
+          }
+          
+          // Se houver ticket type, usar ele; senão, será um ticket único
+          if (defaultTicketType) {
+            ticketData.ticket_type = defaultTicketType.id
+          }
+          
+          // Adicionar URL da imagem se disponível
+          if (imageUrls.length > 0) {
+            const imageIndex = i % imageUrls.length
+            ticketData.image = imageUrls[imageIndex]
+            console.log('Adicionando URL da imagem ao ticket:', ticketData.image)
+          } else {
+            console.log('Nenhuma URL de imagem disponível para o ticket')
+          }
+          
+          console.log('Ticket data final:', ticketData)
+          ticketsToCreate.push(ticketData)
+        }
+      }
+
+      // Enviar requisições para criar ingressos usando endpoint existente
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      console.log('Criando tickets, total:', ticketsToCreate.length)
+      const promises = ticketsToCreate.map((data, index) => {
+        console.log(`Criando ticket ${index + 1}/${ticketsToCreate.length}`, data)
+        
+        return fetch(`${baseUrl}/api/tickets/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(typeof window !== 'undefined' && localStorage.getItem('authToken') && {
+              'Authorization': `Token ${localStorage.getItem('authToken')}`
+            })
+          },
+          body: JSON.stringify(data),
+        })
+      })
+
+      const responses = await Promise.all(promises)
+      const failedRequests = responses.filter(response => !response.ok)
+
+      if (failedRequests.length > 0) {
+        throw new Error(`${failedRequests.length} ingressos falharam ao ser criados`)
+      }
+
+      // Sucesso
+      setFeedback({
+        type: 'success',
+        message: `${getTotalTickets()} ingressos únicos criados com sucesso!`
+      })
       
-      // Limpar formulário após sucesso
-      setTimeout(() => {
-        setUniqueTickets([{
-          name: "",
-          price: "",
-          quantity: "",
-          max_per_purchase: "",
-          description: "",
-          image: null,
-          imagePreview: "",
-        }])
-        setSelectedOccurrenceId("")
-        setQrObfuscated({})
-        setMessage(null)
-      }, 2000)
+      // Limpar formulário
+      clearTickets()
+      setSelectedOccurrence(null)
+      setTicketTypes([])
       
     } catch (error) {
-      setMessage({ type: 'error', text: 'Erro ao salvar ingressos únicos. Tente novamente.' })
+      console.error('Erro ao salvar ingressos:', error)
+      setFeedback({
+        type: 'error',
+        message: 'Erro ao criar ingressos. Tente novamente.'
+      })
     } finally {
       setSaving(false)
     }
   }
 
-  // Função para formatar data
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+  // Verificar se há erros de validação
+  const hasValidationErrors = Object.keys(errors).length > 0
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Carregando dados...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+            <Sparkles className="h-6 w-6 text-white" />
+          </div>
         <div>
-          <h1 className="text-2xl font-bold text-white">Gerenciar Ingressos Únicos</h1>
-          <p className="text-gray-400">Configure ingressos personalizados e exclusivos com imagens e QR Codes</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Criar Ingressos Únicos
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Adicione ingressos especiais e personalizados para seus eventos
+            </p>
+          </div>
         </div>
-        <Button 
-          onClick={addUniqueTicket}
-          className="bg-yellow-600 hover:bg-yellow-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Ingresso Único
-        </Button>
       </div>
 
-      {/* Mensagem de feedback */}
-      {message && (
-        <div className={`flex items-center gap-2 p-4 rounded-lg ${
-          message.type === 'success' 
-            ? 'bg-green-900 bg-opacity-20 border border-green-800 text-green-400' 
-            : 'bg-red-900 bg-opacity-20 border border-red-800 text-red-400'
+      {/* Feedback Messages */}
+      {feedback && (
+        <Alert className={`mb-6 ${
+          feedback.type === 'success' 
+            ? 'border-green-500 bg-green-50' 
+            : feedback.type === 'error'
+              ? 'border-red-500 bg-red-50'
+              : 'border-blue-500 bg-blue-50'
         }`}>
-          {message.type === 'success' ? (
-            <CheckCircle className="h-5 w-5" />
-          ) : (
-            <AlertCircle className="h-5 w-5" />
-          )}
-          <span>{message.text}</span>
+          <div className="flex items-center gap-2">
+            {feedback.type === 'success' && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+            {feedback.type === 'error' && <AlertCircle className="h-4 w-4 text-red-600" />}
+            {feedback.type === 'info' && <Info className="h-4 w-4 text-blue-600" />}
+            <AlertDescription className={
+              feedback.type === 'success' 
+                ? 'text-green-800' 
+                : feedback.type === 'error'
+                  ? 'text-red-800'
+                  : 'text-blue-800'
+            }>
+              {feedback.message}
+            </AlertDescription>
         </div>
+        </Alert>
       )}
 
-      {/* Seleção de Ocorrência */}
-      <Card className="bg-zinc-900 border-zinc-800">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Coluna Principal - Formulários */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Seletor de Ocorrência */}
+          <OccurrenceSelector
+            events={events}
+            occurrences={occurrences}
+            selectedOccurrence={selectedOccurrence}
+            onOccurrenceSelect={(occurrence) => setSelectedOccurrence(occurrence)}
+            onEventSelect={handleEventSelect}
+            isLoading={loading}
+          />
+
+          {/* Tipos de Ingressos Disponíveis */}
+          {selectedOccurrence && ticketTypes.length > 0 && (
+            <Card>
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Star className="h-5 w-5" />
-            Selecionar Ocorrência
+                <CardTitle className="flex items-center gap-2">
+                  <Info className="h-5 w-5 text-blue-600" />
+                  Tipos de Ingressos Disponíveis
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {occurrencesLoading ? (
-            <div className="text-gray-400">Carregando ocorrências...</div>
-          ) : occurrencesError ? (
-            <div className="text-red-400">{occurrencesError}</div>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="occurrence-select" className="text-white">Ocorrência *</Label>
-              <Select value={selectedOccurrenceId} onValueChange={setSelectedOccurrenceId}>
-                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                  <SelectValue placeholder="Selecione uma ocorrência" />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
-                  {occurrences.map((occurrence) => (
-                    <SelectItem key={occurrence.id} value={occurrence.id} className="text-white hover:bg-zinc-700">
-                      <div className="flex flex-col">
-                        <span className="font-medium">{occurrence.event_name}</span>
-                        <span className="text-sm text-gray-400">
-                          {formatDate(occurrence.start_at)} - {occurrence.venue}, {occurrence.city}/{occurrence.state}
-                        </span>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {ticketTypes.map((type) => (
+                    <div key={type.id} className="border rounded-lg p-4 bg-gray-50">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-gray-900">{type.name}</h4>
+                        <Badge variant="outline" className="text-xs">
+                          {type.available_quantity} disponíveis
+                        </Badge>
                       </div>
-                    </SelectItem>
+                      <p className="text-sm text-gray-600 mb-2">{type.description}</p>
+                      <p className="text-lg font-semibold text-green-600">{type.price}</p>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Formulário de Ingressos Únicos */}
-      <div className="space-y-4">
-        {uniqueTickets.map((uniqueTicket, index) => (
-          <Card key={index} className="bg-zinc-900 border-zinc-800">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Star className="h-5 w-5" />
-                  Ingresso Único {index + 1}
-                </CardTitle>
-                {uniqueTickets.length > 1 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeUniqueTicket(index)}
-                    className="text-red-400 hover:text-red-300 hover:bg-red-900 hover:bg-opacity-20"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Nome e Preço */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor={`name-${index}`} className="text-white">Nome do Ingresso *</Label>
-                  <Input
-                    id={`name-${index}`}
-                    value={uniqueTicket.name}
-                    onChange={(e) => updateUniqueTicket(index, 'name', e.target.value)}
-                    placeholder="Ex: VIP Exclusivo, Meet & Greet"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`price-${index}`} className="text-white">Preço (R$) *</Label>
-                  <Input
-                    id={`price-${index}`}
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={uniqueTicket.price}
-                    onChange={(e) => updateUniqueTicket(index, 'price', e.target.value)}
-                    placeholder="Ex: 500.00"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Quantidade e Máximo por Compra */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor={`quantity-${index}`} className="text-white">Quantidade Disponível *</Label>
-                  <Input
-                    id={`quantity-${index}`}
-                    type="number"
-                    min="1"
-                    value={uniqueTicket.quantity}
-                    onChange={(e) => updateUniqueTicket(index, 'quantity', e.target.value)}
-                    placeholder="Ex: 10"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`max-${index}`} className="text-white">Máximo por Compra *</Label>
-                  <Input
-                    id={`max-${index}`}
-                    type="number"
-                    min="1"
-                    value={uniqueTicket.max_per_purchase}
-                    onChange={(e) => updateUniqueTicket(index, 'max_per_purchase', e.target.value)}
-                    placeholder="Ex: 2"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Descrição */}
-              <div className="space-y-2">
-                <Label htmlFor={`description-${index}`} className="text-white">Descrição</Label>
-                <Textarea
-                  id={`description-${index}`}
-                  value={uniqueTicket.description}
-                  onChange={(e) => updateUniqueTicket(index, 'description', e.target.value)}
-                  placeholder="Descreva os benefícios exclusivos e características especiais deste ingresso único..."
-                  className="bg-zinc-800 border-zinc-700 text-white min-h-[100px]"
-                />
-              </div>
-
-              {/* Upload de Imagem */}
-              <div className="space-y-2">
-                <Label className="text-white">Imagem do Ingresso</Label>
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0] || null
-                        handleImageUpload(index, file)
-                      }}
-                      className="bg-zinc-800 border-zinc-700 text-white file:bg-zinc-700 file:text-white file:border-0 file:rounded file:px-3 file:py-1"
-                    />
-                  </div>
-                  {uniqueTicket.imagePreview && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleImageUpload(index, null)}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-900 hover:bg-opacity-20"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
                 </div>
                 
-                {/* Preview da Imagem */}
-                {uniqueTicket.imagePreview && (
-                  <div className="relative">
-                    <div className="relative w-full max-w-md mx-auto">
-                      <img
-                        src={uniqueTicket.imagePreview}
-                        alt="Preview do ingresso"
-                        className="w-full h-48 object-cover rounded-lg border border-zinc-700"
-                      />
-                      
-                      {/* Simulação de QR Code ofuscado */}
-                      <div className="absolute bottom-2 right-2">
-                        <div className={`w-16 h-16 bg-white rounded ${qrObfuscated[index] ? 'blur-sm' : ''} flex items-center justify-center`}>
-                          <div className="w-12 h-12 bg-black rounded grid grid-cols-4 gap-px p-1">
-                            {Array.from({ length: 16 }).map((_, i) => (
-                              <div
-                                key={i}
-                                className={`bg-white ${Math.random() > 0.5 ? 'opacity-100' : 'opacity-0'}`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleQrObfuscation(index)}
-                          className="absolute -top-8 -right-2 bg-zinc-800 bg-opacity-80 text-white hover:bg-zinc-700"
-                        >
-                          {qrObfuscated[index] ? (
-                            <Eye className="h-3 w-3" />
-                          ) : (
-                            <EyeOff className="h-3 w-3" />
-                          )}
-                        </Button>
-                      </div>
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    💡 <strong>Dica:</strong> Os ingressos únicos que você criar serão adicionados aos tipos existentes acima. 
+                    Eles são perfeitos para ingressos promocionais ou com características únicas.
+                  </p>
+            </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Prompt para Selecionar Ocorrência */}
+          {!selectedOccurrence && (
+            <Card className="border-dashed border-2 border-gray-300">
+              <CardContent className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertCircle className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Selecione uma Ocorrência
+                </h3>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  Para começar a criar ingressos únicos, primeiro selecione um evento e sua ocorrência específica.
+                </p>
+        </CardContent>
+      </Card>
+          )}
+
+          {/* Formulários de Ingressos Únicos */}
+          {selectedOccurrence && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Ingressos Únicos
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Adicione ingressos especiais com imagens personalizadas
+                  </p>
+              </div>
+
+                <Button
+                  onClick={addTicket}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Ingresso
+                </Button>
+              </div>
+
+              {/* Lista de Formulários */}
+              {tickets.length > 0 ? (
+                <div className="space-y-6">
+                  {tickets.map((ticket, index) => (
+                    <TicketForm
+                      key={ticket.id}
+                      ticket={ticket}
+                      index={index}
+                      errors={errors}
+                      onUpdate={updateTicket}
+                      onRemove={removeTicket}
+                      onDuplicate={duplicateTicket}
+                      canRemove={tickets.length > 1}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <Card className="border-dashed border-2 border-gray-300">
+                  <CardContent className="text-center py-8">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Plus className="h-6 w-6 text-blue-600" />
                     </div>
-                    <p className="text-xs text-gray-400 text-center mt-2">
-                      QR Code será gerado automaticamente no ingresso final
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Nenhum ingresso criado ainda
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Clique no botão acima para adicionar seu primeiro ingresso único.
                     </p>
+                  </CardContent>
+                </Card>
+              )}
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
-      {/* Botões de Ação */}
-      <div className="flex gap-4">
+        {/* Sidebar - Resumo e Progresso */}
+        <div className="space-y-6">
+          <ProcessSummary
+            selectedOccurrence={selectedOccurrence}
+            ticketsCount={tickets.length}
+            totalTickets={getTotalTickets()}
+            totalValue={getTotalValue()}
+            hasValidationErrors={hasValidationErrors}
+          />
+
+          {/* Botão de Salvar */}
+          {selectedOccurrence && tickets.length > 0 && (
+            <Card>
+              <CardContent className="pt-6">
         <Button
           onClick={handleSave}
-          disabled={saving || !selectedOccurrenceId}
-          className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
-        >
+                  disabled={saving || hasValidationErrors}
+                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400"
+                  size="lg"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
           <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Salvando...' : 'Salvar Ingressos Únicos'}
+                      Salvar {getTotalTickets()} Ingresso{getTotalTickets() !== 1 ? 's' : ''}
+                    </>
+                  )}
         </Button>
         
-        <Button
-          variant="outline"
-          onClick={() => router.push('/admin/events')}
-          className="border-zinc-700 text-white hover:bg-zinc-800"
-        >
-          Voltar para Eventos
-        </Button>
+                {hasValidationErrors && (
+                  <p className="text-sm text-red-600 mt-2 text-center">
+                    Corrija os erros antes de salvar
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   )
