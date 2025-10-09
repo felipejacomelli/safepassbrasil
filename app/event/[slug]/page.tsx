@@ -6,6 +6,8 @@ import { Calendar, MapPin, Clock, Users, ArrowLeft, ChevronRight, Ticket } from 
 import { eventsApi, ApiEventWithOccurrences, ApiOccurrence } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import Header from "@/components/Header"
+import { useAuth } from "@/contexts/auth-context"
 
 interface EventPageProps {
     params: Promise<{ slug: string }>
@@ -14,6 +16,7 @@ interface EventPageProps {
 export default function EventPage({ params }: EventPageProps) {
     const router = useRouter()
     const { slug } = use(params)
+    const { isAuthenticated } = useAuth()
 
     const [event, setEvent] = useState<ApiEventWithOccurrences | null>(null)
     const [loading, setLoading] = useState(true)
@@ -105,9 +108,42 @@ export default function EventPage({ params }: EventPageProps) {
         }
     }
 
+    const handleBuyClick = (occurrence: ApiOccurrence) => {
+        // Verificar se o usuário está autenticado
+        if (!isAuthenticated) {
+            // Redirecionar para login com returnUrl como query parameter
+            const city = occurrence.city?.toLowerCase().replace(/\s+/g, "-") || "local"
+            const date = new Date(occurrence.start_at)
+            const day = date.getDate().toString().padStart(2, "0")
+            const month = (date.getMonth() + 1).toString().padStart(2, "0")
+            const year = date.getFullYear().toString()
+            const formattedDate = `${day}-${month}-${year}`
+            const buyUrl = `/event/${slug}/${city}-${formattedDate}`
+            router.push(`/login?returnUrl=${encodeURIComponent(buyUrl)}`)
+            return
+        }
+
+        // Se autenticado, navegar para a página de compra
+        handleOccurrenceClick(occurrence)
+    }
+
+    const handleSellClick = (occurrence: ApiOccurrence) => {
+        // Verificar se o usuário está autenticado
+        if (!isAuthenticated) {
+            // Redirecionar para login com returnUrl como query parameter
+            const sellUrl = `/event/${slug}/sell?occurrence=${occurrence.id}`
+            router.push(`/login?returnUrl=${encodeURIComponent(sellUrl)}`)
+            return
+        }
+
+        // Se autenticado, navegar para a página de venda
+        router.push(`/event/${slug}/sell?occurrence=${occurrence.id}`)
+    }
+
     if (loading) {
         return (
             <div className="min-h-screen bg-black text-white">
+                <Header />
                 <div className="container mx-auto px-4 py-8">
                     <div className="text-center">
                         <p>Carregando evento...</p>
@@ -120,6 +156,7 @@ export default function EventPage({ params }: EventPageProps) {
     if (error || !event) {
         return (
             <div className="min-h-screen bg-black text-white">
+                <Header />
                 <div className="container mx-auto px-4 py-8">
                     <div className="text-center">
                         <p className="text-red-400">{error || "Evento não encontrado"}</p>
@@ -138,6 +175,7 @@ export default function EventPage({ params }: EventPageProps) {
 
     return (
         <div className="min-h-screen bg-black text-white">
+            <Header />
             <div className="container mx-auto px-4 py-8">
                 {/* Breadcrumb */}
                 <nav
@@ -286,7 +324,7 @@ export default function EventPage({ params }: EventPageProps) {
                                                         disabled={occurrence.available_tickets === 0}
                                                         onClick={(e) => {
                                                             e.stopPropagation()
-                                                            // O botão comprar não navega, apenas indica que está desabilitado ou ativo
+                                                            handleBuyClick(occurrence)
                                                         }}
                                                     >
                                                         {occurrence.available_tickets > 0 ? "Comprar" : "Esgotado"}
@@ -296,7 +334,7 @@ export default function EventPage({ params }: EventPageProps) {
                                                         className="border-primary text-primary hover:bg-primary hover:text-black"
                                                         onClick={(e) => {
                                                             e.stopPropagation()
-                                                            router.push(`/event/${event.slug}/sell?occurrence=${occurrence.id}`)
+                                                            handleSellClick(occurrence)
                                                         }}
                                                     >
                                                         Vender
