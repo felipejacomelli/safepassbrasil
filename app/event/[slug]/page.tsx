@@ -63,10 +63,9 @@ export default function EventPage({ params }: EventPageProps) {
         try {
             const date = new Date(dateString)
             return date.toLocaleDateString("pt-BR", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric"
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
             })
         } catch (e) {
             console.error("⚠ Erro ao formatar data:", dateString, e)

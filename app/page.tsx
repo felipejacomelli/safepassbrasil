@@ -16,6 +16,7 @@ import {
     LogOut,
     UserCircle,
     Ticket,
+    Calendar,
 } from "lucide-react"
 
 export default function Page() {
@@ -824,6 +825,35 @@ export function EventCard({ event }: { event: any }) {
         return typeof location === 'string' ? location : String(location)
     }
 
+    // Função para formatar datas seguindo a mesma lógica do modal
+    const getEventDates = (event: any) => {
+        if (event.occurrences && event.occurrences.length > 0) {
+            if (event.occurrences.length === 1) {
+                return new Date(event.occurrences[0].start_at).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                })
+            } else {
+                const dates = event.occurrences
+                    .map((occ: any) => new Date(occ.start_at))
+                    .sort((a: Date, b: Date) => a.getTime() - b.getTime())
+                const firstDate = dates[0].toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                })
+                const lastDate = dates[dates.length - 1].toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                })
+                return `${firstDate} até ${lastDate}`
+            }
+        }
+        return 'Data não informada'
+    }
+
     // Função para lidar com o clique no card
     const handleCardClick = () => {
         // Redirecionar diretamente para a página do evento
@@ -857,8 +887,9 @@ export function EventCard({ event }: { event: any }) {
                 />
                 <div className="p-4">
                     <h3 className="font-semibold mb-2">{event.name}</h3>
-                    <div className="flex items-center text-sm text-zinc-400 mb-2">
-                        {/*<span>{event.next_date || "Data não informada"}</span>*/}
+                    <div className="flex items-center text-sm text-blue-400 mb-2 font-medium">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        <span>{getEventDates(event)}</span>
                     </div>
                     <div className="flex items-center text-sm text-zinc-400 mb-2">
                         <MapPin className="w-4 h-4 mr-1" />
