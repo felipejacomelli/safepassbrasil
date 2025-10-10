@@ -550,17 +550,6 @@ export default function OrdersPage() {
                     </div>
                     <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between items-center">
                       <p className="text-gray-400 text-xs">ID: {ticket.id}</p>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-green-500 hover:text-green-400"
-                          onClick={() => handleShareTicket(ticket)}
-                        >
-                          <Share className="w-4 h-4 mr-1" />
-                          Compartilhar
-                        </Button>
-                      </div>
                     </div>
                   </div>
                 ))
