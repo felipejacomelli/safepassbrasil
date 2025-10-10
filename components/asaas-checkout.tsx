@@ -20,6 +20,7 @@ interface AsaasCheckoutProps {
   userPhone?: string
   userCpf?: string
   cartItems?: Array<{ occurrenceId?: string; ticketTypeId?: string; quantity: number }>
+  sharedTicketToken?: string // Novo: token do link compartilhado
   onSuccess: (paymentId: string, paymentData: any) => void
   onError: (error: string) => void
   onLoading?: (loading: boolean) => void
@@ -54,6 +55,7 @@ export function AsaasCheckout({
   userPhone,
   userCpf,
   cartItems,
+  sharedTicketToken,
   onSuccess,
   onError,
   onLoading
@@ -177,7 +179,35 @@ export function AsaasCheckout({
 
       console.log('📦 Dados base do pagamento:', paymentData)
 
-      if (cartItems && cartItems.length > 0) {
+      // ✅ Suporte para links compartilhados
+      if (sharedTicketToken) {
+        console.log('🔗 Processando link compartilhado:', sharedTicketToken)
+        
+        // Primeiro, aceitar o link compartilhado
+        const acceptResponse = await fetch(`/api/v1/sharing/accept/${sharedTicketToken}/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Token ${authToken}`
+          }
+        })
+
+        if (!acceptResponse.ok) {
+          const errorData = await acceptResponse.json()
+          throw new Error(errorData.error || "Erro ao aceitar ingresso compartilhado")
+        }
+
+        const acceptData = await acceptResponse.json()
+        console.log('✅ Link aceito:', acceptData)
+        
+        // Usar os dados retornados para o pagamento
+        paymentData.items = [{
+          occurrence_id: acceptData.occurrence_id,
+          ticket_type_id: acceptData.ticket_type_id,
+          quantity: 1
+        }]
+        console.log('🎫 Item do ingresso compartilhado:', paymentData.items)
+      } else if (cartItems && cartItems.length > 0) {
         paymentData.items = cartItems.map(item => ({
           occurrence_id: item.occurrenceId,
           ticket_type_id: item.ticketTypeId,

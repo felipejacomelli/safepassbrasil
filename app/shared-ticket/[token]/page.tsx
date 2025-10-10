@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from "react"
 import { Calendar, Clock, MapPin, Users, Ticket, User, CheckCircle, AlertCircle, Shield, Share2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
+import { AsaasCheckout } from "@/components/asaas-checkout"
 
 interface SharedTicketData {
   id: string
@@ -31,6 +32,9 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
   const [accepting, setAccepting] = useState(false)
   const [accepted, setAccepted] = useState(false)
   const [email, setEmail] = useState("")
+  
+  // Estados para checkout
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false)
 
   useEffect(() => {
     fetchSharedTicket()
@@ -63,44 +67,27 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
     }
   }
 
-  const handleAccept = async () => {
+  const handleBuyTicket = () => {
     if (!isAuthenticated) {
       // Redirecionar para login
       window.location.href = `/login?returnUrl=${encodeURIComponent(window.location.pathname)}`
       return
     }
+    setShowCheckoutModal(true)
+  }
 
-    try {
-      setAccepting(true)
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-      const authToken = localStorage.getItem("authToken")
+  const handlePaymentSuccess = (paymentId: string, paymentData: any) => {
+    setAccepted(true)
+    setShowCheckoutModal(false)
+    
+    // Redirecionar para página de ingressos após 3 segundos
+    setTimeout(() => {
+      window.location.href = "/account/tickets"
+    }, 3000)
+  }
 
-      const response = await fetch(`${apiUrl}/api/v1/sharing/accept/${token}/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Token ${authToken}`
-        },
-        body: JSON.stringify({ email: ticketData?.link_type === "private" ? email : undefined })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Erro ao aceitar ingresso")
-      }
-
-      const data = await response.json()
-      setAccepted(true)
-      
-      // Redirecionar para página de ingressos após 3 segundos
-      setTimeout(() => {
-        window.location.href = "/account/tickets"
-      }, 3000)
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setAccepting(false)
-    }
+  const handlePaymentError = (error: string) => {
+    setError(error)
   }
 
   const formatDate = (dateString: string) => {
@@ -390,10 +377,10 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
           </div>
         </div>
 
-        {/* Accept Button */}
+        {/* Buy Button */}
         {ticketData.is_valid && (
           <button
-            onClick={handleAccept}
+            onClick={handleBuyTicket}
             disabled={accepting}
             style={{
               width: "100%",
@@ -412,7 +399,7 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
             }}
           >
             {accepting ? (
-              "Processando Compra..."
+              "Processando..."
             ) : (
               <>
                 <CheckCircle size={24} />
@@ -437,6 +424,42 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
           Certifique-se de que confia no vendedor antes de realizar a compra.
         </div>
       </main>
+
+      {/* Checkout Modal */}
+      {showCheckoutModal && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+          padding: "20px"
+        }}>
+          <div style={{
+            backgroundColor: "#18181B",
+            borderRadius: "12px",
+            padding: "24px",
+            width: "100%",
+            maxWidth: "500px",
+            maxHeight: "90vh",
+            overflow: "auto"
+          }}>
+            <AsaasCheckout
+              amount={parseFloat(ticketData?.ticket_price || "0")}
+              description={`Ingresso: ${ticketData?.event_name} - ${ticketData?.ticket_type}`}
+              userEmail={user?.email}
+              userName={user?.name}
+              userPhone={user?.phone}
+              userCpf={user?.cpf}
+              sharedTicketToken={token}
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
