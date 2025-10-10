@@ -13,6 +13,8 @@ interface SharedTicketData {
   event_location: string
   ticket_type: string
   ticket_price: string
+  ticket_quantity: number
+  ticket_name: string
   owner_name: string
   message: string | null
   expires_at: string
@@ -178,9 +180,9 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
         textAlign: "center"
       }}>
         <CheckCircle size={64} color="#10B981" style={{ marginBottom: "20px" }} />
-        <h1 style={{ fontSize: "32px", marginBottom: "16px" }}>Ingresso Transferido!</h1>
+        <h1 style={{ fontSize: "32px", marginBottom: "16px" }}>Compra Realizada!</h1>
         <p style={{ color: "#D4D4D8", marginBottom: "8px" }}>
-          O ingresso foi transferido para sua conta com sucesso.
+          O ingresso foi comprado e transferido para sua conta com sucesso.
         </p>
         <p style={{ color: "#A1A1AA", marginBottom: "24px" }}>
           Redirecionando para seus ingressos...
@@ -211,10 +213,10 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
           marginBottom: "8px"
         }}>
           <Share2 size={24} color="#3B82F6" />
-          <h1 style={{ fontSize: "24px", fontWeight: "bold" }}>Ingresso Compartilhado</h1>
+          <h1 style={{ fontSize: "24px", fontWeight: "bold" }}>Ingresso à Venda</h1>
         </div>
         <p style={{ color: "#A1A1AA", fontSize: "14px" }}>
-          {ticketData.owner_name} compartilhou um ingresso com você
+          {ticketData.owner_name} está oferecendo este ingresso para venda
         </p>
       </header>
 
@@ -268,6 +270,14 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
               <Ticket size={20} />
               <span style={{ fontWeight: "600" }}>{ticketData.ticket_type}</span>
             </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#D4D4D8" }}>
+              <User size={20} />
+              <span>Portador: {ticketData.ticket_name}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#D4D4D8" }}>
+              <Users size={20} />
+              <span>Quantidade: {ticketData.ticket_quantity} ingresso{ticketData.ticket_quantity > 1 ? 's' : ''}</span>
+            </div>
           </div>
 
           <div style={{
@@ -277,7 +287,12 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
             justifyContent: "space-between",
             alignItems: "center"
           }}>
-            <span style={{ color: "#A1A1AA" }}>Valor do Ingresso:</span>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ color: "#A1A1AA", fontSize: "14px" }}>Valor do Ingresso:</span>
+              <span style={{ color: "#D4D4D8", fontSize: "12px" }}>
+                {ticketData.ticket_quantity > 1 ? `${ticketData.ticket_quantity} ingressos` : '1 ingresso'}
+              </span>
+            </div>
             <span style={{ fontSize: "24px", fontWeight: "bold", color: "#3B82F6" }}>
               {formatPrice(ticketData.ticket_price)}
             </span>
@@ -370,7 +385,7 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
               </strong>
             </p>
             <p>
-              • Ao aceitar, o ingresso será transferido para sua conta
+              • Ao comprar, o ingresso será transferido para sua conta
             </p>
           </div>
         </div>
@@ -397,11 +412,11 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
             }}
           >
             {accepting ? (
-              "Processando..."
+              "Processando Compra..."
             ) : (
               <>
                 <CheckCircle size={24} />
-                Aceitar e Transferir Ingresso
+                Comprar Ingresso
               </>
             )}
           </button>
@@ -418,8 +433,8 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
           color: "#FCD34D",
           lineHeight: "1.5"
         }}>
-          <strong>⚠️ Atenção:</strong> Ao aceitar este ingresso, você concorda com os termos de uso da plataforma.
-          Certifique-se de que confia no remetente antes de aceitar.
+          <strong>⚠️ Atenção:</strong> Ao comprar este ingresso, você concorda com os termos de uso da plataforma.
+          Certifique-se de que confia no vendedor antes de realizar a compra.
         </div>
       </main>
     </div>
