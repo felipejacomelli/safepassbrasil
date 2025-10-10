@@ -25,9 +25,8 @@ export const PriceConfiguration = memo(({ price, onChange, platformFeeRate }: Pr
     const value = e.target.value
     setInputValue(value)
     
-    // Se o campo estiver vazio, definir como 0
+    // Se o campo estiver vazio, não definir preço (deixar undefined para validação)
     if (value === '') {
-      onChange(0)
       return
     }
     
@@ -35,8 +34,8 @@ export const PriceConfiguration = memo(({ price, onChange, platformFeeRate }: Pr
     const normalizedValue = value.replace(',', '.')
     const numericValue = parseFloat(normalizedValue)
     
-    // Só atualizar se for um número válido e não negativo
-    if (!isNaN(numericValue) && numericValue >= 0) {
+    // Só atualizar se for um número válido e maior que 0
+    if (!isNaN(numericValue) && numericValue > 0) {
       onChange(numericValue)
     }
   }

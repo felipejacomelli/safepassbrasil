@@ -1,6 +1,6 @@
 "use client"
 
-import { memo } from "react"
+import { memo, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckCircle, AlertCircle } from "lucide-react"
+import { CheckCircle, AlertCircle, Share2, Copy } from "lucide-react"
 import { sellTicketSchema, type SellTicketFormData } from "@/lib/schemas/sell-ticket"
 import { type ApiEvent, type ApiOccurrence } from "@/lib/api"
 import { OccurrenceSelector } from "./OccurrenceSelector"
@@ -25,6 +25,7 @@ interface SellTicketFormProps {
   isSubmitting: boolean
   error: string | null
   success: boolean
+  shareLink?: string | null
 }
 
 export const SellTicketForm = memo(({
@@ -35,21 +36,48 @@ export const SellTicketForm = memo(({
   onSubmit,
   isSubmitting,
   error,
-  success
+  success,
+  shareLink
 }: SellTicketFormProps) => {
+  const [linkCopied, setLinkCopied] = useState(false)
+  
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+    } catch (err) {
+      console.error('Erro ao copiar link:', err)
+    }
+  }
+  
   const form = useForm<SellTicketFormData>({
     resolver: zodResolver(sellTicketSchema),
     defaultValues: {
-      occurrenceId: "",
+      occurrenceId: selectedOccurrence || "",
       ticketTypeId: "",
       price: 0,
       quantity: 1,
       description: "",
-      termsAccepted: false
+      termsAccepted: false,
+      price_blocked: false
     }
   })
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = form
+
+  // Sincronizar occurrenceId sempre que selectedOccurrence mudar
+  useEffect(() => {
+    if (selectedOccurrence) {
+      setValue("occurrenceId", selectedOccurrence)
+    }
+  }, [selectedOccurrence, setValue])
+
+  const handleFormError = (errors: any) => {
+    console.log('=== FORM VALIDATION ERRORS ===')
+    console.log('Validation errors:', errors)
+    console.log('Form state:', form.formState)
+  }
 
   const watchedPrice = watch("price")
   const watchedQuantity = watch("quantity")
@@ -57,6 +85,32 @@ export const SellTicketForm = memo(({
   const watchedTerms = watch("termsAccepted")
 
   const handleFormSubmit = (data: SellTicketFormData) => {
+    console.log('=== FORM SUBMISSION DEBUG ===')
+    console.log('Form data:', data)
+    console.log('Form errors:', errors)
+    console.log('Selected occurrence:', selectedOccurrence)
+    console.log('Current occurrence:', currentOccurrence)
+    console.log('Watched values:', {
+      price: watchedPrice,
+      quantity: watchedQuantity,
+      ticketType: watchedTicketType,
+      terms: watchedTerms
+    })
+    
+    // Garantir que o occurrenceId seja definido corretamente
+    if (selectedOccurrence && !data.occurrenceId) {
+      console.log('Setting occurrenceId from selectedOccurrence:', selectedOccurrence)
+      data.occurrenceId = selectedOccurrence
+    }
+    
+    // Garantir que o preço seja válido
+    if (!data.price || data.price <= 0) {
+      console.error('Preço inválido:', data.price)
+      return
+    }
+    
+    console.log('Final data being submitted:', data)
+    console.log('Calling onSubmit...')
     onSubmit(data)
   }
 
@@ -76,6 +130,37 @@ export const SellTicketForm = memo(({
               : `Seu ingresso para ${event?.name || "este evento"} foi publicado e já está disponível para compradores.`
             }
           </p>
+          
+          {/* Link Compartilhado */}
+          {shareLink && (
+            <div className="mb-6 p-4 bg-zinc-800 rounded-lg border border-zinc-700">
+              <div className="flex items-center gap-2 mb-3">
+                <Share2 className="w-5 h-5 text-blue-400" />
+                <h3 className="text-white font-medium">Link para Compartilhar</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={shareLink}
+                  readOnly
+                  className="flex-1 bg-zinc-900 border border-zinc-600 text-white text-sm px-3 py-2 rounded"
+                />
+                <Button
+                  onClick={() => copyToClipboard(shareLink)}
+                  variant="outline"
+                  size="sm"
+                  className="border-zinc-600 text-zinc-300 hover:bg-zinc-700"
+                >
+                  <Copy className="w-4 h-4 mr-1" />
+                  {linkCopied ? "Copiado!" : "Copiar"}
+                </Button>
+              </div>
+              <p className="text-zinc-500 text-xs mt-2">
+                Compartilhe este link para que outras pessoas possam ver e comprar seu ingresso.
+              </p>
+            </div>
+          )}
+          
           <Button 
             onClick={() => window.location.href = `/event/${event?.slug}`}
             className="bg-blue-600 hover:bg-blue-700 text-white rounded"
@@ -88,7 +173,7 @@ export const SellTicketForm = memo(({
   }
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit, handleFormError)} className="space-y-6">
       <Card className="bg-zinc-900 border-zinc-800 rounded">
         <CardHeader>
           <CardTitle className="text-white">Detalhes do Ingresso</CardTitle>
@@ -190,6 +275,13 @@ export const SellTicketForm = memo(({
         type="submit"
         disabled={isSubmitting || !watchedTerms}
         className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed rounded"
+        onClick={() => {
+          console.log('=== BUTTON CLICKED ===')
+          console.log('isSubmitting:', isSubmitting)
+          console.log('watchedTerms:', watchedTerms)
+          console.log('Form is valid:', form.formState.isValid)
+          console.log('Form errors:', form.formState.errors)
+        }}
       >
         {isSubmitting 
           ? (watchedQuantity > 1 

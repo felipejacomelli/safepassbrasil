@@ -58,7 +58,8 @@ const SellTicketPageClient = memo(({ params }: { params: Promise<{ slug: string 
     submitTickets,
     isSubmitting,
     error,
-    success
+    success,
+    shareLink
   } = useSellTicketSubmission({
     onSuccess: () => {
       // Success handled in form component
@@ -121,6 +122,7 @@ const SellTicketPageClient = memo(({ params }: { params: Promise<{ slug: string 
               isSubmitting={isSubmitting}
               error={error}
               success={success}
+              shareLink={shareLink}
             />
           </ErrorBoundary>
         </div>

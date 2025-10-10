@@ -13,9 +13,40 @@ export function useSellTicketSubmission({ onSuccess, onError }: UseSellTicketSub
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [createdTicketId, setCreatedTicketId] = useState<string | null>(null)
+  const [shareLink, setShareLink] = useState<string | null>(null)
   const { user } = useAuth()
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL
+
+  // Função para criar link compartilhado
+  const createShareLink = async (ticketId: string) => {
+    try {
+      const response = await fetch(`${baseUrl}/api/v1/sharing/links/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(typeof window !== 'undefined' && localStorage.getItem('authToken') && {
+            'Authorization': `Token ${localStorage.getItem('authToken')}`
+          })
+        },
+        body: JSON.stringify({
+          ticket_id: ticketId,
+          link_type: 'public',
+          message: ''
+        })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'
+        return `${frontendUrl}/shared-ticket/${result.token}`
+      }
+    } catch (error) {
+      console.error('Erro ao criar link compartilhado:', error)
+    }
+    return null
+  }
 
   const submitTickets = async (ticketData: SellTicketFormData) => {
     if (!user) {
@@ -74,7 +105,8 @@ export function useSellTicketSubmission({ onSuccess, onError }: UseSellTicketSub
                 name,
                 quantity: 1, // Sempre 1 para publicação individual
                 price,
-                owner
+                owner,
+                price_blocked: false
               })
             })
 
@@ -96,6 +128,15 @@ export function useSellTicketSubmission({ onSuccess, onError }: UseSellTicketSub
               try {
                 const result = await response.json();
                 console.log(`Ticket ${i + 1} created successfully:`, result);
+                
+                // Se for o primeiro ingresso criado, salvar o ID e criar link compartilhado
+                if (i === 0 && result.id) {
+                  setCreatedTicketId(result.id)
+                  const link = await createShareLink(result.id)
+                  if (link) {
+                    setShareLink(link)
+                  }
+                }
               } catch (parseError) {
                 console.error('Error parsing success response:', parseError);
               }
@@ -136,7 +177,8 @@ export function useSellTicketSubmission({ onSuccess, onError }: UseSellTicketSub
             name,
             quantity: 1,
             price,
-            owner
+            owner,
+            price_blocked: false
           })
         })
 
@@ -161,6 +203,15 @@ export function useSellTicketSubmission({ onSuccess, onError }: UseSellTicketSub
         try {
           const result = await response.json();
           console.log('Ticket created successfully:', result);
+          
+          // Salvar o ID do ingresso criado e criar link compartilhado
+          if (result.id) {
+            setCreatedTicketId(result.id)
+            const link = await createShareLink(result.id)
+            if (link) {
+              setShareLink(link)
+            }
+          }
         } catch (parseError) {
           console.error('Error parsing success response:', parseError);
         }
@@ -189,6 +240,7 @@ export function useSellTicketSubmission({ onSuccess, onError }: UseSellTicketSub
     isSubmitting,
     error,
     success,
+    shareLink,
     resetState
   }
 }
