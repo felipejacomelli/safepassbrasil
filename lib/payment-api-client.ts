@@ -34,8 +34,8 @@ export class PaymentApiClient {
 
   constructor(
     baseUrl: string = 'http://localhost:8000',
-    timeout: number = 30000,
-    maxRetries: number = 3
+    timeout: number = 60000, // Aumentado para 60 segundos
+    maxRetries: number = 2   // Reduzido para 2 tentativas
   ) {
     this.baseUrl = baseUrl
     this.timeout = timeout
@@ -183,7 +183,7 @@ export class PaymentApiClient {
   async healthCheck(): Promise<boolean> {
     try {
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // Aumentado para 10 segundos
 
       const response = await fetch(`${this.baseUrl}/api/payment/methods/`, {
         method: 'GET',

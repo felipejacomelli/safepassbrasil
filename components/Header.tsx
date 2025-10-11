@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import {
     User,
@@ -35,12 +36,12 @@ export default function Header() {
     return (
         <header className="sticky top-0 z-10 bg-black border-b border-zinc-800">
             <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-                <a href="/" className="flex items-center gap-2 font-bold text-xl">
+                <Link href="/" className="flex items-center gap-2 font-bold text-xl">
                     <div className="bg-blue-500 p-1.5 rounded">
                         <div className="w-6 h-6 bg-black rounded" />
                     </div>
                     reticket
-                </a>
+                </Link>
                 <nav className="flex items-center gap-4">
                     {isAuthenticated ? (
                         <div className="relative">

@@ -27,13 +27,14 @@ interface Event {
   id: string
   name: string
   description: string
-  location?: string
+  category: string
+  status: string
   slug: string
 }
 
 interface Occurrence {
-  id: string
-  event_id: string
+  id: string | number
+  event_id: string | number
   event?: {
     id: string
     name: string
@@ -42,10 +43,7 @@ interface Occurrence {
   }
   start_at: string
   end_at?: string
-  venue?: {
-    name: string
-    address: string
-  }
+  venue?: string
   address?: string
   city?: string
   uf?: string
@@ -247,7 +245,7 @@ export default function UniqueTicketsPage() {
     }
 
     if (selectedOccurrence?.id) {
-      fetchTicketTypes(selectedOccurrence.id)
+      fetchTicketTypes(String(selectedOccurrence.id))
     }
   }, [selectedOccurrence?.id])
 
@@ -321,7 +319,7 @@ export default function UniqueTicketsPage() {
         
         // Criar tickets com URLs das imagens
         for (let i = 0; i < ticket.quantity; i++) {
-          const ticketData = {
+          const ticketData: any = {
             name: ticket.name,
             quantity: 1,
             price: parseFloat(ticket.price.replace(/[^\d,]/g, '').replace(',', '.')),

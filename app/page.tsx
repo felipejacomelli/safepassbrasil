@@ -2,6 +2,8 @@
 
 import {useEffect, useState, useMemo} from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
+import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { useData } from "@/contexts/data-context"
 import {
@@ -169,12 +171,12 @@ export default function Page() {
             {/* Header */}
             <header className="sticky top-0 z-10 bg-black border-b border-zinc-800">
                 <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-                    <a href="/" className="flex items-center gap-2 font-bold text-xl">
+                    <Link href="/" className="flex items-center gap-2 font-bold text-xl">
                         <div className="bg-blue-500 p-1.5 rounded">
                             <div className="w-6 h-6 bg-black rounded" />
                         </div>
                         reticket
-                    </a>
+                    </Link>
                     <nav className="flex items-center gap-4">
                         {isAuthenticated ? (
                             <div className="relative">
@@ -365,9 +367,11 @@ export default function Page() {
                                     className="bg-zinc-800 rounded overflow-hidden hover:shadow-lg hover:scale-105 transition"
                                 >
                                     {cat.image && (
-                                        <img
+                                        <Image
                                             src={cat.image}
                                             alt={cat.name}
+                                            width={300}
+                                            height={128}
                                             className="w-full h-32 object-cover"
                                         />
                                     )}
@@ -426,9 +430,11 @@ export default function Page() {
                                         }}
                                     >
                                         <div className="relative">
-                                            <img
+                                            <Image
                                                 src={event.image || "/placeholder.jpg"}
                                                 alt={event.name}
+                                                width={300}
+                                                height={128}
                                                 className="w-full h-32 object-cover"
                                             />
                                             <div className="absolute top-2 right-2 bg-blue-500 text-black text-xs font-bold px-2 py-1 rounded">
@@ -581,9 +587,11 @@ export default function Page() {
                                             aria-label={`Selecionar evento ${event.name}`}
                                         >
                                             <div className="flex-shrink-0">
-                                                <img
+                                                <Image
                                                     src={event.image || "/placeholder.svg"}
                                                     alt={event.name}
+                                                    width={64}
+                                                    height={64}
                                                     className="w-16 h-16 object-cover rounded-xl"
                                                 />
                                             </div>
@@ -887,9 +895,11 @@ export function EventCard({ event }: { event: any }) {
                 onClick={handleCardClick}
                 className="cursor-pointer"
             >
-                <img
+                <Image
                     src={event.image || "/placeholder.svg"}
                     alt={event.name}
+                    width={400}
+                    height={192}
                     className="w-full h-48 object-cover"
                 />
                 <div className="p-4">

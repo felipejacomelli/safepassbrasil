@@ -1,6 +1,8 @@
 "use client"
 
-import { useEffect, useState, use } from "react"
+import { useEffect, useState, use, useCallback } from "react"
+import Link from "next/link"
+import Image from "next/image"
 import { Calendar, Clock, MapPin, Users, Ticket, User, CheckCircle, AlertCircle, Shield, Share2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { AsaasCheckout } from "@/components/asaas-checkout"
@@ -38,9 +40,9 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
 
   useEffect(() => {
     fetchSharedTicket()
-  }, [token])
+  }, [token, fetchSharedTicket])
 
-  const fetchSharedTicket = async () => {
+  const fetchSharedTicket = useCallback(async () => {
     try {
       setLoading(true)
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
@@ -65,7 +67,7 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
     } finally {
       setLoading(false)
     }
-  }
+  }, [token, email])
 
   const handleBuyTicket = () => {
     if (!isAuthenticated) {
@@ -139,7 +141,7 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
         <AlertCircle size={64} color="#EF4444" style={{ marginBottom: "20px" }} />
         <h1 style={{ fontSize: "24px", marginBottom: "16px" }}>Link Inválido ou Expirado</h1>
         <p style={{ color: "#A1A1AA", marginBottom: "24px" }}>{error}</p>
-        <a href="/" style={{
+        <Link href="/" style={{
           backgroundColor: "#3B82F6",
           color: "black",
           padding: "12px 24px",
@@ -148,7 +150,7 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
           fontWeight: "bold"
         }}>
           Voltar à Página Inicial
-        </a>
+        </Link>
       </div>
     )
   }
@@ -222,9 +224,11 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
           overflow: "hidden",
           marginBottom: "20px"
         }}>
-          <img
+          <Image
             src={ticketData.event_image || "/placeholder.svg"}
             alt={ticketData.event_name}
+            width={400}
+            height={300}
             style={{
               width: "100%",
               height: "100%",

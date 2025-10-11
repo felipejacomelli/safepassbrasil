@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+
 export default function NotFound() {
   return (
     <div
@@ -32,7 +34,7 @@ export default function NotFound() {
       >
         Página não encontrada
       </p>
-      <a
+      <Link
         href="/"
         style={{
           backgroundColor: "#3B82F6",
@@ -45,7 +47,7 @@ export default function NotFound() {
         }}
       >
         Voltar para a página inicial
-      </a>
+      </Link>
     </div>
   )
 }

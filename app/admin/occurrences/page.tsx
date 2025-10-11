@@ -53,7 +53,7 @@ export default function OccurrencesPage() {
   const handleEventChange = useCallback((eventId: string) => {
     setSelectedEventId(eventId)
     clearErrors()
-  }, []) // Removendo clearErrors da dependência pois é estável
+  }, [clearErrors])
 
   const handleOccurrenceUpdate = useCallback((index: number, field: string, value: string) => {
     updateOccurrence(index, field as any, value)

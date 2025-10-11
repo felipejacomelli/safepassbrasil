@@ -23,8 +23,7 @@ const nextConfig = {
       allowedOrigins: ['localhost:3000', '127.0.0.1:3000']
     }
   },
-  // Desabilita minificação em desenvolvimento para debug
-  swcMinify: true,
+  // SWC minification é habilitada por padrão no Next.js 15
 }
 
 export default nextConfig
