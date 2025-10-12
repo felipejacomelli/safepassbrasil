@@ -60,11 +60,28 @@ export default function NotificationsPage() {
     }
   }, [user])
 
+  // ✅ OTIMIZAÇÃO: Só recarregar se necessário
+  useEffect(() => {
+    if (user && activeTab === 'all') {
+      const now = new Date()
+      const lastFetch = localStorage.getItem(`notifications_fetch_${user.id}`)
+      
+      if (!lastFetch || (now.getTime() - parseInt(lastFetch) > 60000)) { // 1 minuto
+        fetchData()
+      }
+    }
+  }, [user, activeTab])
+
   const fetchData = async () => {
     try {
       setLoading(true)
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('authToken')
+      
+      if (!token) {
+        console.log('Nenhum token encontrado, pulando busca de dados de notifications')
+        return
+      }
 
       const [notificationsRes, settingsRes] = await Promise.all([
         fetch(`${apiUrl}/api/escrow/notifications/`, {
@@ -85,6 +102,11 @@ export default function NotificationsPage() {
         setSettings(settingsData)
       }
 
+      // ✅ OTIMIZAÇÃO: Marcar timestamp da última busca
+      if (user) {
+        localStorage.setItem(`notifications_fetch_${user.id}`, Date.now().toString())
+      }
+
     } catch (error) {
       console.error('Erro ao carregar dados:', error)
     } finally {
@@ -95,7 +117,12 @@ export default function NotificationsPage() {
   const markNotificationAsRead = async (notificationId: string) => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('authToken')
+      
+      if (!token) {
+        console.log('Nenhum token encontrado, pulando busca de dados de notifications')
+        return
+      }
 
       const response = await fetch(`${apiUrl}/api/escrow/notifications/${notificationId}/mark-read/`, {
         method: 'POST',
@@ -120,7 +147,12 @@ export default function NotificationsPage() {
     try {
       setMarkingAsRead(true)
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('authToken')
+      
+      if (!token) {
+        console.log('Nenhum token encontrado, pulando busca de dados de notifications')
+        return
+      }
 
       const response = await fetch(`${apiUrl}/api/escrow/notifications/mark-all-read/`, {
         method: 'POST',
@@ -143,7 +175,12 @@ export default function NotificationsPage() {
     try {
       setUpdatingSettings(true)
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('authToken')
+      
+      if (!token) {
+        console.log('Nenhum token encontrado, pulando busca de dados de notifications')
+        return
+      }
 
       const response = await fetch(`${apiUrl}/api/escrow/notification-settings/`, {
         method: 'PUT',

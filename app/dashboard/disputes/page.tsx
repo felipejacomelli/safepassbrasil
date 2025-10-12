@@ -100,11 +100,28 @@ export default function DisputesPage() {
     }
   }, [user])
 
+  // ✅ OTIMIZAÇÃO: Só recarregar se necessário
+  useEffect(() => {
+    if (user) {
+      const now = new Date()
+      const lastFetch = localStorage.getItem(`disputes_fetch_${user.id}`)
+      
+      if (!lastFetch || (now.getTime() - parseInt(lastFetch) > 300000)) { // 5 minutos
+        fetchData()
+      }
+    }
+  }, [user])
+
   const fetchData = async () => {
     try {
       setLoading(true)
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('authToken')
+      
+      if (!token) {
+        console.log('Nenhum token encontrado, pulando busca de dados de disputes')
+        return
+      }
 
       const [disputesRes, escrowsRes] = await Promise.all([
         fetch(`${apiUrl}/api/escrow/disputes/`, {
@@ -125,6 +142,11 @@ export default function DisputesPage() {
         setEscrows(escrowsData.escrows || [])
       }
 
+      // ✅ OTIMIZAÇÃO: Marcar timestamp da última busca
+      if (user) {
+        localStorage.setItem(`disputes_fetch_${user.id}`, Date.now().toString())
+      }
+
     } catch (error) {
       console.error('Erro ao carregar dados:', error)
       setError('Erro ao carregar dados')
@@ -136,7 +158,12 @@ export default function DisputesPage() {
   const fetchDisputeMessages = async (disputeId: string) => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('authToken')
+      
+      if (!token) {
+        console.log('Nenhum token encontrado, pulando busca de dados de disputes')
+        return
+      }
 
       const response = await fetch(`${apiUrl}/api/escrow/disputes/${disputeId}/messages/`, {
         headers: { 'Authorization': `Token ${token}` }
@@ -160,7 +187,12 @@ export default function DisputesPage() {
       setSuccess('')
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('authToken')
+      
+      if (!token) {
+        console.log('Nenhum token encontrado, pulando busca de dados de disputes')
+        return
+      }
 
       const response = await fetch(`${apiUrl}/api/escrow/disputes/`, {
         method: 'POST',
@@ -209,7 +241,12 @@ export default function DisputesPage() {
       setSuccess('')
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('authToken')
+      
+      if (!token) {
+        console.log('Nenhum token encontrado, pulando busca de dados de disputes')
+        return
+      }
 
       const response = await fetch(`${apiUrl}/api/escrow/disputes/${disputeId}/seller-response/`, {
         method: 'POST',
@@ -251,7 +288,12 @@ export default function DisputesPage() {
       setSuccess('')
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('authToken')
+      
+      if (!token) {
+        console.log('Nenhum token encontrado, pulando busca de dados de disputes')
+        return
+      }
 
       const response = await fetch(`${apiUrl}/api/escrow/disputes/${disputeId}/messages/`, {
         method: 'POST',

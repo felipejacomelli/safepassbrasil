@@ -45,11 +45,26 @@ export default function EscrowStatus({ orderId, showDetails = false, className =
     fetchEscrowStatus()
   }, [orderId])
 
+  // ✅ OTIMIZAÇÃO: Só recarregar se necessário
+  useEffect(() => {
+    const now = new Date()
+    const lastFetch = localStorage.getItem(`escrow_${orderId}`)
+    
+    if (!lastFetch || (now.getTime() - parseInt(lastFetch) > 300000)) { // 5 minutos
+      fetchEscrowStatus()
+    }
+  }, [orderId])
+
   const fetchEscrowStatus = async () => {
     try {
       setLoading(true)
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('authToken')
+      
+      if (!token) {
+        console.log('Nenhum token encontrado, pulando busca de dados de escrow')
+        return
+      }
 
       const response = await fetch(`${apiUrl}/api/escrow/order/${orderId}/`, {
         headers: { 'Authorization': `Token ${token}` }
@@ -58,6 +73,9 @@ export default function EscrowStatus({ orderId, showDetails = false, className =
       if (response.ok) {
         const data = await response.json()
         setEscrow(data)
+        
+        // ✅ OTIMIZAÇÃO: Marcar timestamp da última busca
+        localStorage.setItem(`escrow_${orderId}`, Date.now().toString())
       } else if (response.status === 404) {
         // Pedido não possui escrow
         setEscrow(null)

@@ -78,6 +78,7 @@ export default function DashboardPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
+  const [lastFetch, setLastFetch] = useState<Date | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -85,55 +86,138 @@ export default function DashboardPage() {
     }
   }, [user])
 
+  // ✅ OTIMIZAÇÃO: Lazy loading baseado na aba ativa
+  useEffect(() => {
+    if (user && activeTab) {
+      const now = new Date()
+      const shouldFetch = !lastFetch || 
+        (now.getTime() - lastFetch.getTime() > 300000) || // 5 minutos
+        activeTab === 'notifications' // Sempre buscar notificações quando na aba
+      
+      if (shouldFetch) {
+        fetchDashboardData()
+      }
+    }
+  }, [user, activeTab, lastFetch])
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('authToken')
+      
+      if (!token) {
+        console.log('Nenhum token encontrado, pulando busca de dados do dashboard')
+        return
+      }
 
-      // Buscar dados em paralelo
-      const [balanceRes, escrowsRes, disputesRes, transfersRes, notificationsRes] = await Promise.all([
+      // ✅ OTIMIZAÇÃO: Verificar cache local antes de fazer chamadas
+      const cacheKey = `dashboard_${user?.id}`
+      const cachedData = localStorage.getItem(cacheKey)
+      const now = Date.now()
+      
+      if (cachedData) {
+        const { data, timestamp } = JSON.parse(cachedData)
+        // Se os dados têm menos de 2 minutos, usar cache para dados não críticos
+        if (now - timestamp < 120000) {
+          setBalance(data.balance)
+          setEscrows(data.escrows || [])
+          setDisputes(data.disputes || [])
+          setTransfers(data.transfers || [])
+          // Notificações sempre buscar (dados críticos)
+        }
+      }
+
+      // ✅ OTIMIZAÇÃO: Buscar dados baseado na aba ativa
+      const fetchPromises = []
+      
+      // Sempre buscar balance e notificações (dados críticos)
+      fetchPromises.push(
         fetch(`${apiUrl}/api/escrow/balance/`, {
-          headers: { 'Authorization': `Token ${token}` }
-        }),
-        fetch(`${apiUrl}/api/escrow/transactions/`, {
-          headers: { 'Authorization': `Token ${token}` }
-        }),
-        fetch(`${apiUrl}/api/escrow/disputes/`, {
-          headers: { 'Authorization': `Token ${token}` }
-        }),
-        fetch(`${apiUrl}/api/escrow/transfers/`, {
           headers: { 'Authorization': `Token ${token}` }
         }),
         fetch(`${apiUrl}/api/escrow/notifications/`, {
           headers: { 'Authorization': `Token ${token}` }
         })
-      ])
+      )
 
-      if (balanceRes.ok) {
-        const balanceData = await balanceRes.json()
+      // Buscar dados específicos baseado na aba ativa
+      if (activeTab === 'escrows' || activeTab === 'overview') {
+        fetchPromises.push(
+          fetch(`${apiUrl}/api/escrow/transactions/`, {
+            headers: { 'Authorization': `Token ${token}` }
+          })
+        )
+      }
+      
+      if (activeTab === 'disputes' || activeTab === 'overview') {
+        fetchPromises.push(
+          fetch(`${apiUrl}/api/escrow/disputes/`, {
+            headers: { 'Authorization': `Token ${token}` }
+          })
+        )
+      }
+      
+      if (activeTab === 'transfers' || activeTab === 'overview') {
+        fetchPromises.push(
+          fetch(`${apiUrl}/api/escrow/transfers/`, {
+            headers: { 'Authorization': `Token ${token}` }
+          })
+        )
+      }
+
+      const responses = await Promise.all(fetchPromises)
+      let responseIndex = 0
+
+      // Processar balance (sempre primeiro)
+      if (responses[responseIndex]?.ok) {
+        const balanceData = await responses[responseIndex].json()
         setBalance(balanceData)
       }
+      responseIndex++
 
-      if (escrowsRes.ok) {
-        const escrowsData = await escrowsRes.json()
-        setEscrows(escrowsData.escrows || [])
-      }
-
-      if (disputesRes.ok) {
-        const disputesData = await disputesRes.json()
-        setDisputes(disputesData.disputes || [])
-      }
-
-      if (transfersRes.ok) {
-        const transfersData = await transfersRes.json()
-        setTransfers(transfersData.transfers || [])
-      }
-
-      if (notificationsRes.ok) {
-        const notificationsData = await notificationsRes.json()
+      // Processar notificações (sempre segundo)
+      if (responses[responseIndex]?.ok) {
+        const notificationsData = await responses[responseIndex].json()
         setNotifications(notificationsData.notifications || [])
       }
+      responseIndex++
+
+      // Processar dados específicos baseado na aba
+      if (activeTab === 'escrows' || activeTab === 'overview') {
+        if (responses[responseIndex]?.ok) {
+          const escrowsData = await responses[responseIndex].json()
+          setEscrows(escrowsData.escrows || [])
+        }
+        responseIndex++
+      }
+      
+      if (activeTab === 'disputes' || activeTab === 'overview') {
+        if (responses[responseIndex]?.ok) {
+          const disputesData = await responses[responseIndex].json()
+          setDisputes(disputesData.disputes || [])
+        }
+        responseIndex++
+      }
+      
+      if (activeTab === 'transfers' || activeTab === 'overview') {
+        if (responses[responseIndex]?.ok) {
+          const transfersData = await responses[responseIndex].json()
+          setTransfers(transfersData.transfers || [])
+        }
+      }
+
+      // ✅ OTIMIZAÇÃO: Salvar no cache local
+      const cacheData = {
+        balance,
+        escrows,
+        disputes,
+        transfers,
+        timestamp: now
+      }
+      localStorage.setItem(cacheKey, JSON.stringify(cacheData))
+
+      setLastFetch(new Date())
 
     } catch (error) {
       console.error('Erro ao carregar dados do dashboard:', error)
