@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
+import NotificationBell from "./NotificationBell"
 import {
     User,
     ShoppingCart,
@@ -44,7 +45,9 @@ export default function Header() {
                 </Link>
                 <nav className="flex items-center gap-4">
                     {isAuthenticated ? (
-                        <div className="relative">
+                        <>
+                            <NotificationBell />
+                            <div className="relative">
                             <button
                                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                                 className="flex items-center gap-2 border border-blue-500 px-3 py-1.5 rounded text-sm font-semibold hover:bg-blue-500/10 transition-colors"
@@ -63,6 +66,16 @@ export default function Header() {
                                         >
                                             <UserCircle size={16} />
                                             Minha Conta
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                router.push("/dashboard")
+                                                setIsUserMenuOpen(false)
+                                            }}
+                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-800 transition-colors text-left"
+                                        >
+                                            <Settings size={16} />
+                                            Dashboard
                                         </button>
                                         {user?.isAdmin && (
                                             <button
@@ -93,7 +106,8 @@ export default function Header() {
                                     </div>
                                 </div>
                             )}
-                        </div>
+                            </div>
+                        </>
                     ) : (
                         <>
                             <button

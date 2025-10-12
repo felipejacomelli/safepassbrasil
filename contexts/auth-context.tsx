@@ -17,6 +17,7 @@ type User = {
   phone?: string
   address?: string
   cpf?: string
+  cpfFormatted?: string
   country?: string
   profileImage?: string
   verificationStatus?: 'pending' | 'verified' | 'rejected'
@@ -140,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         phone: profile.phone,
         address: profile.location,
         cpf: profile.cpf,
+        cpfFormatted: profile.cpf_formatted,
         country: profile.country,
         profileImage: profile.profile_image, // Mapear profile_image para profileImage
         has2FA: false,
@@ -204,6 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: profile.email,
         phone: profile.phone,
         cpf: profile.cpf,
+        cpfFormatted: profile.cpf_formatted,
         country: profile.country,
         address: profile.location,
         has2FA: false,
@@ -252,6 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: response.email,
         phone: response.phone,
         cpf: response.cpf,
+        cpfFormatted: response.cpf_formatted,
         country: response.country,
         address: response.location,
         has2FA: false,
@@ -379,6 +383,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         phone: response.phone,
         address: response.location, // Backend retorna location, frontend usa address
         cpf: response.cpf,
+        cpfFormatted: response.cpf_formatted,
         country: response.country,
         profileImage: response.profile_image, // Mapear profile_image para profileImage
       };

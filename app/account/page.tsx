@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label"
 import { AccountSidebar } from "@/components/AccountSidebar"
 import Header from "@/components/Header"
 import { CheckCircle, Clock, Edit, Mail, Phone, MapPin, Shield, User, CreditCard, Bell, Lock, Upload, Trash2, Camera } from "lucide-react"
-import { formatCpf } from "@/utils/cpf"
 import { validateImageFile, uploadImage } from "@/lib/upload"
 
 export default function AccountPage() {
@@ -496,7 +495,7 @@ export default function AccountPage() {
                     </Label>
                     <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded">
                       <Shield className="w-5 h-5 text-primary" />
-                      <span className="text-white">{formatCpf(user?.cpf) || "Não informado"}</span>
+                      <span className="text-white">{user?.cpfFormatted || "Não informado"}</span>
                       <span className="text-xs text-gray-500 ml-auto">Não editável</span>
                     </div>
                   </div>
