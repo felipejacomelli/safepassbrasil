@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertTriangle } from "lucide-react"
 import { validateCpfWithMessage } from "@/utils/cpf"
+import GoogleAuthButton from "@/components/GoogleAuthButton"
 
 export default function LoginPage() {
   const { login, register, isAuthenticated } = useAuth()
@@ -450,7 +451,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <div>
+            <div className="space-y-4">
               <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
                 {isLoading
                   ? isLoginMode
@@ -460,6 +461,28 @@ export default function LoginPage() {
                     ? "Entrar"
                     : "Criar conta"}
               </Button>
+              
+              {/* Divisor */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Ou continue com
+                  </span>
+                </div>
+              </div>
+              
+              {/* Botão do Google */}
+              <GoogleAuthButton
+                onSuccess={() => {
+                  router.push(returnUrl || "/account")
+                }}
+                onError={(error) => {
+                  setError(`Erro na autenticação Google: ${error}`)
+                }}
+              />
             </div>
           </form>
         </div>

@@ -8,8 +8,8 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith('/admin')) {
     const cookieToken = request.cookies.get('authToken')?.value
     
-    // Redireciona para login se não há token
-    if (!cookieToken || cookieToken === 'null' || cookieToken === 'undefined') {
+    // Redireciona para login se não há token válido
+    if (!cookieToken || cookieToken === 'null' || cookieToken === 'undefined' || cookieToken.trim() === '') {
       const loginUrl = new URL('/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
       return NextResponse.redirect(loginUrl)
@@ -43,7 +43,7 @@ export function middleware(request: NextRequest) {
     const cookieToken = request.cookies.get('authToken')?.value
     
     // Só redireciona se tiver certeza de que não há autenticação
-    if (cookieToken === 'null' || cookieToken === 'undefined') {
+    if (!cookieToken || cookieToken === 'null' || cookieToken === 'undefined' || cookieToken.trim() === '') {
       const loginUrl = new URL('/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
       return NextResponse.redirect(loginUrl)

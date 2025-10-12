@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { authApi, type LoginResponse, type ApiUser } from "@/lib/api"
+import { setAuthCookies, clearAuthCookies, getAuthToken, getRefreshToken, isAuthenticated } from '@/lib/secure-cookies'
 
 // Update the User type to include isAdmin
 type User = {
@@ -188,8 +189,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Fazer login com a API real
       const response = await authApi.login({ email, password });
       
-      // Salvar token no localStorage
+      // Salvar tokens em cookies seguros
       if (typeof window !== 'undefined') {
+        setAuthCookies(response.token, response.refresh_token);
+        // Manter localStorage para compatibilidade temporária
         localStorage.setItem('authToken', response.token);
       }
 
@@ -332,9 +335,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('user');
         localStorage.removeItem('authToken');
         
-        // Limpar cookies também
-        document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        document.cookie = 'userData=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        // Limpar cookies seguros
+        clearAuthCookies();
       }
     }
   };

@@ -1,0 +1,225 @@
+"use client"
+
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Loader2 } from 'lucide-react'
+import { useAuth } from '@/contexts/auth-context'
+
+interface GoogleAuthButtonProps {
+  onSuccess?: () => void
+  onError?: (error: string) => void
+  className?: string
+  children?: React.ReactNode
+}
+
+export default function GoogleAuthButton({ 
+  onSuccess, 
+  onError, 
+  className,
+  children 
+}: GoogleAuthButtonProps) {
+  const [loading, setLoading] = useState(false)
+  const { login } = useAuth()
+
+  const handleGoogleAuth = async () => {
+    setLoading(true)
+    
+    try {
+      // Verificar se o Google Identity Services está disponível
+      if (typeof window === 'undefined' || !window.google) {
+        throw new Error('Google Identity Services não está disponível')
+      }
+
+      // Verificar se o client_id está configurado
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+      if (!clientId) {
+        throw new Error('Google Client ID não configurado. Verifique a variável NEXT_PUBLIC_GOOGLE_CLIENT_ID')
+      }
+
+      // Configurar o Google Identity Services
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      })
+
+      // Renderizar o botão do Google
+      window.google.accounts.id.renderButton(
+        document.getElementById('google-signin-button'),
+        {
+          theme: 'outline',
+          size: 'large',
+          width: '100%',
+          text: 'signin_with',
+          shape: 'rectangular',
+        }
+      )
+
+    } catch (error) {
+      console.error('Erro na autenticação Google:', error)
+      onError?.(error instanceof Error ? error.message : 'Erro desconhecido')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCredentialResponse = async (response: any) => {
+    try {
+      setLoading(true)
+      
+      // Enviar o token para o backend
+      const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/google-auth/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          access_token: response.credential
+        })
+      })
+
+      if (!backendResponse.ok) {
+        const errorData = await backendResponse.json()
+        throw new Error(errorData.error || 'Erro na autenticação')
+      }
+
+      const authData = await backendResponse.json()
+      
+      // Fazer login com os dados retornados
+      const loginResult = await login(authData.email, '') // Senha vazia para login social
+      
+      if (loginResult.success) {
+        onSuccess?.()
+      } else {
+        throw new Error('Erro ao fazer login')
+      }
+
+    } catch (error) {
+      console.error('Erro na autenticação Google:', error)
+      onError?.(error instanceof Error ? error.message : 'Erro desconhecido')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadGoogleScript = () => {
+    if (typeof window === 'undefined') return
+
+    // Verificar se o script já foi carregado
+    if (window.google) {
+      handleGoogleAuth()
+      return
+    }
+
+    // Carregar o script do Google Identity Services
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.defer = true
+    script.onload = handleGoogleAuth
+    script.onerror = () => {
+      onError?.('Erro ao carregar Google Identity Services')
+    }
+    
+    document.head.appendChild(script)
+  }
+
+  // Verificar se o client_id está configurado
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+  const isClientIdConfigured = clientId && clientId !== 'your_google_client_id_here' && !clientId.includes('undefined')
+
+  if (!isClientIdConfigured) {
+    return (
+      <div className={className}>
+        <Button
+          disabled
+          variant="outline"
+          className="w-full opacity-50"
+          title="Google Client ID não configurado"
+        >
+          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+            <path
+              fill="currentColor"
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+            />
+            <path
+              fill="currentColor"
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            />
+            <path
+              fill="currentColor"
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+            />
+            <path
+              fill="currentColor"
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+            />
+          </svg>
+          {children || 'Continuar com Google'}
+        </Button>
+        <p className="text-xs text-muted-foreground mt-1 text-center">
+          Google OAuth não configurado
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className={className}>
+      <Button
+        onClick={loadGoogleScript}
+        disabled={loading}
+        variant="outline"
+        className="w-full"
+      >
+        {loading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Carregando...
+          </>
+        ) : (
+          <>
+            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              />
+              <path
+                fill="currentColor"
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              />
+              <path
+                fill="currentColor"
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              />
+              <path
+                fill="currentColor"
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              />
+            </svg>
+            {children || 'Continuar com Google'}
+          </>
+        )}
+      </Button>
+      
+      {/* Container para o botão do Google */}
+      <div id="google-signin-button" className="hidden"></div>
+    </div>
+  )
+}
+
+// Declaração de tipos para o Google Identity Services
+declare global {
+  interface Window {
+    google: {
+      accounts: {
+        id: {
+          initialize: (config: any) => void
+          renderButton: (element: HTMLElement | null, config: any) => void
+          prompt: () => void
+        }
+      }
+    }
+  }
+}

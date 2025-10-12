@@ -136,11 +136,27 @@ export interface ApiOccurrenceWithTickets extends ApiOccurrence {
 // Função para fazer requisições HTTP
 export const apiRequest = async (endpoint: string, options: RequestInit = {}): Promise<Response> => {
   // Verificar se estamos no lado do cliente antes de acessar localStorage
-  const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+  let token = null;
+  if (typeof window !== 'undefined') {
+    // Tentar obter token do localStorage primeiro (compatibilidade)
+    token = localStorage.getItem('authToken');
+    
+    // Se não houver token no localStorage, tentar obter dos cookies
+    if (!token) {
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'authToken') {
+          token = decodeURIComponent(value);
+          break;
+        }
+      }
+    }
+  }
   
   const headers = {
     'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Token ${token}` }),
+    ...(token && { 'Authorization': `Token ${token}` }), // Usar Token para DRF Token Authentication
     ...options.headers,
   };
 
