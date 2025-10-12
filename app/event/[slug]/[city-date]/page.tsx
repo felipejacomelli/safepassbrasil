@@ -1025,7 +1025,7 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
                 marginBottom: "12px",
               }}
             >
-              ReTicket é uma plataforma confiável para compra e venda de ingressos diretamente entre fãs.
+              Safe Pass é uma plataforma confiável para compra e venda de ingressos diretamente entre fãs.
             </p>
             <p
               style={{
@@ -1121,7 +1121,7 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
               marginTop: "24px",
             }}
           >
-            © 2023 ReTicket. Todos os direitos reservados.
+            © 2023 Safe Pass. Todos os direitos reservados.
           </p>
         </div>
       </footer>

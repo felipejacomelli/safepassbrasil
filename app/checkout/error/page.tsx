@@ -62,7 +62,7 @@ export default function CheckoutErrorPage() {
             <div className="bg-primary p-1.5 rounded">
               <div className="w-6 h-6 bg-black rounded" />
             </div>
-            <span className="text-white text-xl font-bold">reticket</span>
+            <span className="text-white text-xl font-bold">Safe Pass</span>
           </a>
           <div className="flex items-center gap-6">
             <a href="/#como-funciona" className="text-white hover:text-primary transition">
@@ -141,11 +141,11 @@ export default function CheckoutErrorPage() {
                 <div className="bg-primary p-1.5 rounded">
                   <div className="w-6 h-6 bg-black rounded" />
                 </div>
-                <span className="text-white text-xl font-bold">reticket</span>
+                <span className="text-white text-xl font-bold">Safe Pass</span>
               </a>
             </div>
             <div className="text-center md:text-right">
-              <p className="text-gray-400 text-sm">© 2023 ReTicket. Todos os direitos reservados.</p>
+              <p className="text-gray-400 text-sm">© 2023 Safe Pass. Todos os direitos reservados.</p>
             </div>
           </div>
         </div>

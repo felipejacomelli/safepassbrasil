@@ -70,7 +70,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="bg-primary p-1.5 rounded">
             <div className="w-6 h-6 bg-black rounded" />
           </div>
-          <span className="text-white text-xl font-bold">reticket</span>
+          <span className="text-white text-xl font-bold">Safe Pass</span>
           <span className="text-xs text-primary ml-1">ADMIN</span>
         </div>
         <Button variant="ghost" size="icon" className="text-white rounded-lg" onClick={() => setSidebarOpen(!sidebarOpen)}>
@@ -88,7 +88,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="bg-primary p-1.5 rounded-lg">
             <div className="w-6 h-6 bg-black rounded-lg" />
           </div>
-          <span className="text-white text-xl font-bold">reticket</span>
+          <span className="text-white text-xl font-bold">Safe Pass</span>
           <span className="text-xs text-primary ml-1">ADMIN</span>
         </div>
         <nav className="p-4 space-y-1">

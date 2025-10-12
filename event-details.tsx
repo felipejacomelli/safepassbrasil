@@ -208,13 +208,13 @@ export default function EventDetails() {
             <div>
               <h3 className="text-lg font-bold text-white mb-4">Sobre</h3>
               <p className="text-gray-400 text-sm leading-relaxed">
-                ReTicket é uma plataforma confiável para compra e venda de ingressos diretamente entre fãs.
+                Safe Pass é uma plataforma confiável para compra e venda de ingressos diretamente entre fãs.
               </p>
               <p className="text-gray-400 text-sm mt-4 leading-relaxed">
                 Nossa missão é conectar pessoas, que desejam revender seus ingressos devido a imprevistos, com
                 compradores que procuram as melhores ofertas de última hora.
               </p>
-              <p className="text-gray-400 text-sm mt-4">Seja bem bem vindo, seja feliz, seja ReTicket!</p>
+              <p className="text-gray-400 text-sm mt-4">Seja bem bem vindo, seja feliz, seja Safe Pass!</p>
             </div>
 
             {/* Quick Access */}
@@ -241,7 +241,7 @@ export default function EventDetails() {
 
             {/* Guarantee Section */}
             <div>
-              <h3 className="text-lg font-bold text-white mb-4">Garantia ReTicket</h3>
+              <h3 className="text-lg font-bold text-white mb-4">Garantia Safe Pass</h3>
               <div className="flex flex-col gap-4">
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="w-5 h-5 text-primary mt-1" />

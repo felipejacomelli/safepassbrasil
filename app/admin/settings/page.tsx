@@ -104,11 +104,11 @@ export default function AdminSettingsPage() {
 
   // Estados para diferentes configurações
   const [systemSettings, setSystemSettings] = useState<SystemSettings>({
-    siteName: "ReTicket",
+    siteName: "Safe Pass",
     siteDescription: "Plataforma de venda de ingressos online",
-    siteUrl: "https://reticket.com.br",
-    adminEmail: "admin@reticket.com.br",
-    supportEmail: "suporte@reticket.com.br",
+    siteUrl: "https://safepass.com.br",
+    adminEmail: "admin@safepass.com.br",
+    supportEmail: "suporte@safepass.com.br",
     maintenanceMode: false,
     registrationEnabled: true,
     emailVerificationRequired: true,
@@ -128,8 +128,8 @@ export default function AdminSettingsPage() {
     smtpUsername: "",
     smtpPassword: "",
     smtpEncryption: "tls",
-    fromEmail: "noreply@reticket.com.br",
-    fromName: "ReTicket",
+    fromEmail: "noreply@safepass.com.br",
+    fromName: "Safe Pass",
     emailEnabled: true
   })
 
@@ -243,7 +243,7 @@ export default function AdminSettingsPage() {
       const url = URL.createObjectURL(dataBlob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `reticket-settings-backup-${new Date().toISOString().split('T')[0]}.json`
+      link.download = `safepass-settings-backup-${new Date().toISOString().split('T')[0]}.json`
       link.click()
       
       setMessage({ type: 'success', text: 'Backup criado com sucesso!' })
@@ -572,7 +572,7 @@ export default function AdminSettingsPage() {
                     value={emailSettings.fromEmail}
                     onChange={(e) => setEmailSettings({...emailSettings, fromEmail: e.target.value})}
                     className="bg-zinc-800 border-zinc-700 text-white"
-                    placeholder="noreply@reticket.com.br"
+                    placeholder="noreply@safepass.com.br"
                   />
                 </div>
                 <div className="space-y-2">

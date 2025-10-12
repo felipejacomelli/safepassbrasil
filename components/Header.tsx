@@ -41,7 +41,7 @@ export default function Header() {
                     <div className="bg-blue-500 p-1.5 rounded">
                         <div className="w-6 h-6 bg-black rounded" />
                     </div>
-                    reticket
+                    Safe Pass
                 </Link>
                 <nav className="flex items-center gap-4">
                     {isAuthenticated ? (

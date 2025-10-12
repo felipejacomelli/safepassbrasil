@@ -239,7 +239,7 @@ export default function SecurityPage() {
                 fontWeight: "bold",
               }}
             >
-              reticket
+              Safe Pass
             </span>
           </Link>
 

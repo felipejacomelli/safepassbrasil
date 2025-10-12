@@ -347,7 +347,7 @@ export default function CheckoutPage() {
             <div className="bg-primary p-1.5 rounded">
               <div className="w-6 h-6 bg-black rounded" />
             </div>
-            <span className="text-white text-xl font-bold">reticket</span>
+            <span className="text-white text-xl font-bold">Safe Pass</span>
           </a>
           <div className="flex items-center gap-6">
             <a href="/#como-funciona" className="text-white hover:text-primary transition">
@@ -745,7 +745,7 @@ export default function CheckoutPage() {
                     <a href="#" className="text-primary hover:underline">
                       Política de Privacidade
                     </a>{" "}
-                    da ReTicket. Entendo que meus ingressos estão sujeitos à verificação e que a plataforma garante a
+                    da Safe Pass. Entendo que meus ingressos estão sujeitos à verificação e que a plataforma garante a
                     autenticidade dos mesmos.
                   </label>
                   {errors.terms && (
@@ -841,7 +841,7 @@ export default function CheckoutPage() {
                   <div>
                     <h3 className="text-primary font-medium mb-1">Compra Segura</h3>
                     <p className="text-gray-300 text-sm">
-                      Todos os ingressos são verificados e garantidos pela ReTicket. Caso ocorra algum problema, você
+                      Todos os ingressos são verificados e garantidos pela Safe Pass. Caso ocorra algum problema, você
                       receberá um reembolso total.
                     </p>
                   </div>
@@ -861,11 +861,11 @@ export default function CheckoutPage() {
                 <div className="bg-primary p-1.5 rounded">
                   <div className="w-6 h-6 bg-black rounded" />
                 </div>
-                <span className="text-white text-xl font-bold">reticket</span>
+                <span className="text-white text-xl font-bold">Safe Pass</span>
               </a>
             </div>
             <div className="text-center md:text-right">
-              <p className="text-gray-400 text-sm">© 2023 ReTicket. Todos os direitos reservados.</p>
+              <p className="text-gray-400 text-sm">© 2023 Safe Pass. Todos os direitos reservados.</p>
             </div>
           </div>
         </div>

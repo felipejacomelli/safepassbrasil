@@ -360,7 +360,7 @@ export default function EventPage({ params }: EventPageProps) {
                         <div>
                             <h3 className="text-white font-semibold mb-4">Sobre</h3>
                             <p className="text-zinc-400 text-sm mb-4">
-                                ReTicket é uma plataforma confiável para compra e venda de ingressos de eventos. 
+                                Safe Pass é uma plataforma confiável para compra e venda de ingressos de eventos. 
                                 Nossa missão é conectar pessoas aos eventos que elas amam.
                             </p>
                             <p className="text-zinc-400 text-sm">
@@ -381,9 +381,9 @@ export default function EventPage({ params }: EventPageProps) {
                             </ul>
                         </div>
 
-                        {/* Garantia ReTicket */}
+                        {/* Garantia Safe Pass */}
                         <div>
-                            <h3 className="text-white font-semibold mb-4">Garantia ReTicket</h3>
+                            <h3 className="text-white font-semibold mb-4">Garantia Safe Pass</h3>
                             <div className="space-y-3">
                                 <div className="flex items-start">
                                     <div className="w-2 h-2 bg-green-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
@@ -439,7 +439,7 @@ export default function EventPage({ params }: EventPageProps) {
 
                     {/* Copyright */}
                     <div className="border-t border-zinc-800 mt-8 pt-8 text-center">
-                        <p className="text-zinc-400 text-sm">© 2024 ReTicket. Todos os direitos reservados.</p>
+                        <p className="text-zinc-400 text-sm">© 2024 Safe Pass. Todos os direitos reservados.</p>
                     </div>
                 </div>
             </footer>

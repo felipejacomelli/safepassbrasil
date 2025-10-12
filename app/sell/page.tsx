@@ -402,7 +402,7 @@ export default function SellTicketsPage() {
               lineHeight: "1.6",
             }}
           >
-            Preencha as informações abaixo para publicar seu ingresso na plataforma ReTicket.
+            Preencha as informações abaixo para publicar seu ingresso na plataforma Safe Pass.
           </p>
 
           {error && (

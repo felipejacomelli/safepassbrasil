@@ -134,7 +134,7 @@ const SellTicketPageClient = memo(({ params }: { params: Promise<{ slug: string 
           <div className="mb-6">
             <h3 className="text-lg font-bold mb-3">Sobre</h3>
             <p className="text-zinc-400 text-sm leading-relaxed mb-3">
-              ReTicket é uma plataforma confiável para compra e venda de ingressos diretamente entre fãs.
+              Safe Pass é uma plataforma confiável para compra e venda de ingressos diretamente entre fãs.
             </p>
             <p className="text-zinc-400 text-sm leading-relaxed">
               Nossa missão é conectar pessoas, que desejam revender seus ingressos devido a imprevistos, com compradores
@@ -143,7 +143,7 @@ const SellTicketPageClient = memo(({ params }: { params: Promise<{ slug: string 
           </div>
 
           <p className="text-zinc-500 text-xs text-center mt-6">
-            © 2023 ReTicket. Todos os direitos reservados.
+            © 2023 Safe Pass. Todos os direitos reservados.
           </p>
         </div>
       </footer>

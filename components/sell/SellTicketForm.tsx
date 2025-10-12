@@ -254,7 +254,7 @@ export const SellTicketForm = memo(({
               >
                 Política de Privacidade
               </a>{" "}
-              da ReTicket.
+              da Safe Pass.
             </Label>
           </div>
         </CardContent>

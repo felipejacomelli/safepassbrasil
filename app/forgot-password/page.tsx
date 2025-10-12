@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
             </h3>
             <ul className="text-sm text-zinc-400 space-y-2">
               <li>• Verifique sua caixa de entrada</li>
-              <li>• Procure por um email da Reticket</li>
+              <li>• Procure por um email da Safe Pass</li>
               <li>• Clique no link de recuperação (válido por 1 hora)</li>
               <li>• Defina sua nova senha</li>
               <li>• Faça login com a nova senha</li>

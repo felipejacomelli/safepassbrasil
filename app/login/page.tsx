@@ -283,7 +283,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="text-3xl font-bold text-blue-500">
-            ReTicket
+            Safe Pass
           </Link>
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-white">
             {isLoginMode ? "Entre na sua conta" : "Crie sua conta"}

@@ -113,14 +113,14 @@ export default function SearchPage() {
                 Sobre
               </h3>
               <p className="text-zinc-400 text-sm leading-relaxed mb-3">
-                ReTicket é uma plataforma confiável para compra e venda de ingressos diretamente entre fãs.
+                Safe Pass é uma plataforma confiável para compra e venda de ingressos diretamente entre fãs.
               </p>
               <p className="text-zinc-400 text-sm leading-relaxed mb-3">
                 Nossa missão é conectar pessoas, que desejam revender seus ingressos devido a imprevistos, com
                 compradores que procuram as melhores ofertas de última hora.
               </p>
               <p className="text-zinc-400 text-sm leading-relaxed">
-                Seja bem bem vindo, seja feliz, seja ReTicket!
+                Seja bem bem vindo, seja feliz, seja Safe Pass!
               </p>
             </div>
 
@@ -151,7 +151,7 @@ export default function SearchPage() {
             {/* Guarantee Section */}
             <div>
               <h3 className="text-lg font-bold mb-4 text-white">
-                Garantia ReTicket
+                Garantia Safe Pass
               </h3>
               <div className="space-y-4">
                 <div className="flex gap-3">
@@ -292,7 +292,7 @@ export default function SearchPage() {
                 </a>
               </div>
               <p className="text-zinc-400 text-sm leading-relaxed">
-                © 2023 ReTicket. Todos os direitos reservados.
+                © 2023 Safe Pass. Todos os direitos reservados.
               </p>
             </div>
           </div>

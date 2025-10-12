@@ -175,7 +175,7 @@ export default function Page() {
                         <div className="bg-blue-500 p-1.5 rounded">
                             <div className="w-6 h-6 bg-black rounded" />
                         </div>
-                        reticket
+                        Safe Pass
                     </Link>
                     <nav className="flex items-center gap-4">
                         {isAuthenticated ? (
@@ -667,10 +667,10 @@ export default function Page() {
                             <p className="text-sm text-zinc-400 text-center leading-relaxed">
                                 Caso não encontre o evento desejado, entre em contato com nosso suporte através do email{' '}
                                 <a 
-                                    href="mailto:suporte@reticket.com" 
+                                    href="mailto:suporte@safepass.com" 
                                     className="text-blue-400 hover:text-blue-300 underline transition-colors"
                                 >
-                                    suporte@reticket.com
+                                    suporte@safepass.com
                                 </a>
                             </p>
                         </div>
@@ -731,7 +731,7 @@ export default function Page() {
                         <div>
                             <h3 className="text-white font-semibold mb-4">Sobre</h3>
                             <p className="text-zinc-400 text-sm mb-4">
-                                ReTicket é uma plataforma confiável para compra e venda de ingressos de eventos. 
+                                Safe Pass é uma plataforma confiável para compra e venda de ingressos de eventos. 
                                 Nossa missão é conectar pessoas aos eventos que elas amam.
                             </p>
                             <p className="text-zinc-400 text-sm">
@@ -752,9 +752,9 @@ export default function Page() {
                             </ul>
                         </div>
 
-                        {/* Garantia ReTicket */}
+                        {/* Garantia Safe Pass */}
                         <div>
-                            <h3 className="text-white font-semibold mb-4">Garantia ReTicket</h3>
+                            <h3 className="text-white font-semibold mb-4">Garantia Safe Pass</h3>
                             <div className="space-y-3">
                                 <div className="flex items-start">
                                     <div className="w-2 h-2 bg-green-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
@@ -810,7 +810,7 @@ export default function Page() {
 
                     {/* Copyright */}
                     <div className="border-t border-zinc-800 mt-8 pt-8 text-center">
-                        <p className="text-zinc-400 text-sm">© 2024 ReTicket. Todos os direitos reservados.</p>
+                        <p className="text-zinc-400 text-sm">© 2024 Safe Pass. Todos os direitos reservados.</p>
                     </div>
                 </div>
             </footer>

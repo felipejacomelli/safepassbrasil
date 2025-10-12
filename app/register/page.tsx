@@ -239,7 +239,7 @@ export default function RegisterPage() {
                   textAlign: "center",
                 }}
               >
-                Junte-se à comunidade ReTicket e comece a comprar e vender ingressos de forma segura.
+                Junte-se à comunidade Safe Pass e comece a comprar e vender ingressos de forma segura.
               </p>
 
               <form onSubmit={handleSubmit}>
@@ -586,7 +586,7 @@ export default function RegisterPage() {
                         >
                           Política de Privacidade
                         </a>{" "}
-                        da ReTicket.
+                        da Safe Pass.
                       </label>
                     </div>
                   </div>
@@ -659,7 +659,7 @@ export default function RegisterPage() {
               textAlign: "center",
             }}
           >
-            © 2023 ReTicket. Todos os direitos reservados.
+            © 2023 Safe Pass. Todos os direitos reservados.
           </p>
         </div>
       </footer>

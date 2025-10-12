@@ -197,7 +197,7 @@ export default function AdminOrdersPage() {
             <div className="bg-primary p-1.5 rounded">
               <div className="w-6 h-6 bg-black rounded"></div>
             </div>
-            <span className="text-white text-2xl font-bold">reticket</span>
+            <span className="text-white text-2xl font-bold">Safe Pass</span>
           </a>
 
           {/* Navigation Links */}

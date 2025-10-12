@@ -9,7 +9,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "ReTicket - Compra e venda de ingressos",
+  title: "Safe Pass - Compra e venda de ingressos",
   description: "Plataforma segura para compra e venda de ingressos para eventos",
     generator: 'v0.app'
 }
