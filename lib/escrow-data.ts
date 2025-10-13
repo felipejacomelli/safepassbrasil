@@ -106,3 +106,4 @@ export const preloadEscrowData = (userId: string) => {
   void getEscrowNotifications(userId)
   void getUnreadNotificationsCount(userId)
 }
+

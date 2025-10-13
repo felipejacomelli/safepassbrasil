@@ -56,6 +56,16 @@ export class PaymentErrorHandler {
 
     // Erro de validação (400)
     if (error.status === 400 || error.data?.error) {
+      // Verificar se é erro específico do Asaas
+      if (error.data?.error?.includes('asaas.com') || error.message?.includes('asaas.com')) {
+        return {
+          code: 'GATEWAY_ERROR',
+          message: error.data?.error || error.message,
+          userMessage: 'Erro no processamento do pagamento. Verifique os dados e tente novamente.',
+          shouldRetry: false
+        }
+      }
+      
       return {
         code: 'VALIDATION_ERROR',
         message: error.data?.error || error.message,
@@ -74,13 +84,14 @@ export class PaymentErrorHandler {
       }
     }
 
-    // Erro do gateway de pagamento
-    if (error.message?.includes('gateway') || error.message?.includes('asaas')) {
+    // Erro do gateway de pagamento (Asaas)
+    if (error.message?.includes('gateway') || error.message?.includes('asaas') || 
+        error.message?.includes('sandbox.asaas.com') || error.message?.includes('400 Client Error')) {
       return {
         code: 'GATEWAY_ERROR',
         message: error.message,
-        userMessage: 'Erro no processamento do pagamento. Tente novamente.',
-        shouldRetry: true
+        userMessage: 'Erro no processamento do pagamento. Verifique os dados e tente novamente.',
+        shouldRetry: false
       }
     }
 
@@ -108,19 +119,26 @@ export class PaymentErrorHandler {
 
     // Validar CPF
     if (data.cpf) {
-      // Aceitar CPF ofuscado (formato: ***2029) ou CPF completo (11 dígitos)
-      if (data.cpf.startsWith('***')) {
-        // CPF ofuscado - verificar se tem pelo menos 4 dígitos após ***
-        const digits = data.cpf.replace(/\D/g, '')
-        if (digits.length < 4) {
-          errors.push('CPF ofuscado inválido')
+      const cleanCpf = data.cpf.replace(/\D/g, '')
+      
+      // Aceitar CPF ofuscado (4 últimos dígitos) ou CPF completo (11 dígitos)
+      if (cleanCpf.length === 4) {
+        // CPF ofuscado - apenas validar se são 4 dígitos
+        if (!/^\d{4}$/.test(cleanCpf)) {
+          errors.push('CPF ofuscado deve ter 4 dígitos')
+        }
+      } else if (cleanCpf.length === 11) {
+        // CPF completo - validar algoritmo
+        if (cleanCpf === cleanCpf[0].repeat(11)) {
+          errors.push('CPF inválido (todos os dígitos iguais)')
+        } else {
+          // Validar algoritmo do CPF
+          if (!this.validateCpfAlgorithm(cleanCpf)) {
+            errors.push('CPF inválido')
+          }
         }
       } else {
-        // CPF completo - verificar se tem 11 dígitos
-        const cleanCpf = data.cpf.replace(/\D/g, '')
-        if (cleanCpf.length !== 11) {
-          errors.push('CPF deve ter 11 dígitos')
-        }
+        errors.push('CPF deve ter 4 dígitos (ofuscado) ou 11 dígitos (completo)')
       }
     }
 
@@ -174,6 +192,33 @@ export class PaymentErrorHandler {
   /**
    * Sanitiza dados antes de enviar
    */
+  /**
+   * Valida CPF usando o algoritmo oficial
+   */
+  private static validateCpfAlgorithm(cpf: string): boolean {
+    // Calcular primeiro dígito verificador
+    let sum = 0
+    for (let i = 0; i < 9; i++) {
+      sum += parseInt(cpf[i]) * (10 - i)
+    }
+    let remainder = sum % 11
+    let firstDigit = remainder < 2 ? 0 : 11 - remainder
+    
+    if (parseInt(cpf[9]) !== firstDigit) {
+      return false
+    }
+    
+    // Calcular segundo dígito verificador
+    sum = 0
+    for (let i = 0; i < 10; i++) {
+      sum += parseInt(cpf[i]) * (11 - i)
+    }
+    remainder = sum % 11
+    let secondDigit = remainder < 2 ? 0 : 11 - remainder
+    
+    return parseInt(cpf[10]) === secondDigit
+  }
+
   static sanitizePaymentData(data: any): any {
     return {
       ...data,

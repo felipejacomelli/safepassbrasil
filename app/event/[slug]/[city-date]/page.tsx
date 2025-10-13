@@ -55,6 +55,53 @@ interface CartTicket {
   ticketTypeId?: string  // ✅ ADICIONADO
 }
 
+// Função utilitária para encontrar occurrence baseada no parâmetro city-date
+function findOccurrenceByCityDate(occurrences: any[], cityDate: string) {
+  if (!occurrences || occurrences.length === 0) {
+    return null;
+  }
+
+  // Parse do parâmetro city-date (formato: "cidade-dd-mm-yyyy")
+  // Exemplo: "belém-10-11-2025"
+  const parts = cityDate.split('-');
+  if (parts.length < 4) {
+    // Se não conseguir fazer parse, retorna a primeira occurrence
+    return occurrences[0];
+  }
+
+  // Extrair cidade (pode ter hífens no nome)
+  const cityPart = parts.slice(0, -3).join('-').toLowerCase();
+  const day = parts[parts.length - 3];
+  const month = parts[parts.length - 2];
+  const year = parts[parts.length - 1];
+
+  // Construir data no formato ISO
+  const targetDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+
+  // Buscar occurrence que corresponda à cidade e data
+  const matchingOccurrence = occurrences.find(occurrence => {
+    const occurrenceDate = new Date(occurrence.start_at).toISOString().split('T')[0];
+    const occurrenceCity = occurrence.city?.toLowerCase().replace(/\s+/g, '-') || '';
+    
+    return occurrenceDate === targetDate && occurrenceCity === cityPart;
+  });
+
+  // Se não encontrar correspondência exata, tentar apenas por data
+  if (!matchingOccurrence) {
+    const dateOnlyMatch = occurrences.find(occurrence => {
+      const occurrenceDate = new Date(occurrence.start_at).toISOString().split('T')[0];
+      return occurrenceDate === targetDate;
+    });
+    
+    if (dateOnlyMatch) {
+      return dateOnlyMatch;
+    }
+  }
+
+  // Se ainda não encontrar, retornar a primeira occurrence
+  return matchingOccurrence || occurrences[0];
+}
+
 // Página de detalhes do evento - integrada com API real
 
 export default function EventPage({ params }: { params: Promise<{ slug: string, "city-date": string }> }) {
@@ -80,9 +127,7 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
         const apiEventWithOccurrences: ApiEventWithOccurrences = await eventsApi.getBySlug(slug);
         
         // Encontrar a occurrence específica baseada no city-date
-        // Por enquanto, vamos usar a primeira occurrence disponível
-        // TODO: Implementar lógica para encontrar a occurrence correta baseada no city-date
-        const targetOccurrence = apiEventWithOccurrences.occurrences?.[0];
+        const targetOccurrence = findOccurrenceByCityDate(apiEventWithOccurrences.occurrences, cityDate);
         
         if (!targetOccurrence) {
           setNotFound(true);

@@ -52,8 +52,43 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
       const response = await fetch(url.toString())
       
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Link não encontrado ou inválido")
+        let errorMessage = "Link não encontrado ou inválido"
+        
+        try {
+          const errorData = await response.json()
+          
+          // Tratamento específico por código de status
+          switch (response.status) {
+            case 403:
+              errorMessage = errorData.error || "Este link está expirado ou foi revogado."
+              break
+            case 404:
+              errorMessage = "Link não encontrado. Verifique se o endereço está correto."
+              break
+            case 410:
+              errorMessage = "Este link expirou e não está mais disponível."
+              break
+            default:
+              errorMessage = errorData.error || "Erro ao carregar o link compartilhado."
+          }
+        } catch {
+          // Se não conseguir parsear o JSON, usa mensagem padrão baseada no status
+          switch (response.status) {
+            case 403:
+              errorMessage = "Este link está expirado ou foi revogado."
+              break
+            case 404:
+              errorMessage = "Link não encontrado. Verifique se o endereço está correto."
+              break
+            case 410:
+              errorMessage = "Este link expirou e não está mais disponível."
+              break
+            default:
+              errorMessage = "Erro ao carregar o link compartilhado."
+          }
+        }
+        
+        throw new Error(errorMessage)
       }
 
       const data = await response.json()

@@ -23,6 +23,15 @@ const nextConfig = {
       allowedOrigins: ['localhost:3000', '127.0.0.1:3000']
     }
   },
+  // ✅ CORREÇÃO: Forçar HTTP para evitar redirecionamento automático para HTTPS
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:8000/api/:path*',
+      },
+    ]
+  },
   // ✅ PRÁTICA NEXT.JS: Otimizações de performance
   logging: {
     fetches: {

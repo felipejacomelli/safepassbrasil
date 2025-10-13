@@ -185,31 +185,10 @@ export function AsaasCheckout({
       if (sharedTicketToken) {
         console.log('🔗 Processando link compartilhado:', sharedTicketToken)
         
-        // Primeiro, aceitar o link compartilhado
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-        const acceptResponse = await fetch(`${apiUrl}/api/v1/sharing/accept/${sharedTicketToken}/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Token ${authToken}`
-          }
-        })
-
-        if (!acceptResponse.ok) {
-          const errorData = await acceptResponse.json()
-          throw new Error(errorData.error || "Erro ao aceitar ingresso compartilhado")
-        }
-
-        const acceptData = await acceptResponse.json()
-        console.log('✅ Link aceito:', acceptData)
-        
-        // Usar os dados retornados para o pagamento
-        paymentData.items = [{
-          occurrence_id: acceptData.occurrence_id,
-          ticket_type_id: acceptData.ticket_type_id,
-          quantity: 1
-        }]
-        console.log('🎫 Item do ingresso compartilhado:', paymentData.items)
+        // Para links compartilhados, não aceitar o link ainda
+        // O pagamento será processado primeiro, e só depois aceitar o link
+        paymentData.external_reference = `shared_ticket_${sharedTicketToken}`
+        console.log('🎫 Referência externa para link compartilhado:', paymentData.external_reference)
       } else if (cartItems && cartItems.length > 0) {
         paymentData.items = cartItems.map(item => ({
           occurrence_id: item.occurrenceId,
@@ -269,6 +248,11 @@ export function AsaasCheckout({
       const result = await paymentClient.createPayment(paymentData, authToken)
 
       console.log('✅ Pagamento processado:', result)
+      console.log('🔍 Verificando resultado do pagamento:')
+      console.log('  - success:', result.success)
+      console.log('  - payment_id:', result.payment_id)
+      console.log('  - error:', result.error)
+      console.log('  - sharedTicketToken:', sharedTicketToken)
 
       if (result.success) {
         setPaymentResult(result)
@@ -279,6 +263,42 @@ export function AsaasCheckout({
           setPixCode(result.pix_code || "")
         } else if (paymentMethod === "BOLETO") {
           setBoletoUrl(result.bank_slip_url || "")
+        }
+        
+        // ✅ Para links compartilhados, aceitar o link após pagamento aprovado
+        // Verificar se o pagamento foi realmente aprovado (não apenas criado)
+        const isPaymentApproved = result.success && result.payment_id && !result.error
+        
+        console.log('🔍 Verificação de aprovação do pagamento:')
+        console.log('  - isPaymentApproved:', isPaymentApproved)
+        console.log('  - sharedTicketToken presente:', !!sharedTicketToken)
+        
+        if (sharedTicketToken && isPaymentApproved) {
+          try {
+            console.log('🔗 Aceitando link compartilhado após pagamento aprovado...')
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+            const acceptResponse = await fetch(`${apiUrl}/api/v1/sharing/accept/${sharedTicketToken}/`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Token ${authToken}`
+              }
+            })
+
+            if (!acceptResponse.ok) {
+              const errorData = await acceptResponse.json()
+              console.error('❌ Erro ao aceitar link compartilhado:', errorData)
+              onError(`Pagamento aprovado, mas erro ao transferir ingresso: ${errorData.error}`)
+              return
+            }
+
+            const acceptData = await acceptResponse.json()
+            console.log('✅ Link aceito com sucesso:', acceptData)
+          } catch (acceptError) {
+            console.error('❌ Erro ao aceitar link compartilhado:', acceptError)
+            onError(`Pagamento aprovado, mas erro ao transferir ingresso: ${acceptError}`)
+            return
+          }
         }
         
         onSuccess(result.payment_id || '', result)

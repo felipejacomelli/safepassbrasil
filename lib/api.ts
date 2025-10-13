@@ -1,6 +1,9 @@
 // Configuração da API para integração com o backend Django
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// ✅ CORREÇÃO: Forçar HTTP para evitar redirecionamento automático para HTTPS
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000')
+  .replace('https://', 'http://')
+  .replace('localhost:8000', '127.0.0.1:8000'); // Usar IP ao invés de localhost para evitar HSTS
 
 // Tipos para autenticação
 export interface LoginRequest {
@@ -949,7 +952,7 @@ export const categoriesApi = {
 export const checkoutApi = {
   // Checkout completo com reserva de estoque e método de pagamento
   createOrder: async (checkoutData: CheckoutRequest): Promise<CheckoutResponse> => {
-    return apiRequestJson<CheckoutResponse>('/orders/checkout/', {
+    return apiRequestJson<CheckoutResponse>('/api/orders/checkout/', {
       method: 'POST',
       body: JSON.stringify(checkoutData),
     });

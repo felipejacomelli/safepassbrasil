@@ -96,11 +96,36 @@ export function useGoogleAuth(): GoogleAuthHook {
 
       const authData = await backendResponse.json()
       
-      // Fazer login com os dados retornados
-      const loginResult = await login(authData.email, '') // Senha vazia para login social
-      
-      if (!loginResult.success) {
-        throw new Error('Erro ao fazer login')
+      // O backend já retornou o token, não precisamos fazer login novamente
+      // Simular o processo de login com os dados retornados
+      if (typeof window !== 'undefined') {
+        // Salvar token e dados do usuário
+        localStorage.setItem('authToken', authData.token)
+        
+        // Criar objeto de usuário compatível com o frontend
+        const loggedInUser = {
+          id: authData.id,
+          name: authData.name,
+          email: authData.email,
+          phone: authData.phone,
+          cpf: authData.cpf,
+          cpfFormatted: authData.cpf_formatted,
+          country: authData.country,
+          address: authData.location,
+          has2FA: false,
+          isVerified: true,
+          isAdmin: authData.is_staff || authData.is_superuser || false,
+          balance: 0,
+          pendingBalance: 0,
+          transactions: [],
+          memberSince: authData.created_at ? new Date(authData.created_at).getFullYear().toString() : ''
+        }
+        
+        localStorage.setItem("user", JSON.stringify(loggedInUser))
+        
+        // Sincronizar dados com cookies para o middleware
+        document.cookie = `authToken=${authData.token}; path=/; max-age=${7 * 24 * 60 * 60}` // 7 dias
+        document.cookie = `userData=${JSON.stringify(loggedInUser)}; path=/; max-age=${7 * 24 * 60 * 60}` // 7 dias
       }
 
     } catch (error) {
