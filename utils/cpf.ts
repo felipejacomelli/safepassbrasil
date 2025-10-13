@@ -101,6 +101,15 @@ export function validateCpfWithMessage(cpf: string): { isValid: boolean; message
     return { isValid: false, message: "CPF é obrigatório" };
   }
   
+  // Aceitar CPF ofuscado (formato: ***2029)
+  if (cpf.startsWith('***')) {
+    const digits = normalizeCpf(cpf);
+    if (digits.length < 4) {
+      return { isValid: false, message: "CPF ofuscado inválido" };
+    }
+    return { isValid: true, message: "" };
+  }
+  
   const cpfClean = normalizeCpf(cpf);
   
   if (cpfClean.length === 0) {

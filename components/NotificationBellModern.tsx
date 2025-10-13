@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@/utils/formatCurrency'
 import Link from 'next/link'
 
 // ✅ PRÁTICA NEXT.JS: Componente com Suspense

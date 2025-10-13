@@ -108,9 +108,19 @@ export class PaymentErrorHandler {
 
     // Validar CPF
     if (data.cpf) {
-      const cleanCpf = data.cpf.replace(/\D/g, '')
-      if (cleanCpf.length !== 11) {
-        errors.push('CPF deve ter 11 dígitos')
+      // Aceitar CPF ofuscado (formato: ***2029) ou CPF completo (11 dígitos)
+      if (data.cpf.startsWith('***')) {
+        // CPF ofuscado - verificar se tem pelo menos 4 dígitos após ***
+        const digits = data.cpf.replace(/\D/g, '')
+        if (digits.length < 4) {
+          errors.push('CPF ofuscado inválido')
+        }
+      } else {
+        // CPF completo - verificar se tem 11 dígitos
+        const cleanCpf = data.cpf.replace(/\D/g, '')
+        if (cleanCpf.length !== 11) {
+          errors.push('CPF deve ter 11 dígitos')
+        }
       }
     }
 

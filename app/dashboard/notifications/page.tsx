@@ -23,7 +23,7 @@ import {
   Settings,
   MarkAsRead
 } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@/utils/formatCurrency'
 
 interface Notification {
   id: string

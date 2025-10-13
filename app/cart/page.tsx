@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { User, ShoppingCart, ChevronRight } from "lucide-react"
 import { AsaasCheckout } from "@/components/asaas-checkout"
 import Header from "@/components/Header"
+import { Button } from "@/components/ui/button"
 
 interface CartItem {
   id: string

@@ -38,10 +38,6 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
   // Estados para checkout
   const [showCheckoutModal, setShowCheckoutModal] = useState(false)
 
-  useEffect(() => {
-    fetchSharedTicket()
-  }, [token, fetchSharedTicket])
-
   const fetchSharedTicket = useCallback(async () => {
     try {
       setLoading(true)
@@ -68,6 +64,10 @@ export default function SharedTicketPage({ params }: { params: Promise<{ token: 
       setLoading(false)
     }
   }, [token, email])
+
+  useEffect(() => {
+    fetchSharedTicket()
+  }, [fetchSharedTicket])
 
   const handleBuyTicket = () => {
     if (!isAuthenticated) {

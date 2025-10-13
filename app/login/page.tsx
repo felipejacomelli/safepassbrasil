@@ -189,7 +189,17 @@ export default function LoginPage() {
         email: !formData.email.trim() ? "Email é obrigatório" : "",
         country: !formData.country.trim() ? "País é obrigatório" : "",
         phone: formData.phone.replace(/\D/g, '').length < 10 ? "Celular deve ter 10 ou 11 dígitos" : "",
-        cpf: formData.cpf.replace(/\D/g, '').length !== 11 ? "CPF deve ter 11 dígitos" : ""
+        cpf: (() => {
+          if (formData.cpf.startsWith('***')) {
+            // CPF ofuscado - verificar se tem pelo menos 4 dígitos
+            const digits = formData.cpf.replace(/\D/g, '')
+            return digits.length < 4 ? "CPF ofuscado inválido" : ""
+          } else {
+            // CPF completo - verificar se tem 11 dígitos
+            const cleanCpf = formData.cpf.replace(/\D/g, '')
+            return cleanCpf.length !== 11 ? "CPF deve ter 11 dígitos" : ""
+          }
+        })()
       }
       
       // Validações específicas

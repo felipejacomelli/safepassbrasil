@@ -13,7 +13,7 @@ import {
   Eye,
   MessageSquare
 } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@/utils/formatCurrency'
 
 interface EscrowStatusProps {
   orderId: string

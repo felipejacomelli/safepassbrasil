@@ -104,7 +104,8 @@ export function AsaasCheckout({
 
   const loadPaymentMethods = async () => {
     try {
-      const response = await fetch('/api/payment/methods/')
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      const response = await fetch(`${apiUrl}/api/payment/methods/`)
       const data = await response.json()
       
       if (data.success) {
@@ -118,7 +119,8 @@ export function AsaasCheckout({
   const loadInstallmentOptions = async () => {
     try {
       console.log('Carregando opções de parcelamento para valor:', amount)
-      const response = await fetch(`/api/payment/installments/?amount=${amount}`)
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      const response = await fetch(`${apiUrl}/api/payment/installments/?amount=${amount}`)
       const data = await response.json()
       
       console.log('Resposta das opções de parcelamento:', data)
@@ -184,7 +186,8 @@ export function AsaasCheckout({
         console.log('🔗 Processando link compartilhado:', sharedTicketToken)
         
         // Primeiro, aceitar o link compartilhado
-        const acceptResponse = await fetch(`/api/v1/sharing/accept/${sharedTicketToken}/`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+        const acceptResponse = await fetch(`${apiUrl}/api/v1/sharing/accept/${sharedTicketToken}/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

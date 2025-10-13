@@ -20,7 +20,7 @@ import {
   DollarSign,
   Info
 } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@/utils/formatCurrency'
 
 interface UserBalance {
   available_balance: number
