@@ -352,7 +352,7 @@ export default function UniqueTicketsPage() {
       const promises = ticketsToCreate.map((data, index) => {
         console.log(`Criando ticket ${index + 1}/${ticketsToCreate.length}`, data)
         
-        return fetch(`${baseUrl}/api/tickets/`, {
+        return fetch(`${baseUrl}/api/tickets/sell/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -15,6 +15,7 @@ import { OccurrenceSelector } from "./OccurrenceSelector"
 import { TicketTypeSelector } from "./TicketTypeSelector"
 import { PriceConfiguration } from "./PriceConfiguration"
 import { QuantitySelector } from "./QuantitySelector"
+import { VerificationModal } from "./VerificationModal"
 
 interface SellTicketFormProps {
   event: ApiEvent | null
@@ -40,6 +41,8 @@ export const SellTicketForm = memo(({
   shareLink
 }: SellTicketFormProps) => {
   const [linkCopied, setLinkCopied] = useState(false)
+  const [showVerificationModal, setShowVerificationModal] = useState(false)
+  const [pendingFormData, setPendingFormData] = useState<SellTicketFormData | null>(null)
   
   const copyToClipboard = async (text: string) => {
     try {
@@ -110,8 +113,27 @@ export const SellTicketForm = memo(({
     }
     
     console.log('Final data being submitted:', data)
-    console.log('Calling onSubmit...')
-    onSubmit(data)
+    
+    // Interceptar o submit para mostrar o modal de verificação
+    setPendingFormData(data)
+    setShowVerificationModal(true)
+  }
+
+  const handleVerificationComplete = (verificationData: any) => {
+    console.log('Verification completed:', verificationData)
+    
+    if (pendingFormData) {
+      console.log('Calling onSubmit with pending data...')
+      onSubmit(pendingFormData)
+      setPendingFormData(null)
+    }
+    
+    setShowVerificationModal(false)
+  }
+
+  const handleVerificationCancel = () => {
+    setShowVerificationModal(false)
+    setPendingFormData(null)
   }
 
   if (success) {
@@ -173,7 +195,8 @@ export const SellTicketForm = memo(({
   }
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit, handleFormError)} className="space-y-6">
+    <>
+      <form onSubmit={handleSubmit(handleFormSubmit, handleFormError)} className="space-y-6">
       <Card className="bg-zinc-900 border-zinc-800 rounded">
         <CardHeader>
           <CardTitle className="text-white">Detalhes do Ingresso</CardTitle>
@@ -295,6 +318,14 @@ export const SellTicketForm = memo(({
         }
       </Button>
     </form>
+
+    {/* Modal de Verificação */}
+    <VerificationModal
+      isOpen={showVerificationModal}
+      onClose={handleVerificationCancel}
+      onComplete={handleVerificationComplete}
+    />
+    </>
   )
 })
 

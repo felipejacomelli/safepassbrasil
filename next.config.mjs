@@ -47,20 +47,28 @@ const nextConfig = {
   },
   // ✅ PRÁTICA NEXT.JS: Compressão
   compress: true,
-  // ✅ PRÁTICA NEXT.JS: Otimizações de bundle
+  // ✅ PRÁTICA NEXT.JS: Configuração webpack simplificada para evitar erros de 'self'
   webpack: (config, { dev, isServer }) => {
+    // ✅ CORREÇÃO: Evitar problemas com 'self' no middleware
+    if (isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      }
+    }
+    
     if (!dev && !isServer) {
-      // ✅ PRÁTICA NEXT.JS: Otimizações de produção
+      // ✅ PRÁTICA NEXT.JS: Otimizações de produção simplificadas
       config.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {
-          default: false,
-          vendors: false,
-          // ✅ PRÁTICA NEXT.JS: Separar vendor chunks
           vendor: {
             name: 'vendor',
             chunks: 'all',
             test: /node_modules/,
+            priority: 10,
           },
         },
       }

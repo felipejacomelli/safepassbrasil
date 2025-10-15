@@ -92,7 +92,7 @@ export function useSellTicketSubmission({ onSuccess, onError }: UseSellTicketSub
       if (quantity > 1) {
         for (let i = 0; i < quantity; i++) {
           try {
-            const response = await fetch(`${baseUrl}/api/tickets/`, {
+            const response = await fetch(`${baseUrl}/api/tickets/sell/`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -105,7 +105,6 @@ export function useSellTicketSubmission({ onSuccess, onError }: UseSellTicketSub
                 name,
                 quantity: 1, // Sempre 1 para publicação individual
                 price,
-                owner,
                 price_blocked: false
               })
             })
@@ -130,9 +129,10 @@ export function useSellTicketSubmission({ onSuccess, onError }: UseSellTicketSub
                 console.log(`Ticket ${i + 1} created successfully:`, result);
                 
                 // Se for o primeiro ingresso criado, salvar o ID e criar link compartilhado
-                if (i === 0 && result.id) {
-                  setCreatedTicketId(result.id)
-                  const link = await createShareLink(result.id)
+                const ticketId = result?.id || result?.ticket?.id
+                if (i === 0 && ticketId) {
+                  setCreatedTicketId(ticketId)
+                  const link = await createShareLink(ticketId)
                   if (link) {
                     setShareLink(link)
                   }
@@ -164,7 +164,7 @@ export function useSellTicketSubmission({ onSuccess, onError }: UseSellTicketSub
         }
       } else {
         // Publicação única (quantidade = 1)
-        const response = await fetch(`${baseUrl}/api/tickets/`, {
+        const response = await fetch(`${baseUrl}/api/tickets/sell/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -177,7 +177,6 @@ export function useSellTicketSubmission({ onSuccess, onError }: UseSellTicketSub
             name,
             quantity: 1,
             price,
-            owner,
             price_blocked: false
           })
         })
@@ -205,9 +204,10 @@ export function useSellTicketSubmission({ onSuccess, onError }: UseSellTicketSub
           console.log('Ticket created successfully:', result);
           
           // Salvar o ID do ingresso criado e criar link compartilhado
-          if (result.id) {
-            setCreatedTicketId(result.id)
-            const link = await createShareLink(result.id)
+          const ticketId = result?.id || result?.ticket?.id
+          if (ticketId) {
+            setCreatedTicketId(ticketId)
+            const link = await createShareLink(ticketId)
             if (link) {
               setShareLink(link)
             }

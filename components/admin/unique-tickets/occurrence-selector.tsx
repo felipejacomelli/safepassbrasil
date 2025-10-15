@@ -139,7 +139,7 @@ export function OccurrenceSelector({
   }
 
   const handleOccurrenceChange = (occurrenceId: string) => {
-    const occurrence = filteredOccurrences.find(occ => occ.id === occurrenceId)
+    const occurrence = filteredOccurrences.find(occ => occ.id.toString() === occurrenceId)
     if (occurrence) {
       onOccurrenceSelect(occurrence)
     }
@@ -217,7 +217,7 @@ export function OccurrenceSelector({
             <div className="space-y-2">
               <label className="text-sm font-medium">Ocorrência *</label>
               <Select 
-                value={selectedOccurrence?.id || ""} 
+                value={selectedOccurrence?.id?.toString() || ""} 
                 onValueChange={handleOccurrenceChange}
               >
                 <SelectTrigger>
@@ -225,7 +225,7 @@ export function OccurrenceSelector({
                 </SelectTrigger>
                 <SelectContent>
                   {filteredOccurrences.map((occurrence) => (
-                    <SelectItem key={occurrence.id} value={occurrence.id}>
+                    <SelectItem key={occurrence.id} value={occurrence.id.toString()}>
                       <div className="flex flex-col items-start">
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4" />
