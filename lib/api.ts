@@ -350,6 +350,26 @@ export const occurrencesApi = {
     return apiRequestJson<ApiOccurrenceWithTickets>(`/events/occurrences/${occurrenceId}/`);
   },
 
+  // Buscar todos os tickets disponíveis (oficiais + individuais) ordenados por preço
+  getAllAvailableTickets: (occurrenceId: string): Promise<{
+    occurrence_id: string;
+    min_price: number;
+    total_available: number;
+    tickets: Array<{
+      type: 'official' | 'individual';
+      id: string;
+      name: string;
+      price: number;
+      remaining_stock: number;
+      description: string | null;
+      ticket_type_id?: string;
+      ticket_id?: string;
+      owner?: string;
+    }>;
+  }> => {
+    return apiRequestJson(`/api/occurrences/${occurrenceId}/all_available_tickets/`);
+  },
+
   // Buscar occurrences por evento
   getByEvent: (eventId: string): Promise<ApiOccurrence[]> => {
     return apiRequestJson<ApiOccurrence[]>(`/event_app/events/${eventId}/occurrences/`);

@@ -1,5 +1,5 @@
 // Tipos específicos para status
-export type TicketStatus = 'active' | 'used' | 'cancelled' | 'expired' | 'transferred' | 'verified' | 'pending_verification' | 'invalid' | 'revoked'
+export type TicketStatus = 'active' | 'used' | 'cancelled' | 'expired' | 'transferred' | 'verified' | 'pending_verification' | 'invalid' | 'revoked' | 'sold' | 'pending_transfer'
 export type OrderStatus = 'pending' | 'completed' | 'cancelled' | 'failed'
 export type TransactionStatus = 'pending' | 'completed' | 'failed' | 'cancelled'
 export type PaymentMethodType = 'pix' | 'bank' | 'card'

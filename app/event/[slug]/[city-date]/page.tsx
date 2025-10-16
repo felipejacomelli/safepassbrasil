@@ -13,6 +13,10 @@ interface TicketType {
   available: number
   description?: string
   max_per_order?: number
+  type?: 'official' | 'individual'
+  ticket_type_id?: string
+  ticket_id?: string
+  owner?: string
 }
 
 interface EventData {
@@ -53,6 +57,8 @@ interface CartTicket {
   gallery: string[]
   occurrenceId?: string  // ✅ ADICIONADO
   ticketTypeId?: string  // ✅ ADICIONADO
+  ticketType?: 'official' | 'individual'  // ✅ ADICIONADO - Tipo do ticket
+  individualTicketId?: string  // ✅ ADICIONADO - ID do ticket individual
 }
 
 // Função utilitária para encontrar occurrence baseada no parâmetro city-date
@@ -134,8 +140,8 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
           return;
         }
         
-        // Buscar os detalhes da occurrence com ticket types
-        const occurrenceWithTickets: ApiOccurrenceWithTickets = await occurrencesApi.getWithTickets(targetOccurrence.id);
+        // Buscar todos os tickets disponíveis (oficiais + individuais) ordenados por preço
+        const allAvailableTickets = await occurrencesApi.getAllAvailableTickets(targetOccurrence.id);
         
         // Transformar dados da API para o formato esperado
         const transformedEvent: EventData = {
@@ -146,19 +152,21 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
           time: new Date(targetOccurrence.start_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
           location: `${targetOccurrence.city || ''}, ${targetOccurrence.state || apiEventWithOccurrences.location}`.trim(),
           attendance: targetOccurrence.max_capacity ? `${targetOccurrence.max_capacity} pessoas` : '1k+ pessoas',
-          price: apiEventWithOccurrences.price || 'A partir de R$ 0,00',
-          startingPrice: occurrenceWithTickets.ticket_types.length > 0 
-            ? Math.min(...occurrenceWithTickets.ticket_types.map(t => parseFloat(t.price) || 0))
-            : 0,
-          availableTickets: targetOccurrence.available_tickets,
-          ticketTypes: occurrenceWithTickets.ticket_types.map((ticketType: any) => ({
-            id: ticketType.id,
-            name: ticketType.name,
-            price: parseFloat(ticketType.price) || 0,
-            available: ticketType.remaining_stock,
-            description: ticketType.description,
-            max_per_order: ticketType.max_per_order
-          })),
+          price: `A partir de R$ ${allAvailableTickets.min_price.toFixed(2).replace('.', ',')}`,
+          startingPrice: allAvailableTickets.min_price,
+          availableTickets: allAvailableTickets.total_available,
+         ticketTypes: allAvailableTickets.tickets.map((ticket: any) => ({
+           id: ticket.id,
+           name: ticket.name,
+           price: ticket.price,
+           available: ticket.available,
+           description: ticket.description,
+           type: ticket.type,
+           ticket_type_id: ticket.ticket_type_id,
+           ticket_id: ticket.ticket_id,
+           owner: ticket.owner,
+           max_per_order: 1 // Todos os tickets individuais limitam a 1
+         })),
           image: apiEventWithOccurrences.image || '/placeholder.svg',
           description: [apiEventWithOccurrences.description || 'Descrição não disponível'],
           gallery: [apiEventWithOccurrences.image || '/placeholder.svg'],
@@ -234,7 +242,9 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
       attendance: event.attendance,
       gallery: event.gallery || [],
       occurrenceId: event.occurrenceId,  // ✅ ADICIONADO - ID da ocorrência
-      ticketTypeId: ticketType.id,       // ✅ ADICIONADO - ID do tipo de ingresso
+      ticketTypeId: ticketType.ticket_type_id || ticketType.id,  // ✅ ADICIONADO - ID do ticket type (template)
+      ticketType: 'individual',  // ✅ TODOS são individuais agora
+      individualTicketId: ticketType.ticket_id,  // ✅ ADICIONADO - ID do ticket individual
     }
 
     // Get existing cart or create new one
@@ -806,10 +816,25 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
                     </span>
                   </div>
                   <div>
-                    <h4 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "4px" }}>{ticketType.name}</h4>
+                    <h4 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "4px" }}>
+                      {ticketType.name}
+                      <span style={{ 
+                        fontSize: "12px", 
+                        fontWeight: "400", 
+                        color: "#6B7280", 
+                        marginLeft: "8px" 
+                      }}>
+                        (Revenda)
+                      </span>
+                    </h4>
                     <p style={{ fontSize: "18px", fontWeight: "bold", color: "#3B82F6" }}>
                       R$ {ticketType.price.toFixed(2).replace(".", ",")}
                     </p>
+                    {ticketType.description && (
+                      <p style={{ fontSize: "12px", color: "#6B7280", marginTop: "4px" }}>
+                        {ticketType.description}
+                      </p>
+                    )}
                   </div>
                 </div>
 

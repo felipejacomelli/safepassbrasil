@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/utils/formatCurrency"
 import { PurchasedTicket, SaleTicket, TicketStatus } from "@/lib/types/orders"
-import { Share2, Download, Eye, Trash2, MapPin, Calendar, Clock, Tag } from "lucide-react"
+import { Share2, Download, Eye, Trash2, MapPin, Calendar, Clock, Tag, Send, CheckCircle } from "lucide-react"
 
 interface TicketCardProps {
   ticket: PurchasedTicket | SaleTicket
@@ -12,6 +12,8 @@ interface TicketCardProps {
   onDownload?: (ticketId: string) => void
   onView?: (ticketId: string) => void
   onDelete?: (ticketId: string) => void
+  onMarkTransferred?: (ticketId: string) => void
+  onConfirmReceipt?: (ticketId: string) => void
 }
 
 export function TicketCard({ 
@@ -20,7 +22,9 @@ export function TicketCard({
   onShare, 
   onDownload, 
   onView, 
-  onDelete 
+  onDelete,
+  onMarkTransferred,
+  onConfirmReceipt
 }: TicketCardProps) {
   const getStatusColor = (status: TicketStatus) => {
     switch (status) {
@@ -32,6 +36,12 @@ export function TicketCard({
         return "text-red-400"
       case "expired":
         return "text-orange-400"
+      case "sold":
+        return "text-blue-400"
+      case "pending_transfer":
+        return "text-yellow-400"
+      case "transferred":
+        return "text-purple-400"
       default:
         return "text-gray-400"
     }
@@ -47,6 +57,12 @@ export function TicketCard({
         return "Cancelado"
       case "expired":
         return "Expirado"
+      case "sold":
+        return "Vendido"
+      case "pending_transfer":
+        return "Transferência Pendente"
+      case "transferred":
+        return "Transferido"
       default:
         return "Desconhecido"
     }
@@ -164,6 +180,20 @@ export function TicketCard({
                 Baixar
               </Button>
             )}
+
+            {/* Botão para confirmar recebimento (comprador) */}
+            {onConfirmReceipt && ticket.status === "pending_transfer" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onConfirmReceipt(ticket.id)}
+                className="border-green-700 text-green-400 hover:bg-green-900 hover:bg-opacity-20"
+                aria-label={`Confirmar recebimento do ingresso ${ticket.event.name}`}
+              >
+                <CheckCircle className="w-4 h-4 mr-1" />
+                Confirmar Recebimento
+              </Button>
+            )}
           </>
         )}
         
@@ -194,8 +224,22 @@ export function TicketCard({
                 Ver
               </Button>
             )}
+
+            {/* Botão para marcar como transferido (vendedor) */}
+            {onMarkTransferred && ticket.status === "sold" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onMarkTransferred(ticket.id)}
+                className="border-blue-700 text-blue-400 hover:bg-blue-900 hover:bg-opacity-20"
+                aria-label={`Marcar ingresso ${ticket.event.name} como transferido`}
+              >
+                <Send className="w-4 h-4 mr-1" />
+                Marcar como Transferido
+              </Button>
+            )}
             
-            {onDelete && (
+            {onDelete && ticket.status !== "sold" && (
               <Button
                 size="sm"
                 variant="outline"

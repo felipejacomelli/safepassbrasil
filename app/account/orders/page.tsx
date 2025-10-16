@@ -18,8 +18,10 @@ import {
 } from "./components"
 import { ShareTicketModal } from "@/components/ShareTicketModal"
 import { TicketStatus, TicketType, TabType, SalesTabType, StatusFilter, PaymentMethod } from "@/types/orders"
+import TransferConfirmationModal from "@/components/transfer/TransferConfirmationModal"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { toast } from "sonner"
 
 export default function OrdersPage() {
   const { user, isLoading: authLoading } = useAuth()
@@ -44,6 +46,11 @@ export default function OrdersPage() {
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [selectedTicketId, setSelectedTicketId] = useState<string>('')
   const [selectedEventName, setSelectedEventName] = useState<string>('')
+  
+  // Estados para o modal de transferência
+  const [transferModalOpen, setTransferModalOpen] = useState(false)
+  const [transferAction, setTransferAction] = useState<'mark_transferred' | 'confirm_receipt'>('mark_transferred')
+  const [selectedTicket, setSelectedTicket] = useState<any>(null)
 
   // Filtros memoizados
   const filteredPurchasedTickets = useMemo(() => {
@@ -87,6 +94,78 @@ export default function OrdersPage() {
     refetchOrders()
     refetchTickets.all()
   }, [refetchOrders, refetchTickets])
+
+  // Handlers para transferência
+  const handleMarkTransferred = useCallback(async (ticketId: string) => {
+    const ticket = [...salesTickets, ...soldTickets].find(t => t.id === ticketId)
+    if (ticket) {
+      setSelectedTicket(ticket)
+      setTransferAction('mark_transferred')
+      setTransferModalOpen(true)
+    }
+  }, [salesTickets, soldTickets])
+
+  const handleConfirmReceipt = useCallback(async (ticketId: string) => {
+    const ticket = purchasedTickets.find(t => t.id === ticketId)
+    if (ticket) {
+      setSelectedTicket(ticket)
+      setTransferAction('confirm_receipt')
+      setTransferModalOpen(true)
+    }
+  }, [purchasedTickets])
+
+  // Handler para confirmar a ação no modal
+  const handleTransferConfirm = useCallback(async (data: { notes?: string; evidenceFile?: File }) => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null
+      
+      if (!token || !selectedTicket) {
+        toast.error('Token de autenticação não encontrado')
+        return
+      }
+
+      const endpoint = transferAction === 'mark_transferred' 
+        ? `/api/tickets/${selectedTicket.id}/mark_transferred/`
+        : `/api/tickets/${selectedTicket.id}/confirm/`
+
+      const formData = new FormData()
+      if (data.notes) {
+        formData.append('notes', data.notes)
+      }
+      if (data.evidenceFile) {
+        formData.append('evidence', data.evidenceFile)
+      }
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${token}`,
+        },
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error(`Erro ao ${transferAction === 'mark_transferred' ? 'marcar como transferido' : 'confirmar recebimento'}`)
+      }
+
+      const successMessage = transferAction === 'mark_transferred' 
+        ? 'Ingresso marcado como transferido com sucesso!'
+        : 'Recebimento do ingresso confirmado com sucesso!'
+      
+      toast.success(successMessage)
+      
+      // Fechar modal e recarregar dados
+      setTransferModalOpen(false)
+      setSelectedTicket(null)
+      refetchTickets.all()
+    } catch (error) {
+      console.error('Erro na transferência:', error)
+      const errorMessage = transferAction === 'mark_transferred' 
+        ? 'Erro ao marcar ingresso como transferido'
+        : 'Erro ao confirmar recebimento do ingresso'
+      toast.error(errorMessage)
+    }
+  }, [transferAction, selectedTicket, refetchTickets])
 
   // Estados de loading consolidados
   const isLoading = authLoading || ordersLoading || ticketsLoading.purchased || ticketsLoading.sales || ticketsLoading.sold || balanceLoading
@@ -203,6 +282,7 @@ export default function OrdersPage() {
                         onShare={handleShareTicket}
                         onDownload={(ticketId) => console.log('Download:', ticketId)}
                         onView={(ticketId) => console.log('View:', ticketId)}
+                        onConfirmReceipt={handleConfirmReceipt}
                       />
                     ))}
                     {filteredPurchasedTickets.length === 0 && (
@@ -251,6 +331,7 @@ export default function OrdersPage() {
                         type="sale"
                         onShare={handleShareTicket}
                         onDelete={handleDeleteTicket}
+                        onMarkTransferred={handleMarkTransferred}
                       />
                     ))}
                     {filteredSalesTickets.length === 0 && (
@@ -276,6 +357,22 @@ export default function OrdersPage() {
           onClose={() => setShareModalOpen(false)}
           ticketId={selectedTicketId}
           eventName={selectedEventName}
+        />
+
+        {/* Modal de Confirmação de Transferência */}
+        <TransferConfirmationModal
+          isOpen={transferModalOpen}
+          onClose={() => {
+            setTransferModalOpen(false)
+            setSelectedTicket(null)
+          }}
+          type={transferAction}
+          ticketInfo={{
+            eventName: selectedTicket?.eventName || '',
+            ticketType: selectedTicket?.ticketType || '',
+            price: selectedTicket?.price || ''
+          }}
+          onConfirm={handleTransferConfirm}
         />
       </div>
     </ErrorBoundary>

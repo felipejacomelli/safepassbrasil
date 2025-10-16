@@ -193,7 +193,8 @@ export function AsaasCheckout({
         paymentData.items = cartItems.map(item => ({
           occurrence_id: item.occurrenceId,
           ticket_type_id: item.ticketTypeId,
-          quantity: item.quantity
+          quantity: item.quantity,
+          ticket_ids: item.individualTicketId ? [item.individualTicketId] : undefined  // ✅ NOVO: Lista de IDs
         }))
         console.log('🛒 Itens do carrinho:', paymentData.items)
       }
