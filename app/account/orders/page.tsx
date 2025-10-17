@@ -124,13 +124,42 @@ export default function OrdersPage() {
         return
       }
 
-      const endpoint = transferAction === 'mark_transferred' 
-        ? `/api/tickets/${selectedTicket.id}/mark_transferred/`
-        : `/api/tickets/${selectedTicket.id}/confirm/`
+      // ✅ CORREÇÃO: Buscar transferência diretamente pelo order_id do ticket
+      if (!selectedTicket.order) {
+        toast.error('Este ingresso não possui um pedido associado')
+        return
+      }
 
+      // Buscar a transferência usando o order_id do ticket
+      const transferResponse = await fetch(`/api/v1/transfers/?order=${selectedTicket.order}`, {
+        headers: {
+          'Authorization': `Token ${token}`,
+        },
+      })
+
+      if (!transferResponse.ok) {
+        throw new Error('Erro ao buscar transferência do pedido')
+      }
+
+      const transferData = await transferResponse.json()
+      
+      // A API deve retornar a transferência associada ao pedido
+      const ticketTransfer = transferData.results?.[0] || transferData
+
+      if (!ticketTransfer || !ticketTransfer.id) {
+        toast.error('Transferência não encontrada para este pedido')
+        return
+      }
+
+      // ✅ CORREÇÃO: Usar endpoints corretos do backend
+      const endpoint = transferAction === 'mark_transferred' 
+        ? `/api/v1/transfers/${ticketTransfer.id}/mark_transferred/`
+        : `/api/v1/transfers/${ticketTransfer.id}/confirm/`
+
+      // ✅ CORREÇÃO: Estrutura de dados compatível com backend
       const formData = new FormData()
       if (data.notes) {
-        formData.append('notes', data.notes)
+        formData.append('transfer_reference', data.notes) // Backend espera 'transfer_reference'
       }
       if (data.evidenceFile) {
         formData.append('evidence', data.evidenceFile)
@@ -145,7 +174,8 @@ export default function OrdersPage() {
       })
 
       if (!response.ok) {
-        throw new Error(`Erro ao ${transferAction === 'mark_transferred' ? 'marcar como transferido' : 'confirmar recebimento'}`)
+        const errorData = await response.json()
+        throw new Error(errorData.message || `Erro ao ${transferAction === 'mark_transferred' ? 'marcar como transferido' : 'confirmar recebimento'}`)
       }
 
       const successMessage = transferAction === 'mark_transferred' 
@@ -160,9 +190,10 @@ export default function OrdersPage() {
       refetchTickets.all()
     } catch (error) {
       console.error('Erro na transferência:', error)
-      const errorMessage = transferAction === 'mark_transferred' 
-        ? 'Erro ao marcar ingresso como transferido'
-        : 'Erro ao confirmar recebimento do ingresso'
+      const errorMessage = error instanceof Error ? error.message : 
+        (transferAction === 'mark_transferred' 
+          ? 'Erro ao marcar ingresso como transferido'
+          : 'Erro ao confirmar recebimento do ingresso')
       toast.error(errorMessage)
     }
   }, [transferAction, selectedTicket, refetchTickets])

@@ -220,3 +220,4 @@ async function DataComponent() {
 **As otimizações implementadas seguem as melhores práticas modernas do Next.js 15, garantindo performance, manutenibilidade e experiência de usuário superiores!** 🚀
 
 
+
