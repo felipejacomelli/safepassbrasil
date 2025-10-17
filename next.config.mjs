@@ -23,12 +23,24 @@ const nextConfig = {
       allowedOrigins: ['localhost:3000', '127.0.0.1:3000']
     }
   },
-  // ✅ CORREÇÃO: Forçar HTTP para evitar redirecionamento automático para HTTPS
+  // ✅ CORREÇÃO: Rewrites dinâmicos baseados em ambiente
   async rewrites() {
+    // Em desenvolvimento, usar localhost
+    if (process.env.NODE_ENV === 'development') {
+      return [
+        {
+          source: '/api/:path*',
+          destination: 'http://localhost:8000/api/:path*',
+        },
+      ]
+    }
+    
+    // Em produção, usar a URL configurada na variável de ambiente
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://reticket-backend.onrender.com'
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*',
+        destination: `${apiUrl}/api/:path*`,
       },
     ]
   },
