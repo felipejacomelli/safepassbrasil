@@ -1,9 +1,8 @@
 // Configuração da API para integração com o backend Django
 
 // ✅ CORREÇÃO: Forçar HTTP para evitar redirecionamento automático para HTTPS
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000')
-  .replace('https://', 'http://')
-  .replace('localhost:8000', '127.0.0.1:8000'); // Usar IP ao invés de localhost para evitar HSTS
+// ✅ CORREÇÃO: Respeitar protocolo configurado (HTTPS em produção, HTTP local)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 // Tipos para autenticação
 export interface LoginRequest {
