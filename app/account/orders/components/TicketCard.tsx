@@ -30,6 +30,10 @@ export function TicketCard({
     switch (status) {
       case "active":
         return "text-green-400"
+      case "verified":
+        return "text-green-500"
+      case "pending_verification":
+        return "text-yellow-400"
       case "used":
         return "text-gray-400"
       case "cancelled":
@@ -42,6 +46,10 @@ export function TicketCard({
         return "text-yellow-400"
       case "transferred":
         return "text-purple-400"
+      case "invalid":
+        return "text-red-500"
+      case "revoked":
+        return "text-red-600"
       default:
         return "text-gray-400"
     }
@@ -51,6 +59,10 @@ export function TicketCard({
     switch (status) {
       case "active":
         return "Ativo"
+      case "verified":
+        return "Verificado"
+      case "pending_verification":
+        return "Aguardando Verificação"
       case "used":
         return "Usado"
       case "cancelled":
@@ -63,6 +75,10 @@ export function TicketCard({
         return "Transferência Pendente"
       case "transferred":
         return "Transferido"
+      case "invalid":
+        return "Inválido"
+      case "revoked":
+        return "Revogado"
       default:
         return "Desconhecido"
     }

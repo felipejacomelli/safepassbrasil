@@ -17,18 +17,43 @@ export function useBalance({ salesTickets, soldTickets }: UseBalanceProps): UseB
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Calcular saldo pendente (tickets à venda)
-  const pendingBalance = useMemo(() => {
-    return salesTickets.reduce((sum, ticket) => {
-      return sum + (parseFloat(ticket.price) * ticket.quantity)
-    }, 0)
-  }, [salesTickets])
-
-  // Calcular saldo disponível (tickets vendidos)
-  const availableBalance = useMemo(() => {
-    return soldTickets.reduce((sum, ticket) => {
-      return sum + (parseFloat(ticket.price) * ticket.quantity)
-    }, 0)
+  // Calcular saldo pendente e disponível baseado em D+3 do evento
+  const { pendingBalance, availableBalance } = useMemo(() => {
+    const now = new Date()
+    let pending = 0
+    let available = 0
+    
+    // ✅ REGRA DE NEGÓCIO: Apenas tickets transferred geram saldo
+    // Tickets anunciados (active) NÃO geram saldo
+    const transferredTickets = soldTickets.filter(ticket => ticket.status === 'transferred')
+    
+    transferredTickets.forEach(ticket => {
+      const ticketValue = parseFloat(ticket.price) * ticket.quantity
+      
+      // Verificar se o ticket tem data do evento
+      if (ticket.occurrence?.start_at) {
+        const eventDate = new Date(ticket.occurrence.start_at)
+        const releaseDate = new Date(eventDate)
+        releaseDate.setDate(eventDate.getDate() + 3) // D+3: 3 dias após o evento
+        releaseDate.setHours(0, 0, 0, 0) // Zerar hora para comparação por dia
+        
+        const nowDate = new Date(now)
+        nowDate.setHours(0, 0, 0, 0)
+        
+        if (nowDate >= releaseDate) {
+          // ✅ Já passou D+3: saldo disponível para saque
+          available += ticketValue
+        } else {
+          // ⏳ Ainda não passou D+3: saldo pendente (aguardando liberação)
+          pending += ticketValue
+        }
+      } else {
+        // ⚠️ Sem data do evento: manter como pendente por segurança
+        pending += ticketValue
+      }
+    })
+    
+    return { pendingBalance: pending, availableBalance: available }
   }, [soldTickets])
 
   // Calcular saldo total

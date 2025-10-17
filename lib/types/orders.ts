@@ -1,6 +1,6 @@
 // Tipos específicos para status
 export type TicketStatus = 'active' | 'used' | 'cancelled' | 'expired' | 'transferred' | 'verified' | 'pending_verification' | 'invalid' | 'revoked' | 'sold' | 'pending_transfer'
-export type OrderStatus = 'pending' | 'completed' | 'cancelled' | 'failed'
+export type OrderStatus = 'pending_payment' |'paid'| 'pending_transfer' | 'seller_marked_transferred' | 'completed' | 'cancelled' | 'buyer_confirmed' | 'dispute_open' | 'refunded'
 export type TransactionStatus = 'pending' | 'completed' | 'failed' | 'cancelled'
 export type PaymentMethodType = 'pix' | 'bank' | 'card'
 
@@ -126,5 +126,5 @@ export interface Balance {
 }
 
 // Tipos para tabs
-export type TabType = 'purchases' | 'sales'
-export type SalesTabType = 'for-sale' | 'sold'
+export type TabType = 'compras' | 'vendas'
+export type SalesTabType = 'anunciadas' | 'efetivadas'

@@ -4,7 +4,6 @@ import { useState, useMemo, useCallback } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import Header from "@/components/Header"
 import { AccountSidebar } from "@/components/account-sidebar"
-import { formatCurrency } from "@/utils/formatCurrency"
 import { useOrders } from "@/hooks/use-orders"
 import { useTickets } from "@/hooks/use-tickets"
 import { useBalance } from "@/hooks/use-balance"
@@ -17,7 +16,7 @@ import {
   ErrorMessage 
 } from "./components"
 import { ShareTicketModal } from "@/components/ShareTicketModal"
-import { TicketStatus, TicketType, TabType, SalesTabType, StatusFilter, PaymentMethod } from "@/types/orders"
+import { TabType, SalesTabType, StatusFilter } from "@/types/orders"
 import TransferConfirmationModal from "@/components/transfer/TransferConfirmationModal"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -59,10 +58,27 @@ export default function OrdersPage() {
   }, [purchasedTickets, statusFilter])
 
   const filteredSalesTickets = useMemo(() => {
-    const tickets = salesTab === 'anunciadas' ? salesTickets : soldTickets
+    let tickets = salesTab === 'anunciadas' ? salesTickets : soldTickets
+    
+    // ✅ NOVO: Vendas efetivadas mostram apenas tickets transferred
+    if (salesTab === 'efetivadas') {
+      tickets = tickets.filter(ticket => ticket.status === 'transferred')
+    }
+    
+    // Aplicar filtro de status se não for 'all'
     if (statusFilter === 'all') return tickets
     return tickets.filter(ticket => ticket.status === statusFilter)
   }, [salesTickets, soldTickets, salesTab, statusFilter])
+
+  // Contadores memoizados
+  const ticketCounts = useMemo(() => {
+    const transferredCount = soldTickets.filter(t => t.status === 'transferred').length
+    return {
+      sales: salesTickets.length,
+      sold: transferredCount,
+      total: salesTickets.length + transferredCount
+    }
+  }, [salesTickets, soldTickets])
 
   // Handlers memoizados
   const handleShareTicket = useCallback((ticketId: string, eventName: string) => {
@@ -283,7 +299,7 @@ export default function OrdersPage() {
                     Compras ({purchasedTickets.length})
                   </TabsTrigger>
                   <TabsTrigger value="vendas" className="data-[state=active]:bg-blue-600">
-                    Vendas ({salesTickets.length + soldTickets.length})
+                    Vendas ({ticketCounts.total})
                   </TabsTrigger>
                 </TabsList>
 
@@ -297,10 +313,14 @@ export default function OrdersPage() {
                       className="bg-zinc-800 border border-zinc-700 text-white px-3 py-2 rounded-md"
                     >
                       <option value="all">Todos os Status</option>
-                      <option value="available">Disponível</option>
+                      <option value="active">Ativo</option>
+                      <option value="verified">Verificado</option>
+                      <option value="pending_verification">Aguardando Verificação</option>
                       <option value="sold">Vendido</option>
-                      <option value="pending">Pendente</option>
+                      <option value="pending_transfer">Transferência Pendente</option>
+                      <option value="transferred">Transferido</option>
                       <option value="cancelled">Cancelado</option>
+                      <option value="expired">Expirado</option>
                     </select>
                   </div>
 
@@ -332,13 +352,13 @@ export default function OrdersPage() {
                         variant={salesTab === 'anunciadas' ? 'default' : 'outline'}
                         onClick={() => setSalesTab('anunciadas')}
                       >
-                        Anunciadas ({salesTickets.length})
+                        Anunciadas ({ticketCounts.sales})
                       </Button>
                       <Button
                         variant={salesTab === 'efetivadas' ? 'default' : 'outline'}
                         onClick={() => setSalesTab('efetivadas')}
                       >
-                        Efetivadas ({soldTickets.length})
+                        Efetivadas ({ticketCounts.sold})
                       </Button>
                     </div>
                     <select
@@ -347,10 +367,14 @@ export default function OrdersPage() {
                       className="bg-zinc-800 border border-zinc-700 text-white px-3 py-2 rounded-md"
                     >
                       <option value="all">Todos os Status</option>
-                      <option value="available">Disponível</option>
+                      <option value="active">Ativo</option>
+                      <option value="verified">Verificado</option>
+                      <option value="pending_verification">Aguardando Verificação</option>
                       <option value="sold">Vendido</option>
-                      <option value="pending">Pendente</option>
+                      <option value="pending_transfer">Transferência Pendente</option>
+                      <option value="transferred">Transferido</option>
                       <option value="cancelled">Cancelado</option>
+                      <option value="expired">Expirado</option>
                     </select>
                   </div>
 

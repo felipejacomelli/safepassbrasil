@@ -310,6 +310,27 @@ export function AsaasCheckout({
     } catch (error: any) {
       console.error('❌ Erro no pagamento:', error)
       console.error('❌ Stack trace:', error.stack)
+      
+      // ✅ NOVO: Cancelar pedido se foi criado mas pagamento falhou
+      if (result?.order_id) {
+        try {
+          const authToken = localStorage.getItem('authToken')
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+          
+          await fetch(`${apiUrl}/api/orders/${result.order_id}/cancel/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Token ${authToken}`
+            }
+          })
+          
+          console.log('✅ Pedido cancelado, tickets liberados automaticamente')
+        } catch (cancelError) {
+          console.error('❌ Erro ao cancelar pedido:', cancelError)
+        }
+      }
+      
       const errorInfo = PaymentErrorHandler.handlePaymentError(error)
       console.error('❌ Informações do erro:', errorInfo)
       onError(errorInfo.userMessage)
