@@ -19,7 +19,12 @@ interface AsaasCheckoutProps {
   userName?: string
   userPhone?: string
   userCpf?: string
-  cartItems?: Array<{ occurrenceId?: string; ticketTypeId?: string; quantity: number }>
+  cartItems?: Array<{ 
+    occurrenceId?: string; 
+    ticketTypeId?: string; 
+    quantity: number;
+    individualTicketId?: string; // ✅ Adicionando propriedade para IDs individuais
+  }>
   sharedTicketToken?: string // Novo: token do link compartilhado
   onSuccess: (paymentId: string, paymentData: any) => void
   onError: (error: string) => void
@@ -153,6 +158,9 @@ export function AsaasCheckout({
 
     setIsLoading(true)
     onLoading?.(true)
+    
+    // ✅ Declarar result no escopo da função para estar acessível no catch
+    let result: any = null
 
     try {
       const authToken = localStorage.getItem('authToken')
@@ -252,7 +260,7 @@ export function AsaasCheckout({
       console.log('📡 Enviando para PaymentApiClient...')
 
       // ✅ Usar cliente robusto com retry e timeout
-      const result = await paymentClient.createPayment(paymentData, authToken)
+      result = await paymentClient.createPayment(paymentData, authToken)
 
       console.log('✅ Pagamento processado:', result)
       console.log('🔍 Verificando resultado do pagamento:')
