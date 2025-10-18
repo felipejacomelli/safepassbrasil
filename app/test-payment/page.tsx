@@ -22,7 +22,8 @@ export default function TestPaymentPage() {
         return
       }
 
-      const url = 'http://localhost:8000/api/payment/create/'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const url = `${apiUrl}/api/payment/create/`
       console.log('🔗 URL:', url)
 
       const paymentData = {

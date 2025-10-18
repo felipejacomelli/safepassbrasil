@@ -2,7 +2,10 @@ import { loadStripe, Stripe } from '@stripe/stripe-js'
 
 // Configurações do Stripe
 const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_51SHA30PqalO77yqoviGb7ilAv1soTTGQFrbBGNTtXNz2eNTHkEWAJypPiqi0I1cb7An5iSH8pcrOrHGyw4J6IDrr00DFeDNpCm'
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+// ✅ TEMP: Hardcode para forçar produção a usar Render
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://reticket-backend.onrender.com'
+  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000')
 
 // Instância do Stripe
 let stripePromise: Promise<Stripe | null>

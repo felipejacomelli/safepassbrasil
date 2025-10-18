@@ -35,7 +35,8 @@ export default function TestSimplePaymentPage() {
       setResult(prev => prev + `📦 Dados: ${JSON.stringify(paymentData)}\n`)
       setResult(prev => prev + "📡 Enviando requisição...\n")
 
-      const response = await fetch('http://localhost:8000/api/payment/create/', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const response = await fetch(`${apiUrl}/api/payment/create/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

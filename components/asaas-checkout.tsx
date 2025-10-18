@@ -104,7 +104,10 @@ export function AsaasCheckout({
 
   const loadPaymentMethods = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      // ✅ TEMP: Hardcode para forçar produção a usar Render
+      const apiUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://reticket-backend.onrender.com'
+        : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000")
       const response = await fetch(`${apiUrl}/api/payment/methods/`)
       const data = await response.json()
       
@@ -119,7 +122,10 @@ export function AsaasCheckout({
   const loadInstallmentOptions = async () => {
     try {
       console.log('Carregando opções de parcelamento para valor:', amount)
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      // ✅ TEMP: Hardcode para forçar produção a usar Render
+      const apiUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://reticket-backend.onrender.com'
+        : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000")
       const response = await fetch(`${apiUrl}/api/payment/installments/?amount=${amount}`)
       const data = await response.json()
       
@@ -277,7 +283,10 @@ export function AsaasCheckout({
         if (sharedTicketToken && isPaymentApproved) {
           try {
             console.log('🔗 Aceitando link compartilhado após pagamento aprovado...')
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+            // ✅ TEMP: Hardcode para forçar produção a usar Render
+      const apiUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://reticket-backend.onrender.com'
+        : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000")
             const acceptResponse = await fetch(`${apiUrl}/api/v1/sharing/accept/${sharedTicketToken}/`, {
               method: "POST",
               headers: {
@@ -315,7 +324,10 @@ export function AsaasCheckout({
       if (result?.order_id) {
         try {
           const authToken = localStorage.getItem('authToken')
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+          // ✅ TEMP: Hardcode para forçar produção a usar Render
+      const apiUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://reticket-backend.onrender.com'
+        : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000")
           
           await fetch(`${apiUrl}/api/orders/${result.order_id}/cancel/`, {
             method: "POST",

@@ -2,7 +2,17 @@
 
 // ✅ CORREÇÃO: Forçar HTTP para evitar redirecionamento automático para HTTPS
 // ✅ CORREÇÃO: Respeitar protocolo configurado (HTTPS em produção, HTTP local)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// ✅ TEMP: Hardcode para forçar produção a usar Render
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://reticket-backend.onrender.com'
+  : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000');
+
+// ✅ TEMP: Log para debug
+if (typeof window !== 'undefined') {
+  console.log('🔍 API_BASE_URL:', API_BASE_URL);
+  console.log('🔍 NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
+  console.log('🔍 NODE_ENV:', process.env.NODE_ENV);
+}
 
 // Tipos para autenticação
 export interface LoginRequest {
