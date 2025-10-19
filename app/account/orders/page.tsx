@@ -194,6 +194,7 @@ export default function OrdersPage() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            transfer_id: ticketTransfer.id,  // ✅ CORREÇÃO: Incluir transfer_id
             evidence_type: 'receipt',
             file_url: evidenceUrl,
             description: 'Comprovante de transferência'
