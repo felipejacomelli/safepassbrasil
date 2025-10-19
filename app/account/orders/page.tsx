@@ -173,21 +173,43 @@ export default function OrdersPage() {
         ? `${apiUrl}/api/v1/transfers/${ticketTransfer.id}/mark_transferred/`
         : `${apiUrl}/api/v1/transfers/${ticketTransfer.id}/confirm/`
 
-      // ✅ CORREÇÃO: Estrutura de dados compatível com backend
-      const formData = new FormData()
-      if (data.notes) {
-        formData.append('transfer_reference', data.notes) // Backend espera 'transfer_reference'
-      }
+      // ✅ PASSO 1: Fazer upload da evidência primeiro (se houver)
+      let evidenceUrl = null
       if (data.evidenceFile) {
-        formData.append('evidence', data.evidenceFile)
+        const uploadFormData = new FormData()
+        uploadFormData.append('image', data.evidenceFile)  // ✅ 'image' como no padrão existente
+        
+        const uploadResponse = await fetch(`${apiUrl}/api/v1/transfers/upload-evidence/`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Token ${token}`,
+          },
+          body: uploadFormData,
+        })
+        
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json()
+          throw new Error(errorData.error || 'Erro ao fazer upload da evidência')
+        }
+        
+        const uploadData = await uploadResponse.json()
+        evidenceUrl = uploadData.url  // ✅ Recebe URL do backend
+      }
+
+      // ✅ PASSO 2: Marcar como transferido com URL da evidência
+      // ✅ ENVIAR JSON (não FormData) com evidence_urls
+      const requestBody = {
+        transfer_reference: data.notes || '',
+        evidence_urls: evidenceUrl ? [evidenceUrl] : []  // ✅ Array de URLs
       }
 
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json',  // ✅ JSON
         },
-        body: formData,
+        body: JSON.stringify(requestBody),  // ✅ JSON stringify
       })
 
       if (!response.ok) {
