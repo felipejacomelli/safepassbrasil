@@ -7,6 +7,7 @@ import { AccountSidebar } from "@/components/account-sidebar"
 import { useOrders } from "@/hooks/use-orders"
 import { useTickets } from "@/hooks/use-tickets"
 import { useBalance } from "@/hooks/use-balance"
+import { uploadImage } from "@/lib/upload"
 import { 
   BalanceSection, 
   WithdrawalForm, 
@@ -176,24 +177,33 @@ export default function OrdersPage() {
       // ✅ PASSO 1: Fazer upload da evidência primeiro (se houver)
       let evidenceUrl = null
       if (data.evidenceFile) {
-        const uploadFormData = new FormData()
-        uploadFormData.append('image', data.evidenceFile)  // ✅ 'image' como no padrão existente
+        // Upload direto para Vercel Blob Storage usando o padrão do projeto
+        const uploadResult = await uploadImage(data.evidenceFile)
         
-        const uploadResponse = await fetch(`${apiUrl}/api/v1/transfers/upload-evidence/`, {
+        if (!uploadResult.success) {
+          throw new Error(uploadResult.error || 'Erro ao fazer upload da evidência')
+        }
+        
+        evidenceUrl = uploadResult.url
+        
+        // Salvar evidência no backend
+        const evidenceResponse = await fetch(`${apiUrl}/api/v1/transfers/upload-evidence/`, {
           method: 'POST',
           headers: {
             'Authorization': `Token ${token}`,
+            'Content-Type': 'application/json',
           },
-          body: uploadFormData,
+          body: JSON.stringify({
+            evidence_type: 'transfer_proof',
+            file_url: evidenceUrl,
+            description: 'Comprovante de transferência'
+          }),
         })
         
-        if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json()
-          throw new Error(errorData.error || 'Erro ao fazer upload da evidência')
+        if (!evidenceResponse.ok) {
+          const errorData = await evidenceResponse.json()
+          throw new Error(errorData.error || 'Erro ao salvar evidência')
         }
-        
-        const uploadData = await uploadResponse.json()
-        evidenceUrl = uploadData.url  // ✅ Recebe URL do backend
       }
 
       // ✅ PASSO 2: Marcar como transferido com URL da evidência
