@@ -194,7 +194,7 @@ export default function OrdersPage() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            evidence_type: 'transfer_proof',
+            evidence_type: 'receipt',
             file_url: evidenceUrl,
             description: 'Comprovante de transferência'
           }),
