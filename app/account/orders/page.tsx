@@ -147,7 +147,8 @@ export default function OrdersPage() {
       }
 
       // Buscar a transferência usando o order_id do ticket
-      const transferResponse = await fetch(`/api/v1/transfers/?order=${selectedTicket.order}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const transferResponse = await fetch(`${apiUrl}/api/v1/transfers/?order=${selectedTicket.order}`, {
         headers: {
           'Authorization': `Token ${token}`,
         },
@@ -169,8 +170,8 @@ export default function OrdersPage() {
 
       // ✅ CORREÇÃO: Usar endpoints corretos do backend
       const endpoint = transferAction === 'mark_transferred' 
-        ? `/api/v1/transfers/${ticketTransfer.id}/mark_transferred/`
-        : `/api/v1/transfers/${ticketTransfer.id}/confirm/`
+        ? `${apiUrl}/api/v1/transfers/${ticketTransfer.id}/mark_transferred/`
+        : `${apiUrl}/api/v1/transfers/${ticketTransfer.id}/confirm/`
 
       // ✅ CORREÇÃO: Estrutura de dados compatível com backend
       const formData = new FormData()
