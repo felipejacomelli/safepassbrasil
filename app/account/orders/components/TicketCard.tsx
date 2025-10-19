@@ -40,8 +40,6 @@ export function TicketCard({
         return "text-red-400"
       case "expired":
         return "text-orange-400"
-      case "sold":
-        return "text-blue-400"
       case "pending_transfer":
         return "text-yellow-400"
       case "transferred":
@@ -69,8 +67,6 @@ export function TicketCard({
         return "Cancelado"
       case "expired":
         return "Expirado"
-      case "sold":
-        return "Vendido"
       case "pending_transfer":
         return "Transferência Pendente"
       case "transferred":
@@ -242,20 +238,20 @@ export function TicketCard({
             )}
 
             {/* Botão para marcar como transferido (vendedor) */}
-            {onMarkTransferred && ticket.status === "sold" && (
+            {onMarkTransferred && ticket.status === "pending_transfer" && (
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => onMarkTransferred(ticket.id)}
                 className="border-blue-700 text-blue-400 hover:bg-blue-900 hover:bg-opacity-20"
-                aria-label={`Marcar ingresso ${ticket.event.name} como transferido`}
+                aria-label={`Transferir ingresso ${ticket.event.name}`}
               >
                 <Send className="w-4 h-4 mr-1" />
-                Marcar como Transferido
+                Transferir Ingresso
               </Button>
             )}
             
-            {onDelete && ticket.status !== "sold" && (
+            {onDelete && ticket.status !== "pending_transfer" && (
               <Button
                 size="sm"
                 variant="outline"

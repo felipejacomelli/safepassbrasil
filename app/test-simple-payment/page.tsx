@@ -29,7 +29,15 @@ export default function TestSimplePaymentPage() {
         description: "Teste simples",
         customer_cpf: "42719675059",
         customer_phone: "11987654322",
-        customer_mobile_phone: "11987654322"
+        customer_mobile_phone: "11987654322",
+        external_reference: "test_payment_" + Date.now(),
+        items: [
+          {
+            occurrence_id: "test_occurrence_1",
+            ticket_type_id: "test_ticket_type_1",
+            quantity: 1
+          }
+        ]
       }
 
       setResult(prev => prev + `📦 Dados: ${JSON.stringify(paymentData)}\n`)
