@@ -115,10 +115,85 @@ export default function OrdersPage() {
   // Handlers para transferência
   const handleMarkTransferred = useCallback(async (ticketId: string) => {
     const ticket = [...salesTickets, ...soldTickets].find(t => t.id === ticketId)
-    if (ticket) {
+    if (!ticket) {
+      toast.error('Ingresso não encontrado')
+      return
+    }
+
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null
+      if (!token) {
+        toast.error('Token de autenticação não encontrado')
+        return
+      }
+
+      // ✅ VALIDAÇÃO: Buscar a transferência para verificar o status atual
+      // Para tickets de venda, precisamos buscar pela transferência associada ao ticket
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const transferResponse = await fetch(`${apiUrl}/api/v1/transfers/?ticket=${ticketId}`, {
+        headers: {
+          'Authorization': `Token ${token}`,
+        },
+      })
+
+      if (!transferResponse.ok) {
+        toast.error('Erro ao verificar status da transferência')
+        return
+      }
+
+      const transferData = await transferResponse.json()
+      const ticketTransfer = transferData.results?.[0] || transferData
+
+      if (!ticketTransfer || !ticketTransfer.id) {
+        toast.error('Transferência não encontrada para este ingresso')
+        return
+      }
+
+      // ✅ VALIDAÇÃO: Verificar se a transferência pode ser marcada como transferida
+      // Status válidos: not_started, instructions_sent, transfer_initiated, pending_seller_confirmation
+      const validStatusesForMarking = [
+        'not_started',
+        'instructions_sent', 
+        'transfer_initiated',
+        'pending_seller_confirmation'
+      ]
+
+      if (!validStatusesForMarking.includes(ticketTransfer.status)) {
+        let errorMessage = 'Não é possível marcar como transferido neste momento.'
+        
+        switch (ticketTransfer.status) {
+          case 'transfer_confirmed_by_seller':
+            errorMessage = 'Esta transferência já foi marcada como transferida pelo vendedor.'
+            break
+          case 'transfer_confirmed_by_buyer':
+            errorMessage = 'Esta transferência já foi confirmada pelo comprador.'
+            break
+          case 'transfer_confirmed_by_platform':
+            errorMessage = 'Esta transferência já foi confirmada pela plataforma.'
+            break
+          case 'completed':
+            errorMessage = 'Esta transferência já foi concluída.'
+            break
+          case 'failed':
+            errorMessage = 'Esta transferência falhou e não pode ser marcada.'
+            break
+          case 'timed_out':
+            errorMessage = 'Esta transferência expirou e não pode ser marcada.'
+            break
+        }
+        
+        toast.error(errorMessage)
+        return
+      }
+
+      // ✅ Se chegou até aqui, a transferência pode ser marcada
       setSelectedTicket(ticket)
       setTransferAction('mark_transferred')
       setTransferModalOpen(true)
+
+    } catch (error) {
+      console.error('Erro ao verificar transferência:', error)
+      toast.error('Erro ao verificar status da transferência')
     }
   }, [salesTickets, soldTickets])
 
