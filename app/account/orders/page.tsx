@@ -282,11 +282,19 @@ export default function OrdersPage() {
         }
       }
 
-      // ✅ PASSO 2: Marcar como transferido com URL da evidência
-      // ✅ ENVIAR JSON (não FormData) com evidence_urls
-      const requestBody = {
-        transfer_reference: data.notes || '',
-        evidence_urls: evidenceUrl ? [evidenceUrl] : []  // ✅ Array de URLs
+      // ✅ PASSO 2: Enviar payload correto baseado na ação
+      let requestBody
+      if (transferAction === 'mark_transferred') {
+        // Vendedor marca como transferido
+        requestBody = {
+          transfer_reference: data.notes || '',
+          evidence_urls: evidenceUrl ? [evidenceUrl] : []  // ✅ Array de URLs
+        }
+      } else {
+        // Comprador confirma recebimento
+        requestBody = {
+          confirmation_notes: data.notes || ''  // ✅ Campo correto para confirm
+        }
       }
 
       const response = await fetch(endpoint, {
