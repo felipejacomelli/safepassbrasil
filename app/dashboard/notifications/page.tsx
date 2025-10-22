@@ -11,19 +11,13 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { 
   Bell, 
-  BellOff, 
-  Mail, 
   MailOpen, 
   AlertTriangle, 
   CheckCircle, 
-  Clock,
   DollarSign,
-  MessageSquare,
   ArrowUpRight,
-  Settings,
-  MarkAsRead
+  Settings
 } from 'lucide-react'
-import { formatCurrency } from '@/utils/formatCurrency'
 
 interface Notification {
   id: string
@@ -235,7 +229,7 @@ export default function NotificationsPage() {
   }
 
   const getTypeLabel = (type: string) => {
-    const types = {
+    const types: Record<string, string> = {
       'escrow_created': 'Escrow Criado',
       'escrow_released': 'Escrow Liberado',
       'escrow_refunded': 'Escrow Reembolsado',
@@ -301,7 +295,7 @@ export default function NotificationsPage() {
               variant="outline" 
               disabled={markingAsRead}
             >
-              <MarkAsRead className="h-4 w-4 mr-2" />
+              <MailOpen className="h-4 w-4 mr-2" />
               {markingAsRead ? 'Marcando...' : `Marcar ${unreadCount} como lidas`}
             </Button>
           )}
