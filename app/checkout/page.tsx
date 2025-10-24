@@ -25,6 +25,7 @@ import { PAYMENT_METHODS, PaymentMethodType, PAYMENT_METHOD_LABELS } from "@/lib
 
 export default function CheckoutPage() {
   const [isDesktop, setIsDesktop] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const router = useRouter()
   const { user } = useAuth()
 
@@ -63,6 +64,8 @@ export default function CheckoutPage() {
 
   // Load cart from localStorage after hydration
   useEffect(() => {
+    setIsMounted(true)
+    
     try {
       const savedCart = localStorage.getItem("cart")
       if (savedCart) {
@@ -71,8 +74,16 @@ export default function CheckoutPage() {
     } catch (e) {
       console.error("Failed to parse cart from localStorage", e)
     }
+    
     // Set desktop state after client mount to avoid hydration mismatch
-    setIsDesktop(window.matchMedia("(min-width: 640px)").matches)
+    const checkDesktop = () => {
+      setIsDesktop(window.matchMedia("(min-width: 640px)").matches)
+    }
+    
+    checkDesktop()
+    window.addEventListener('resize', checkDesktop)
+    
+    return () => window.removeEventListener('resize', checkDesktop)
   }, [])
 
   // Calculate totals
@@ -143,6 +154,29 @@ export default function CheckoutPage() {
         newErrors.terms = "Você deve aceitar os termos e condições"
       }
 
+      // Validações de dados do comprador
+      if (!buyerName.trim()) {
+        newErrors.buyerName = "Nome completo é obrigatório"
+      }
+
+      if (!buyerEmail.trim()) {
+        newErrors.buyerEmail = "Email é obrigatório"
+      } else if (!validateEmail(buyerEmail)) {
+        newErrors.buyerEmail = "Email inválido"
+      }
+
+      if (!buyerCpf.trim()) {
+        newErrors.buyerCpf = "CPF é obrigatório"
+      } else if (!validateCpf(buyerCpf)) {
+        newErrors.buyerCpf = "CPF inválido"
+      }
+
+      if (!buyerPhone.trim()) {
+        newErrors.buyerPhone = "Telefone é obrigatório"
+      } else if (!validatePhone(buyerPhone)) {
+        newErrors.buyerPhone = "Telefone inválido"
+      }
+
       // Validações específicas por método
       if (paymentMethod === PAYMENT_METHODS.CREDIT_CARD || paymentMethod === PAYMENT_METHODS.DEBIT_CARD) {
         if (!cardName.trim()) {
@@ -173,7 +207,9 @@ export default function CheckoutPage() {
         return
       }
 
-      if (!cartItem.occurrenceId || !cartItem.ticketTypeId) {
+      const cartItemWithIds = cartItem as CartItem & { occurrenceId: string; ticketTypeId: string }
+      
+      if (!cartItemWithIds.occurrenceId || !cartItemWithIds.ticketTypeId) {
         setErrors({ cart: "Dados do ingresso incompletos. Adicione o ingresso novamente ao carrinho." })
         setIsProcessing(false)
         return
@@ -181,8 +217,8 @@ export default function CheckoutPage() {
 
       // ✅ Preparar dados do checkout
       const checkoutData: CheckoutRequest = {
-        occurrence_id: cartItem.occurrenceId,
-        ticket_type_id: cartItem.ticketTypeId,
+        occurrence_id: cartItemWithIds.occurrenceId,
+        ticket_type_id: cartItemWithIds.ticketTypeId,
         quantity: cartItem.quantity,
         payment_method: paymentMethod,
         buyer_cpf: buyerCpf,
@@ -336,6 +372,18 @@ export default function CheckoutPage() {
     }
 
     setBuyerPhone(formatted)
+  }
+
+  // ✅ Evitar hydration error - renderizar loading até montagem
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-white">Carregando checkout...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -560,7 +608,7 @@ export default function CheckoutPage() {
 
 
                 {/* PIX Payment */}
-                {paymentMethod === "pix" && (
+                {paymentMethod === PAYMENT_METHODS.PIX && (
                   <div className="flex flex-col items-center p-6 bg-zinc-800 rounded-lg">
                     <div className="w-48 h-48 bg-white p-4 rounded-lg mb-4 flex items-center justify-center">
                       <QrCode className="w-32 h-32 text-black" />
@@ -577,7 +625,7 @@ export default function CheckoutPage() {
                 )}
 
                 {/* Boleto Payment */}
-                {paymentMethod === "boleto" && (
+                {paymentMethod === PAYMENT_METHODS.BOLETO && (
                   <div className="p-6 bg-zinc-800 rounded-lg">
                     <p className="text-gray-300 mb-4">
                       Ao finalizar a compra, você receberá o boleto para pagamento. O prazo de compensação é de até 3
@@ -595,7 +643,7 @@ export default function CheckoutPage() {
                 )}
 
                 {/* Bank Transfer */}
-                {paymentMethod === "bank-transfer" && (
+                {paymentMethod === PAYMENT_METHODS.TRANSFER && (
                   <div className="p-6 bg-zinc-800 rounded-lg">
                     <p className="text-gray-300 mb-4">
                       Faça uma transferência bancária para a conta abaixo. Seus ingressos serão liberados após a
