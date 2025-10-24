@@ -531,15 +531,21 @@ export default function CartPage() {
               <>
                 {/* Checkout Button at Top */}
                 <div className="mb-6">
-                  <Button
-                    onClick={() => router.push("/checkout-stripe")}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-foreground py-3 px-6 rounded-lg font-semibold text-lg"
+                  <button
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        router.push('/login?returnUrl=/cart')
+                        return
+                      }
+                      setIsCheckingOut(true)
+                    }}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold text-lg flex items-center justify-center"
                     disabled={cartItems.length === 0}
                   >
                     <ShoppingCart className="mr-2 h-5 w-5" />
-                    Finalizar Compra com Stripe
+                    Finalizar Compra
                     <ChevronRight className="ml-2 h-5 w-5" />
-                  </Button>
+                  </button>
                 </div>
                 <button
                   onClick={() => {

@@ -65,6 +65,38 @@ export const getEscrowTransfers = cache(async (userId: string) => {
   return data.transfers || []
 })
 
+export const getEscrowStats = cache(async (userId: string) => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  
+  const response = await fetch(`${apiUrl}/api/escrow/stats/`, {
+    headers: { 'Authorization': `Token ${process.env.API_TOKEN}` },
+    next: { revalidate: 600 } // ✅ PRÁTICA NEXT.JS: Revalidação a cada 10 minutos
+  })
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch escrow stats')
+  }
+  
+  const data = await response.json()
+  return data.stats || []
+})
+
+export const getEscrowSettings = cache(async (userId: string) => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  
+  const response = await fetch(`${apiUrl}/api/escrow/settings/`, {
+    headers: { 'Authorization': `Token ${process.env.API_TOKEN}` },
+    next: { revalidate: 600 } // ✅ PRÁTICA NEXT.JS: Revalidação a cada 10 minutos
+  })
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch escrow settings')
+  }
+  
+  const data = await response.json()
+  return data.settings || []
+})
+
 export const getEscrowNotifications = cache(async (userId: string, limit: number = 5) => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
   

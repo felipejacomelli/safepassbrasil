@@ -69,9 +69,6 @@ interface EmailSettings {
 }
 
 interface PaymentSettings {
-  stripeEnabled: boolean
-  stripePublicKey: string
-  stripeSecretKey: string
   paypalEnabled: boolean
   paypalClientId: string
   paypalClientSecret: string
@@ -134,9 +131,6 @@ export default function AdminSettingsPage() {
   })
 
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>({
-    stripeEnabled: true,
-    stripePublicKey: "",
-    stripeSecretKey: "",
     paypalEnabled: false,
     paypalClientId: "",
     paypalClientSecret: "",
@@ -631,46 +625,6 @@ export default function AdminSettingsPage() {
               <CardDescription>Configure os métodos de pagamento disponíveis</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Stripe */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label className="text-foreground">Stripe</Label>
-                    <p className="text-sm text-muted-foreground">Pagamentos com cartão de crédito</p>
-                  </div>
-                  <Switch
-                    checked={paymentSettings.stripeEnabled}
-                    onCheckedChange={(checked) => setPaymentSettings({...paymentSettings, stripeEnabled: checked})}
-                  />
-                </div>
-                
-                {paymentSettings.stripeEnabled && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="stripePublicKey" className="text-foreground">Chave Pública</Label>
-                      <Input
-                        id="stripePublicKey"
-                        value={paymentSettings.stripePublicKey}
-                        onChange={(e) => setPaymentSettings({...paymentSettings, stripePublicKey: e.target.value})}
-                        className="bg-accent border-border text-foreground"
-                        placeholder="pk_..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="stripeSecretKey" className="text-foreground">Chave Secreta</Label>
-                      <Input
-                        id="stripeSecretKey"
-                        type={showPasswords ? "text" : "password"}
-                        value={paymentSettings.stripeSecretKey}
-                        onChange={(e) => setPaymentSettings({...paymentSettings, stripeSecretKey: e.target.value})}
-                        className="bg-accent border-border text-foreground"
-                        placeholder="sk_..."
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
               {/* PIX */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
