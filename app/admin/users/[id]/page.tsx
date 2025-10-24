@@ -56,7 +56,7 @@ export default function UserViewPage() {
   const getStatusBadge = (user: AdminUser) => {
     const isActive = user.active || user.is_active;
     return (
-      <Badge variant={isActive ? "default" : "secondary"} className={isActive ? "bg-green-600" : "bg-gray-600"}>
+      <Badge variant={isActive ? "default" : "secondary"} className={isActive ? "bg-green-600" : "bg-accent"}>
         {isActive ? 'Ativo' : 'Inativo'}
       </Badge>
     );
@@ -75,7 +75,7 @@ export default function UserViewPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white p-8">
+      <div className="min-h-screen bg-background text-foreground p-8">
         <div className="container mx-auto">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -90,7 +90,7 @@ export default function UserViewPage() {
 
   if (error || !user) {
     return (
-      <div className="min-h-screen bg-black text-white p-8">
+      <div className="min-h-screen bg-background text-foreground p-8">
         <div className="container mx-auto">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -98,7 +98,7 @@ export default function UserViewPage() {
                 <User className="w-16 h-16 mx-auto mb-2" />
               </div>
               <h2 className="text-xl font-semibold mb-2">Usuário não encontrado</h2>
-              <p className="text-gray-400 mb-4">{error || 'O usuário solicitado não foi encontrado.'}</p>
+              <p className="text-muted-foreground mb-4">{error || 'O usuário solicitado não foi encontrado.'}</p>
               <Button onClick={() => router.push('/admin/users')} variant="outline">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar para Usuários
@@ -111,7 +111,7 @@ export default function UserViewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-8">
+    <div className="min-h-screen bg-background text-foreground p-8">
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -120,14 +120,14 @@ export default function UserViewPage() {
               onClick={() => router.push('/admin/users')} 
               variant="ghost" 
               size="sm"
-              className="text-gray-400 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar
             </Button>
             <div>
               <h1 className="text-3xl font-bold">Detalhes do Usuário</h1>
-              <p className="text-gray-400">Visualizar informações completas do usuário</p>
+              <p className="text-muted-foreground">Visualizar informações completas do usuário</p>
             </div>
           </div>
           
@@ -146,35 +146,35 @@ export default function UserViewPage() {
         {/* User Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Informações Básicas */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-card border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <User className="h-5 w-5" />
                 Informações Básicas
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm text-gray-400">Nome</label>
-                <p className="text-white font-medium">{user.name || 'N/A'}</p>
+                <label className="text-sm text-muted-foreground">Nome</label>
+                <p className="text-foreground font-medium">{user.name || 'N/A'}</p>
               </div>
               
               <div>
-                <label className="text-sm text-gray-400">Email</label>
-                <p className="text-white font-medium flex items-center gap-2">
+                <label className="text-sm text-muted-foreground">Email</label>
+                <p className="text-foreground font-medium flex items-center gap-2">
                   <Mail className="h-4 w-4" />
                   {user.email || 'N/A'}
                 </p>
               </div>
               
               <div>
-                <label className="text-sm text-gray-400">CPF</label>
-                <p className="text-white font-medium">{user.cpf || 'N/A'}</p>
+                <label className="text-sm text-muted-foreground">CPF</label>
+                <p className="text-foreground font-medium">{user.cpf || 'N/A'}</p>
               </div>
               
               <div>
-                <label className="text-sm text-gray-400">Telefone</label>
-                <p className="text-white font-medium flex items-center gap-2">
+                <label className="text-sm text-muted-foreground">Telefone</label>
+                <p className="text-foreground font-medium flex items-center gap-2">
                   <Phone className="h-4 w-4" />
                   {user.phone || 'N/A'}
                 </p>
@@ -183,23 +183,23 @@ export default function UserViewPage() {
           </Card>
 
           {/* Status e Permissões */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-card border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <Shield className="h-5 w-5" />
                 Status e Permissões
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm text-gray-400">Status</label>
+                <label className="text-sm text-muted-foreground">Status</label>
                 <div className="mt-1">
                   {getStatusBadge(user)}
                 </div>
               </div>
               
               <div>
-                <label className="text-sm text-gray-400">Tipo de Usuário</label>
+                <label className="text-sm text-muted-foreground">Tipo de Usuário</label>
                 <div className="mt-1 flex gap-2">
                   {user.is_superuser && (
                     <Badge variant="destructive">Super Admin</Badge>
@@ -214,51 +214,51 @@ export default function UserViewPage() {
               </div>
               
               <div>
-                <label className="text-sm text-gray-400">ID do Usuário</label>
-                <p className="text-white font-medium">{user.id}</p>
+                <label className="text-sm text-muted-foreground">ID do Usuário</label>
+                <p className="text-foreground font-medium">{user.id}</p>
               </div>
             </CardContent>
           </Card>
 
           {/* Localização */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-card border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <MapPin className="h-5 w-5" />
                 Localização
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm text-gray-400">Localização</label>
-                <p className="text-white font-medium">{user.location || 'N/A'}</p>
+                <label className="text-sm text-muted-foreground">Localização</label>
+                <p className="text-foreground font-medium">{user.location || 'N/A'}</p>
               </div>
               
               <div>
-                <label className="text-sm text-gray-400">País</label>
-                <p className="text-white font-medium">{user.country || 'N/A'}</p>
+                <label className="text-sm text-muted-foreground">País</label>
+                <p className="text-foreground font-medium">{user.country || 'N/A'}</p>
               </div>
             </CardContent>
           </Card>
 
           {/* Datas */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-card border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
                 Informações de Data
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm text-gray-400">Data de Cadastro</label>
-                <p className="text-white font-medium">{formatDate(user.created_at || user.date_joined)}</p>
+                <label className="text-sm text-muted-foreground">Data de Cadastro</label>
+                <p className="text-foreground font-medium">{formatDate(user.created_at || user.date_joined)}</p>
               </div>
               
               {user.last_login && (
                 <div>
-                  <label className="text-sm text-gray-400">Último Login</label>
-                  <p className="text-white font-medium">{formatDate(user.last_login)}</p>
+                  <label className="text-sm text-muted-foreground">Último Login</label>
+                  <p className="text-foreground font-medium">{formatDate(user.last_login)}</p>
                 </div>
               )}
             </CardContent>

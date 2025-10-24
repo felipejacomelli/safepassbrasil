@@ -157,7 +157,7 @@ export default function ResetPasswordPage() {
   // Loading state durante validação do token
   if (isValidatingToken) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6 text-center">
           <div className="mx-auto w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-4">
             <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
@@ -174,7 +174,7 @@ export default function ResetPasswordPage() {
   // Estado de sucesso
   if (isPasswordReset) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
             <div className="mx-auto w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
@@ -186,7 +186,7 @@ export default function ResetPasswordPage() {
             </p>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <h3 className="font-semibold mb-2 flex items-center gap-2">
               <Lock className="w-4 h-4" />
               Próximos passos:
@@ -200,7 +200,7 @@ export default function ResetPasswordPage() {
 
           <Button
             onClick={() => router.push("/login")}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-foreground"
           >
             Ir para o login
           </Button>
@@ -212,7 +212,7 @@ export default function ResetPasswordPage() {
   // Estado de erro (token inválido)
   if (!isTokenValid) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
             <div className="mx-auto w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
@@ -240,7 +240,7 @@ export default function ResetPasswordPage() {
 
           <div className="space-y-3">
             <Link href="/forgot-password">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-foreground">
                 Solicitar novo link
               </Button>
             </Link>
@@ -260,7 +260,7 @@ export default function ResetPasswordPage() {
 
   // Formulário de redefinição de senha
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <div className="mx-auto w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-4">
@@ -283,7 +283,7 @@ export default function ResetPasswordPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="password" className="text-white">
+            <Label htmlFor="password" className="text-foreground">
               Nova senha
             </Label>
             <div className="relative">
@@ -295,14 +295,14 @@ export default function ResetPasswordPage() {
                 required
                 value={password}
                 onChange={(e) => handlePasswordChange(e.target.value)}
-                className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500 pr-10"
+                className="bg-card border-border text-foreground placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500 pr-10"
                 placeholder="Digite sua nova senha"
                 disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-foreground transition-colors"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -321,7 +321,7 @@ export default function ResetPasswordPage() {
           </div>
 
           <div>
-            <Label htmlFor="confirmPassword" className="text-white">
+            <Label htmlFor="confirmPassword" className="text-foreground">
               Confirmar nova senha
             </Label>
             <div className="relative">
@@ -333,14 +333,14 @@ export default function ResetPasswordPage() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500 pr-10"
+                className="bg-card border-border text-foreground placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500 pr-10"
                 placeholder="Confirme sua nova senha"
                 disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-foreground transition-colors"
               >
                 {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -354,7 +354,7 @@ export default function ResetPasswordPage() {
             )}
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <h3 className="font-semibold mb-2 text-sm">Critérios de segurança:</h3>
             <ul className="text-xs text-zinc-400 space-y-1">
               <li className={`flex items-center gap-2 ${password.length >= 8 ? 'text-green-400' : ''}`}>
@@ -383,7 +383,7 @@ export default function ResetPasswordPage() {
           <Button
             type="submit"
             disabled={isLoading || !password || !confirmPassword || passwordErrors.length > 0 || password !== confirmPassword}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <div className="flex items-center gap-2">

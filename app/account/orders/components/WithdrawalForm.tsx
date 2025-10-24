@@ -25,12 +25,12 @@ export function WithdrawalForm({
   onCancel
 }: WithdrawalFormProps) {
   return (
-    <div className="bg-zinc-900 rounded-lg p-6 mb-8 border border-zinc-800">
-      <h3 className="text-lg font-semibold text-white mb-4">Solicitar Saque</h3>
+    <div className="bg-card rounded-lg p-6 mb-8 border border-zinc-800">
+      <h3 className="text-lg font-semibold text-foreground mb-4">Solicitar Saque</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="withdrawal-amount" className="block text-sm font-medium text-gray-300 mb-2">
+          <label htmlFor="withdrawal-amount" className="block text-sm font-medium text-muted-foreground mb-2">
             Valor do Saque
           </label>
           <input
@@ -39,17 +39,17 @@ export function WithdrawalForm({
             value={withdrawalAmount}
             onChange={(e) => onAmountChange(e.target.value)}
             placeholder="0,00"
-            className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-2 bg-accent border border-border rounded-lg text-foreground placeholder-gray-400 focus:outline-none focus:border-blue-500"
             aria-describedby="withdrawal-amount-help"
           />
-          <p id="withdrawal-amount-help" className="text-xs text-gray-400 mt-1">
+          <p id="withdrawal-amount-help" className="text-xs text-muted-foreground mt-1">
             Valor máximo disponível: {formatCurrency(availableBalance)}
           </p>
         </div>
         
         <div>
           <fieldset>
-            <legend className="block text-sm font-medium text-gray-300 mb-2">
+            <legend className="block text-sm font-medium text-muted-foreground mb-2">
               Método de Pagamento
             </legend>
             <div className="space-y-2">
@@ -59,7 +59,7 @@ export function WithdrawalForm({
                 className={`w-full flex items-center p-3 rounded-lg border ${
                   paymentMethod.method === "pix"
                     ? "border-blue-500 bg-blue-900 bg-opacity-20"
-                    : "border-zinc-700 bg-zinc-800"
+                    : "border-border bg-accent"
                 }`}
                 aria-pressed={paymentMethod.method === "pix"}
               >
@@ -73,7 +73,7 @@ export function WithdrawalForm({
                 className={`w-full flex items-center p-3 rounded-lg border ${
                   paymentMethod.method === "bank"
                     ? "border-blue-500 bg-blue-900 bg-opacity-20"
-                    : "border-zinc-700 bg-zinc-800"
+                    : "border-border bg-accent"
                 }`}
                 aria-pressed={paymentMethod.method === "bank"}
               >
@@ -92,7 +92,7 @@ export function WithdrawalForm({
         <Button
           variant="outline"
           onClick={onCancel}
-          className="border-zinc-700 text-white hover:bg-zinc-800"
+          className="border-border text-foreground hover:bg-accent"
         >
           Cancelar
         </Button>

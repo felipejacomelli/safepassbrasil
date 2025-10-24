@@ -249,8 +249,8 @@ export default function DashboardPage() {
       case 'urgent': return <AlertTriangle className="h-4 w-4 text-red-500" />
       case 'high': return <AlertTriangle className="h-4 w-4 text-orange-500" />
       case 'medium': return <Bell className="h-4 w-4 text-blue-500" />
-      case 'low': return <Bell className="h-4 w-4 text-gray-500" />
-      default: return <Bell className="h-4 w-4 text-gray-500" />
+      case 'low': return <Bell className="h-4 w-4 text-muted-foreground" />
+      default: return <Bell className="h-4 w-4 text-muted-foreground" />
     }
   }
 

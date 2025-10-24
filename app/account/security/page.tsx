@@ -181,7 +181,7 @@ export default function SecurityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       {/* Header/Navigation */}
       <header
         style={{
@@ -324,15 +324,15 @@ export default function SecurityPage() {
 
           {/* Main Content */}
           <div className="md:w-3/4">
-            <h1 className="text-3xl font-bold text-white mb-6">Segurança da Conta</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-6">Segurança da Conta</h1>
 
             {/* 2FA Configuration Card */}
-            <div className="bg-zinc-900 rounded-lg p-6 mb-6">
+            <div className="bg-card rounded-lg p-6 mb-6">
               <div className="flex items-center gap-2 mb-4">
                 <Shield className="h-5 w-5 text-blue-500" />
-                <h2 className="text-xl font-bold text-white">Verificação em Duas Etapas</h2>
+                <h2 className="text-xl font-bold text-foreground">Verificação em Duas Etapas</h2>
               </div>
-              <p className="text-gray-400 mb-6">
+              <p className="text-muted-foreground mb-6">
                 Adicione uma camada extra de segurança à sua conta exigindo um código de verificação além da senha.
               </p>
 
@@ -347,31 +347,31 @@ export default function SecurityPage() {
               {!showSetup ? (
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-white">Autenticação em duas etapas</p>
-                    <p className="text-sm text-gray-400">
+                    <p className="font-medium text-foreground">Autenticação em duas etapas</p>
+                    <p className="text-sm text-muted-foreground">
                       {is2FAEnabled
                         ? "Ativada. Sua conta está protegida com autenticação em duas etapas."
                         : "Desativada. Sua conta está vulnerável a ataques."}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-white">{is2FAEnabled ? "Ativado" : "Desativado"}</span>
+                    <span className="text-sm text-foreground">{is2FAEnabled ? "Ativado" : "Desativado"}</span>
                     <Switch checked={is2FAEnabled} onCheckedChange={handleToggle2FA} />
                   </div>
                 </div>
               ) : (
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <h3 className="text-lg font-medium text-white">Configurar autenticação em duas etapas</h3>
+                    <h3 className="text-lg font-medium text-foreground">Configurar autenticação em duas etapas</h3>
 
                     {setupStep === 1 && (
                       <div className="space-y-4">
-                        <p className="text-gray-400">
+                        <p className="text-muted-foreground">
                           Passo 1: Escaneie o código QR com seu aplicativo autenticador (Google Authenticator, Authy, etc.)
                         </p>
 
                         {qrCode ? (
-                          <div className="flex justify-center p-4 bg-zinc-800 rounded-lg">
+                          <div className="flex justify-center p-4 bg-accent rounded-lg">
                             <img
                               src={`https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=${encodeURIComponent(qrCode)}`}
                               alt="QR Code para configuração 2FA"
@@ -379,17 +379,17 @@ export default function SecurityPage() {
                             />
                           </div>
                         ) : (
-                          <div className="flex justify-center p-4 bg-zinc-800 rounded-lg">
-                            <div className="w-48 h-48 bg-zinc-900 border border-zinc-700 flex items-center justify-center">
-                              <p className="text-gray-400">Clique em "Gerar QR Code" para começar</p>
+                          <div className="flex justify-center p-4 bg-accent rounded-lg">
+                            <div className="w-48 h-48 bg-card border border-border flex items-center justify-center">
+                              <p className="text-muted-foreground">Clique em "Gerar QR Code" para começar</p>
                             </div>
                           </div>
                         )}
 
                         {secret && (
-                          <p className="text-sm text-gray-400">
+                          <p className="text-sm text-muted-foreground">
                             Não consegue escanear? Use este código secreto no seu aplicativo:{" "}
-                            <span className="font-mono bg-zinc-800 text-white px-2 py-1 rounded">{secret}</span>
+                            <span className="font-mono bg-accent text-foreground px-2 py-1 rounded">{secret}</span>
                           </p>
                         )}
 
@@ -421,7 +421,7 @@ export default function SecurityPage() {
 
                     {setupStep === 2 && (
                       <div className="space-y-4">
-                        <p className="text-gray-400">Passo 2: Digite o código de 6 dígitos do seu aplicativo autenticador</p>
+                        <p className="text-muted-foreground">Passo 2: Digite o código de 6 dígitos do seu aplicativo autenticador</p>
 
                         {error && (
                           <Alert className="mb-4 bg-red-900 bg-opacity-20 border border-red-800 rounded-md">
@@ -432,19 +432,19 @@ export default function SecurityPage() {
                         )}
 
                         <div className="grid gap-2">
-                          <Label htmlFor="verificationCode" className="text-gray-300">Código de verificação</Label>
+                          <Label htmlFor="verificationCode" className="text-muted-foreground">Código de verificação</Label>
                           <Input
                             id="verificationCode"
                             placeholder="123456"
                             value={verificationCode}
                             onChange={(e) => setVerificationCode(e.target.value)}
                             maxLength={6}
-                            className="font-mono text-center text-lg bg-zinc-800 border-zinc-700 text-white"
+                            className="font-mono text-center text-lg bg-accent border-border text-foreground"
                           />
                         </div>
 
                         <div className="flex gap-2">
-                          <Button variant="outline" onClick={() => setSetupStep(1)} className="border-zinc-700 text-white bg-transparent">
+                          <Button variant="outline" onClick={() => setSetupStep(1)} className="border-border text-foreground bg-transparent">
                             Voltar
                           </Button>
                           <Button onClick={verifyAndEnable2FA} className="bg-primary hover:bg-blue-600 text-black">Verificar e ativar</Button>
@@ -458,17 +458,17 @@ export default function SecurityPage() {
 
             {/* Backup Codes Card */}
             {backupCodes.length > 0 && (
-              <div className="bg-zinc-900 rounded-lg p-6 mb-6">
-                <h3 className="text-lg font-medium text-white mb-2">Códigos de backup</h3>
-                <p className="text-sm text-gray-400 mb-4">
+              <div className="bg-card rounded-lg p-6 mb-6">
+                <h3 className="text-lg font-medium text-foreground mb-2">Códigos de backup</h3>
+                <p className="text-sm text-muted-foreground mb-4">
                   Guarde estes códigos em um lugar seguro. Você pode usá-los para acessar sua conta caso perca acesso
                   ao seu dispositivo autenticador.
                 </p>
 
-                <div className="bg-zinc-800 p-4 rounded-lg mb-4">
+                <div className="bg-accent p-4 rounded-lg mb-4">
                   <div className="grid grid-cols-2 gap-2">
                     {backupCodes.map((code, index) => (
-                      <div key={index} className="font-mono text-sm bg-zinc-900 text-white p-2 rounded border border-zinc-700">
+                      <div key={index} className="font-mono text-sm bg-card text-foreground p-2 rounded border border-border">
                         {code}
                       </div>
                     ))}
@@ -476,11 +476,11 @@ export default function SecurityPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={copyBackupCodes} className="border-zinc-700 text-white bg-transparent">
+                  <Button variant="outline" size="sm" onClick={copyBackupCodes} className="border-border text-foreground bg-transparent">
                     <Copy className="h-4 w-4 mr-2" />
                     Copiar códigos
                   </Button>
-                  <Button variant="outline" size="sm" onClick={regenerateBackupCodes} className="border-zinc-700 text-white bg-transparent">
+                  <Button variant="outline" size="sm" onClick={regenerateBackupCodes} className="border-border text-foreground bg-transparent">
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Gerar novos códigos
                   </Button>
@@ -489,15 +489,15 @@ export default function SecurityPage() {
             )}
 
             {/* Activity History Card */}
-            <div className="bg-zinc-900 rounded-lg p-6">
-              <h3 className="text-xl font-bold text-white mb-2">Histórico de atividades</h3>
-              <p className="text-gray-400 mb-4">Monitore os acessos recentes à sua conta.</p>
+            <div className="bg-card rounded-lg p-6">
+              <h3 className="text-xl font-bold text-foreground mb-2">Histórico de atividades</h3>
+              <p className="text-muted-foreground mb-4">Monitore os acessos recentes à sua conta.</p>
               <div className="space-y-4">
                 {activities.map((activity, index) => (
-                  <div key={index} className="flex justify-between items-center p-3 bg-zinc-800 rounded-lg">
+                  <div key={index} className="flex justify-between items-center p-3 bg-accent rounded-lg">
                     <div>
-                      <p className="font-medium text-white">{activity.date}</p>
-                      <p className="text-sm text-gray-400">
+                      <p className="font-medium text-foreground">{activity.date}</p>
+                      <p className="text-sm text-muted-foreground">
                         {activity.device} • {activity.location}
                       </p>
                     </div>

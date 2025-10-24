@@ -60,7 +60,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Header />
 
       {/* Search Bar */}
@@ -84,7 +84,7 @@ export default function SearchPage() {
       />
 
       {/* Search Results */}
-      <main className="flex-1 bg-zinc-800 px-4 py-12">
+      <main className="flex-1 bg-accent px-4 py-12">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">
             {getSearchTitle()}
@@ -104,12 +104,12 @@ export default function SearchPage() {
       </main>
 
       {/* Footer Section */}
-      <footer className="bg-zinc-800 border-t border-zinc-700 px-4 py-16">
+      <footer className="bg-accent border-t border-border px-4 py-16">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* About Section */}
             <div>
-              <h3 className="text-lg font-bold mb-4 text-white">
+              <h3 className="text-lg font-bold mb-4 text-foreground">
                 Sobre
               </h3>
               <p className="text-zinc-400 text-sm leading-relaxed mb-3">
@@ -126,23 +126,23 @@ export default function SearchPage() {
 
             {/* Quick Access */}
             <div>
-              <h3 className="text-lg font-bold mb-4 text-white">
+              <h3 className="text-lg font-bold mb-4 text-foreground">
                 Acesso Rápido
               </h3>
               <div className="flex flex-col gap-2">
-                <a href="#" className="text-zinc-400 hover:text-white text-sm transition-colors">
+                <a href="#" className="text-zinc-400 hover:text-foreground text-sm transition-colors">
                   Como Funciona
                 </a>
-                <a href="#" className="text-zinc-400 hover:text-white text-sm transition-colors">
+                <a href="#" className="text-zinc-400 hover:text-foreground text-sm transition-colors">
                   Login
                 </a>
-                <a href="#" className="text-zinc-400 hover:text-white text-sm transition-colors">
+                <a href="#" className="text-zinc-400 hover:text-foreground text-sm transition-colors">
                   Termos de Uso
                 </a>
-                <a href="#" className="text-zinc-400 hover:text-white text-sm transition-colors">
+                <a href="#" className="text-zinc-400 hover:text-foreground text-sm transition-colors">
                   Política de Privacidade
                 </a>
-                <a href="#" className="text-zinc-400 hover:text-white text-sm transition-colors">
+                <a href="#" className="text-zinc-400 hover:text-foreground text-sm transition-colors">
                   Início
                 </a>
               </div>
@@ -150,7 +150,7 @@ export default function SearchPage() {
 
             {/* Guarantee Section */}
             <div>
-              <h3 className="text-lg font-bold mb-4 text-white">
+              <h3 className="text-lg font-bold mb-4 text-foreground">
                 Garantia Safe Pass
               </h3>
               <div className="space-y-4">
@@ -167,7 +167,7 @@ export default function SearchPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-white text-sm font-medium mb-1">
+                    <p className="text-foreground text-sm font-medium mb-1">
                       Ingresso Garantido
                     </p>
                     <p className="text-zinc-400 text-sm leading-relaxed">
@@ -189,7 +189,7 @@ export default function SearchPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-white text-sm font-medium mb-1">
+                    <p className="text-foreground text-sm font-medium mb-1">
                       Pagamento Garantido
                     </p>
                     <p className="text-zinc-400 text-sm leading-relaxed">
@@ -225,7 +225,7 @@ export default function SearchPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-white text-sm font-medium mb-1">
+                    <p className="text-foreground text-sm font-medium mb-1">
                       Plataforma Confiável
                     </p>
                     <p className="text-zinc-400 text-sm leading-relaxed">
@@ -238,13 +238,13 @@ export default function SearchPage() {
 
             {/* Social Media */}
             <div>
-              <h3 className="text-lg font-bold mb-4 text-white">
+              <h3 className="text-lg font-bold mb-4 text-foreground">
                 Redes Sociais
               </h3>
               <div className="flex gap-3 mb-6">
                 <a
                   href="#"
-                  className="bg-zinc-700 w-10 h-10 rounded-full flex items-center justify-center text-white hover:bg-zinc-600 transition-colors"
+                  className="bg-zinc-700 w-10 h-10 rounded-full flex items-center justify-center text-foreground hover:bg-zinc-600 transition-colors"
                   aria-label="Facebook"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -259,7 +259,7 @@ export default function SearchPage() {
                 </a>
                 <a
                   href="#"
-                  className="bg-zinc-700 w-10 h-10 rounded-full flex items-center justify-center text-white hover:bg-zinc-600 transition-colors"
+                  className="bg-zinc-700 w-10 h-10 rounded-full flex items-center justify-center text-foreground hover:bg-zinc-600 transition-colors"
                   aria-label="Instagram"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -270,7 +270,7 @@ export default function SearchPage() {
                 </a>
                 <a
                   href="#"
-                  className="bg-zinc-700 w-10 h-10 rounded-full flex items-center justify-center text-white hover:bg-zinc-600 transition-colors"
+                  className="bg-zinc-700 w-10 h-10 rounded-full flex items-center justify-center text-foreground hover:bg-zinc-600 transition-colors"
                   aria-label="YouTube"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -17,24 +17,24 @@ export default function CheckoutSuccessPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="w-full py-4 border-b border-zinc-800">
         <div className="container mx-auto px-4 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2">
             <div className="bg-primary p-1.5 rounded">
-              <div className="w-6 h-6 bg-black rounded" />
+              <div className="w-6 h-6 bg-background rounded" />
             </div>
-            <span className="text-white text-xl font-bold">Safe Pass</span>
+            <span className="text-foreground text-xl font-bold">Safe Pass</span>
           </a>
           <div className="flex items-center gap-6">
-            <a href="/#como-funciona" className="text-white hover:text-primary transition">
+            <a href="/#como-funciona" className="text-foreground hover:text-primary transition">
               Como Funciona
             </a>
-            <a href="#" className="text-white hover:text-primary transition">
+            <a href="#" className="text-foreground hover:text-primary transition">
               WhatsApp
             </a>
-            <Button variant="outline" className="bg-black text-white border-primary hover:bg-primary hover:text-black">
+            <Button variant="outline" className="bg-background text-foreground border-primary hover:bg-primary hover:text-black">
               Acessar
             </Button>
           </div>
@@ -44,28 +44,28 @@ export default function CheckoutSuccessPage() {
       {/* Success Content */}
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-zinc-900 rounded-lg p-8 border border-green-800">
+          <div className="bg-card rounded-lg p-8 border border-green-800">
             <div className="flex flex-col items-center text-center mb-8">
               <div className="w-20 h-20 bg-green-900 rounded-full flex items-center justify-center mb-6">
                 <CheckCircle className="w-10 h-10 text-green-500" />
               </div>
-              <h1 className="text-3xl font-bold text-white mb-2">Compra Realizada com Sucesso!</h1>
-              <p className="text-gray-400">
+              <h1 className="text-3xl font-bold text-foreground mb-2">Compra Realizada com Sucesso!</h1>
+              <p className="text-muted-foreground">
                 Seu pedido #{orderNumber} foi confirmado e seus ingressos estão disponíveis na sua conta.
               </p>
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 bg-zinc-800 rounded-lg">
-                <h3 className="text-white font-medium mb-2">Detalhes do Pedido</h3>
+              <div className="p-4 bg-accent rounded-lg">
+                <h3 className="text-foreground font-medium mb-2">Detalhes do Pedido</h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Número do Pedido:</span>
-                    <span className="text-white font-medium">#{orderNumber}</span>
+                    <span className="text-muted-foreground">Número do Pedido:</span>
+                    <span className="text-foreground font-medium">#{orderNumber}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Data:</span>
-                    <span className="text-white">
+                    <span className="text-muted-foreground">Data:</span>
+                    <span className="text-foreground">
                       {new Date().toLocaleDateString("pt-BR", {
                         day: "2-digit",
                         month: "2-digit",
@@ -74,19 +74,19 @@ export default function CheckoutSuccessPage() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Método de Pagamento:</span>
-                    <span className="text-white">Cartão de Crédito</span>
+                    <span className="text-muted-foreground">Método de Pagamento:</span>
+                    <span className="text-foreground">Cartão de Crédito</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Status:</span>
+                    <span className="text-muted-foreground">Status:</span>
                     <span className="text-green-500">Confirmado</span>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 bg-zinc-800 rounded-lg">
-                <h3 className="text-white font-medium mb-2">Próximos Passos</h3>
-                <ul className="text-gray-400 space-y-2">
+              <div className="p-4 bg-accent rounded-lg">
+                <h3 className="text-foreground font-medium mb-2">Próximos Passos</h3>
+                <ul className="text-muted-foreground space-y-2">
                   <li className="flex items-start gap-2">
                     <Mail className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                     <span>Enviamos um email com os detalhes da sua compra</span>
@@ -123,19 +123,19 @@ export default function CheckoutSuccessPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-zinc-900 border-t border-zinc-800 py-8 mt-16">
+      <footer className="bg-card border-t border-zinc-800 py-8 mt-16">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
               <a href="/" className="flex items-center gap-2">
                 <div className="bg-primary p-1.5 rounded">
-                  <div className="w-6 h-6 bg-black rounded" />
+                  <div className="w-6 h-6 bg-background rounded" />
                 </div>
-                <span className="text-white text-xl font-bold">Safe Pass</span>
+                <span className="text-foreground text-xl font-bold">Safe Pass</span>
               </a>
             </div>
             <div className="text-center md:text-right">
-              <p className="text-gray-400 text-sm">© 2023 Safe Pass. Todos os direitos reservados.</p>
+              <p className="text-muted-foreground text-sm">© 2023 Safe Pass. Todos os direitos reservados.</p>
             </div>
           </div>
         </div>

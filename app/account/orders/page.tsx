@@ -358,7 +358,7 @@ export default function OrdersPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row gap-8">
@@ -374,7 +374,7 @@ export default function OrdersPage() {
 
   if (hasError) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row gap-8">
@@ -395,7 +395,7 @@ export default function OrdersPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row gap-8">
@@ -410,8 +410,8 @@ export default function OrdersPage() {
             {/* Main Content */}
             <div className="md:w-3/4">
               <div className="mb-8">
-                <h1 className="text-3xl font-bold text-white mb-2">Meus Pedidos</h1>
-                <p className="text-gray-400">Gerencie seus ingressos comprados e vendidos</p>
+                <h1 className="text-3xl font-bold text-foreground mb-2">Meus Pedidos</h1>
+                <p className="text-muted-foreground">Gerencie seus ingressos comprados e vendidos</p>
               </div>
 
               {/* Seção de Saldo */}
@@ -436,7 +436,7 @@ export default function OrdersPage() {
 
               {/* Tabs de Navegação */}
               <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabType)}>
-                <TabsList className="grid w-full grid-cols-2 bg-zinc-900">
+                <TabsList className="grid w-full grid-cols-2 bg-card">
                   <TabsTrigger value="compras" className="data-[state=active]:bg-blue-600">
                     Compras ({purchasedTickets.length})
                   </TabsTrigger>
@@ -448,11 +448,11 @@ export default function OrdersPage() {
                 {/* Tab de Compras */}
                 <TabsContent value="compras" className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold text-white">Ingressos Comprados</h2>
+                    <h2 className="text-xl font-semibold text-foreground">Ingressos Comprados</h2>
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                      className="bg-zinc-800 border border-zinc-700 text-white px-3 py-2 rounded-md"
+                      className="bg-accent border border-border text-foreground px-3 py-2 rounded-md"
                     >
                       <option value="all">Todos os Status</option>
                       <option value="active">Ativo</option>
@@ -481,7 +481,7 @@ export default function OrdersPage() {
                     ))}
                     {filteredPurchasedTickets.length === 0 && (
                       <div className="text-center py-12">
-                        <p className="text-gray-400">Nenhum ingresso comprado encontrado</p>
+                        <p className="text-muted-foreground">Nenhum ingresso comprado encontrado</p>
                       </div>
                     )}
                   </div>
@@ -507,7 +507,7 @@ export default function OrdersPage() {
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                      className="bg-zinc-800 border border-zinc-700 text-white px-3 py-2 rounded-md"
+                      className="bg-accent border border-border text-foreground px-3 py-2 rounded-md"
                     >
                       <option value="all">Todos os Status</option>
                       <option value="active">Ativo</option>
@@ -534,7 +534,7 @@ export default function OrdersPage() {
                     ))}
                     {filteredSalesTickets.length === 0 && (
                       <div className="text-center py-12">
-                        <p className="text-gray-400">
+                        <p className="text-muted-foreground">
                           {salesTab === 'anunciadas' 
                             ? 'Nenhum ingresso anunciado encontrado' 
                             : 'Nenhuma venda efetivada encontrada'

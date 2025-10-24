@@ -27,7 +27,7 @@ export default function SecurityLoading() {
 
           <div className="space-y-3 pt-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+              <div key={i} className="flex justify-between items-center p-3 bg-accent rounded-lg">
                 <div className="space-y-2">
                   <Skeleton className="h-5 w-36" />
                   <Skeleton className="h-4 w-48" />

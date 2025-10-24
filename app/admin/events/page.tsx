@@ -275,7 +275,7 @@ export default function AdminEventsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white p-6">
+      <div className="min-h-screen bg-background text-foreground p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-center items-center h-64">
             <div className="text-lg">Carregando eventos...</div>
@@ -286,7 +286,7 @@ export default function AdminEventsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
+    <div className="min-h-screen bg-background text-foreground p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -303,20 +303,20 @@ export default function AdminEventsPage() {
         {/* Search and Filters */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
             <Input
               placeholder="Buscar eventos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-zinc-900 border-zinc-700 text-white placeholder-gray-400"
+              className="pl-10 bg-card border-border text-foreground placeholder-gray-400"
             />
           </div>
           
           <div className="flex gap-2">
             <Button
               variant="outline"
-              className={`bg-transparent border-zinc-700 ${
-                statusFilter === "all" ? "text-primary border-primary" : "text-white"
+              className={`bg-transparent border-border ${
+                statusFilter === "all" ? "text-primary border-primary" : "text-foreground"
               }`}
               onClick={() => setStatusFilter("all")}
             >
@@ -324,8 +324,8 @@ export default function AdminEventsPage() {
             </Button>
             <Button
               variant="outline"
-              className={`bg-transparent border-zinc-700 ${
-                statusFilter === "active" ? "text-primary border-primary" : "text-white"
+              className={`bg-transparent border-border ${
+                statusFilter === "active" ? "text-primary border-primary" : "text-foreground"
               }`}
               onClick={() => setStatusFilter("active")}
             >
@@ -333,8 +333,8 @@ export default function AdminEventsPage() {
             </Button>
             <Button
               variant="outline"
-              className={`bg-transparent border-zinc-700 ${
-                statusFilter === "upcoming" ? "text-primary border-primary" : "text-white"
+              className={`bg-transparent border-border ${
+                statusFilter === "upcoming" ? "text-primary border-primary" : "text-foreground"
               }`}
               onClick={() => setStatusFilter("upcoming")}
             >
@@ -342,8 +342,8 @@ export default function AdminEventsPage() {
             </Button>
             <Button
               variant="outline"
-              className={`bg-transparent border-zinc-700 ${
-                statusFilter === "completed" ? "text-primary border-primary" : "text-white"
+              className={`bg-transparent border-border ${
+                statusFilter === "completed" ? "text-primary border-primary" : "text-foreground"
               }`}
               onClick={() => setStatusFilter("completed")}
             >
@@ -353,55 +353,55 @@ export default function AdminEventsPage() {
         </div>
 
         {/* Events Table */}
-        <Card className="bg-zinc-900 border-zinc-800 text-white">
+        <Card className="bg-card border-zinc-800 text-foreground">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-zinc-800">
-                    <th className="text-left py-4 px-6 text-gray-400 font-medium">
+                    <th className="text-left py-4 px-6 text-muted-foreground font-medium">
                       <button className="flex items-center" onClick={() => handleSort("name")}>
                         Evento
                         <ArrowUpDown size={14} className="ml-1" />
                       </button>
                     </th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-medium">
+                    <th className="text-left py-4 px-6 text-muted-foreground font-medium">
                       <button className="flex items-center" onClick={() => handleSort("date")}>
                         Data
                         <ArrowUpDown size={14} className="ml-1" />
                       </button>
                     </th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-medium">
+                    <th className="text-left py-4 px-6 text-muted-foreground font-medium">
                       <button className="flex items-center" onClick={() => handleSort("location")}>
                         Local
                         <ArrowUpDown size={14} className="ml-1" />
                       </button>
                     </th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-medium">
+                    <th className="text-left py-4 px-6 text-muted-foreground font-medium">
                       <button className="flex items-center" onClick={() => handleSort("status")}>
                         Status
                         <ArrowUpDown size={14} className="ml-1" />
                       </button>
                     </th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-medium">
+                    <th className="text-left py-4 px-6 text-muted-foreground font-medium">
                       <button className="flex items-center" onClick={() => handleSort("totalTickets")}>
                         Ingressos
                         <ArrowUpDown size={14} className="ml-1" />
                       </button>
                     </th>
-                    <th className="text-left py-4 px-6 text-gray-400 font-medium">
+                    <th className="text-left py-4 px-6 text-muted-foreground font-medium">
                       <button className="flex items-center" onClick={() => handleSort("revenue")}>
                         Receita
                         <ArrowUpDown size={14} className="ml-1" />
                       </button>
                     </th>
-                    <th className="text-center py-4 px-6 text-gray-400 font-medium">Ações</th>
+                    <th className="text-center py-4 px-6 text-muted-foreground font-medium">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredEvents.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-8 px-6 text-center text-gray-400">
+                      <td colSpan={7} className="py-8 px-6 text-center text-muted-foreground">
                         {searchTerm || statusFilter !== "all" 
                           ? "Nenhum evento encontrado com os filtros aplicados." 
                           : "Nenhum evento cadastrado ainda."}
@@ -424,13 +424,13 @@ export default function AdminEventsPage() {
                         </td>
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-2">
-                            <Calendar size={16} className="text-gray-400" />
+                            <Calendar size={16} className="text-muted-foreground" />
                             {event.date}
                           </div>
                         </td>
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-2">
-                            <MapPin size={16} className="text-gray-400" />
+                            <MapPin size={16} className="text-muted-foreground" />
                             {event.location}
                           </div>
                         </td>
@@ -441,7 +441,7 @@ export default function AdminEventsPage() {
                                 ? "bg-green-900 bg-opacity-20 text-green-500"
                                 : event.status === "upcoming"
                                   ? "bg-blue-900 bg-opacity-20 text-blue-500"
-                                  : "bg-gray-900 bg-opacity-20 text-gray-500"
+                                  : "bg-card bg-opacity-20 text-muted-foreground"
                             }`}
                           >
                             {event.status === "active" ? "Ativo" : event.status === "upcoming" ? "Próximo" : "Concluído"}
@@ -449,7 +449,7 @@ export default function AdminEventsPage() {
                         </td>
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-2">
-                            <Users size={16} className="text-gray-400" />
+                            <Users size={16} className="text-muted-foreground" />
                             {event.ticketsSold.toLocaleString()} / {event.totalTickets.toLocaleString()}
                           </div>
                         </td>
@@ -463,7 +463,7 @@ export default function AdminEventsPage() {
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-zinc-800 border-zinc-700 text-white">
+                            <DropdownMenuContent align="end" className="bg-accent border-border text-foreground">
                               <DropdownMenuItem
                                 className="cursor-pointer hover:bg-zinc-700"
                                 onClick={() => router.push(`/admin/events/${event.id}`)}
@@ -502,17 +502,17 @@ export default function AdminEventsPage() {
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+          <DialogContent className="bg-card border-zinc-800 text-foreground">
             <DialogHeader>
               <DialogTitle>Confirmar Exclusão</DialogTitle>
-              <DialogDescription className="text-gray-400">
+              <DialogDescription className="text-muted-foreground">
                 Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <Button
                 variant="outline"
-                className="bg-transparent border-zinc-700 text-white hover:bg-zinc-800"
+                className="bg-transparent border-border text-foreground hover:bg-accent"
                 onClick={() => setDeleteDialogOpen(false)}
               >
                 Cancelar

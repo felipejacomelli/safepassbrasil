@@ -54,24 +54,24 @@ export default function CheckoutErrorPage() {
   }, [searchParams])
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="w-full py-4 border-b border-zinc-800">
         <div className="container mx-auto px-4 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2">
             <div className="bg-primary p-1.5 rounded">
-              <div className="w-6 h-6 bg-black rounded" />
+              <div className="w-6 h-6 bg-background rounded" />
             </div>
-            <span className="text-white text-xl font-bold">Safe Pass</span>
+            <span className="text-foreground text-xl font-bold">Safe Pass</span>
           </a>
           <div className="flex items-center gap-6">
-            <a href="/#como-funciona" className="text-white hover:text-primary transition">
+            <a href="/#como-funciona" className="text-foreground hover:text-primary transition">
               Como Funciona
             </a>
-            <a href="#" className="text-white hover:text-primary transition">
+            <a href="#" className="text-foreground hover:text-primary transition">
               WhatsApp
             </a>
-            <Button variant="outline" className="bg-black text-white border-primary hover:bg-primary hover:text-black">
+            <Button variant="outline" className="bg-background text-foreground border-primary hover:bg-primary hover:text-black">
               Acessar
             </Button>
           </div>
@@ -81,19 +81,19 @@ export default function CheckoutErrorPage() {
       {/* Error Content */}
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-zinc-900 rounded-lg p-8 border border-red-800">
+          <div className="bg-card rounded-lg p-8 border border-red-800">
             <div className="flex flex-col items-center text-center mb-8">
               <div className="w-20 h-20 bg-red-900 rounded-full flex items-center justify-center mb-6">
                 <AlertCircle className="w-10 h-10 text-red-500" />
               </div>
-              <h1 className="text-3xl font-bold text-white mb-2">{errorTitle}</h1>
-              <p className="text-gray-400">{errorDescription}</p>
+              <h1 className="text-3xl font-bold text-foreground mb-2">{errorTitle}</h1>
+              <p className="text-muted-foreground">{errorDescription}</p>
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 bg-zinc-800 rounded-lg">
-                <h3 className="text-white font-medium mb-2">O que fazer agora?</h3>
-                <ul className="text-gray-400 space-y-2">
+              <div className="p-4 bg-accent rounded-lg">
+                <h3 className="text-foreground font-medium mb-2">O que fazer agora?</h3>
+                <ul className="text-muted-foreground space-y-2">
                   <li className="flex items-start gap-2">
                     <CreditCard className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                     <span>Verifique os dados do seu cartão e tente novamente</span>
@@ -109,7 +109,7 @@ export default function CheckoutErrorPage() {
                 <Button
                   onClick={() => router.back()}
                   variant="outline"
-                  className="flex-1 bg-transparent border-zinc-700 text-white hover:bg-zinc-800"
+                  className="flex-1 bg-transparent border-border text-foreground hover:bg-accent"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Voltar ao Pagamento
@@ -133,19 +133,19 @@ export default function CheckoutErrorPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-zinc-900 border-t border-zinc-800 py-8 mt-16">
+      <footer className="bg-card border-t border-zinc-800 py-8 mt-16">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
               <a href="/" className="flex items-center gap-2">
                 <div className="bg-primary p-1.5 rounded">
-                  <div className="w-6 h-6 bg-black rounded" />
+                  <div className="w-6 h-6 bg-background rounded" />
                 </div>
-                <span className="text-white text-xl font-bold">Safe Pass</span>
+                <span className="text-foreground text-xl font-bold">Safe Pass</span>
               </a>
             </div>
             <div className="text-center md:text-right">
-              <p className="text-gray-400 text-sm">© 2023 Safe Pass. Todos os direitos reservados.</p>
+              <p className="text-muted-foreground text-sm">© 2023 Safe Pass. Todos os direitos reservados.</p>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { useAuth } from "@/contexts/auth-context"
+import { ThemeToggle } from "./ThemeToggle"
 import {
     User,
     ShoppingCart,
@@ -54,11 +55,11 @@ export default function Header() {
     // ✅ Evitar hydration error - renderizar skeleton simples
     if (!isMounted) {
         return (
-            <header className="sticky top-0 z-10 bg-black border-b border-zinc-800">
+            <header className="sticky top-0 z-10 bg-background border-b border-border">
                 <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
                     <Link href="/" className="flex items-center gap-2 font-bold text-xl">
                         <div className="bg-blue-500 p-1.5 rounded">
-                            <div className="w-6 h-6 bg-black rounded" />
+                            <div className="w-6 h-6 bg-background rounded" />
                         </div>
                         Safe Pass
                     </Link>
@@ -76,15 +77,16 @@ export default function Header() {
     }
 
     return (
-        <header className="sticky top-0 z-10 bg-black border-b border-zinc-800">
+        <header className="sticky top-0 z-10 bg-background border-b border-border">
             <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
                 <Link href="/" className="flex items-center gap-2 font-bold text-xl">
                     <div className="bg-blue-500 p-1.5 rounded">
-                        <div className="w-6 h-6 bg-black rounded" />
+                        <div className="w-6 h-6 bg-background rounded" />
                     </div>
                     Safe Pass
                 </Link>
                 <nav className="flex items-center gap-4">
+                    <ThemeToggle />
                     {isAuthenticated ? (
                         <>
                             <NotificationBell />
@@ -99,11 +101,11 @@ export default function Header() {
                             </button>
                             
                             {isUserMenuOpen && (
-                                <div className="absolute right-0 top-full mt-2 w-48 bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg z-50">
+                                <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-lg shadow-lg z-50">
                                     <div className="py-2">
                                         <button
                                             onClick={handleAccountAccess}
-                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-800 transition-colors text-left"
+                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent transition-colors text-left text-foreground"
                                         >
                                             <UserCircle size={16} />
                                             Minha Conta
@@ -113,7 +115,7 @@ export default function Header() {
                                                 router.push("/dashboard")
                                                 setIsUserMenuOpen(false)
                                             }}
-                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-800 transition-colors text-left"
+                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent transition-colors text-left text-foreground"
                                         >
                                             <Settings size={16} />
                                             Dashboard
@@ -121,7 +123,7 @@ export default function Header() {
                                         {user?.isAdmin && (
                                             <button
                                                 onClick={handleAdminPanelAccess}
-                                                className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-800 transition-colors text-left text-blue-400"
+                                                className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent transition-colors text-left text-primary"
                                             >
                                                 <Settings size={16} />
                                                 Painel Admin
@@ -132,14 +134,14 @@ export default function Header() {
                                                 router.push("/cart")
                                                 setIsUserMenuOpen(false)
                                             }}
-                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-800 transition-colors text-left"
+                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent transition-colors text-left text-foreground"
                                         >
                                             <ShoppingCart size={16} />
                                             Carrinho
                                         </button>
                                         <button
                                             onClick={handleLogoutFromDropdown}
-                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-800 transition-colors text-left text-red-400"
+                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent transition-colors text-left text-destructive"
                                         >
                                             <LogOut size={16} />
                                             Sair

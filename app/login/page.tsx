@@ -290,16 +290,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-black">
+    <div className="flex min-h-screen flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="text-3xl font-bold text-blue-500">
             Safe Pass
           </Link>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-white">
+          <h2 className="mt-6 text-3xl font-bold tracking-tight text-foreground">
             {isLoginMode ? "Entre na sua conta" : "Crie sua conta"}
           </h2>
-          <p className="mt-2 text-sm text-gray-400">
+          <p className="mt-2 text-sm text-muted-foreground">
             {isLoginMode ? "Não tem uma conta? " : "Já tem uma conta? "}
             <button
               onClick={toggleMode}
@@ -313,17 +313,17 @@ export default function LoginPage() {
         {error && (
           <Alert variant="destructive" className="mb-4 bg-red-900 border-red-800">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle className="text-white">Erro</AlertTitle>
-            <AlertDescription className="text-gray-200">{error}</AlertDescription>
+            <AlertTitle className="text-foreground">Erro</AlertTitle>
+            <AlertDescription className="text-muted-foreground">{error}</AlertDescription>
           </Alert>
         )}
 
-        <div className="bg-gray-900 shadow rounded-lg p-6 border border-gray-800">
+        <div className="bg-card shadow rounded-lg p-6 border border-border">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLoginMode && (
               <>
                 <div>
-                  <Label htmlFor="name" className="text-white">
+                  <Label htmlFor="name" className="text-foreground">
                     Nome completo
                   </Label>
                   <Input
@@ -334,7 +334,7 @@ export default function LoginPage() {
                     required={!isLoginMode}
                     value={formData.name}
                     onChange={handleInputChange}
-                    className={`mt-1 bg-gray-800 border-gray-700 text-white ${fieldErrors.name ? 'border-red-500' : ''}`}
+                    className={`mt-1 bg-accent border-border text-foreground ${fieldErrors.name ? 'border-red-500' : ''}`}
                   />
                   {fieldErrors.name && (
                     <p className="mt-1 text-sm text-red-400">{fieldErrors.name}</p>
@@ -342,7 +342,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="phone" className="text-white">
+                  <Label htmlFor="phone" className="text-foreground">
                     Celular
                   </Label>
                   <Input
@@ -352,7 +352,7 @@ export default function LoginPage() {
                     autoComplete="tel"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className={`mt-1 bg-gray-800 border-gray-700 text-white ${fieldErrors.phone ? 'border-red-500' : ''}`}
+                    className={`mt-1 bg-accent border-border text-foreground ${fieldErrors.phone ? 'border-red-500' : ''}`}
                     placeholder="(11) 99999-9999"
                   />
                   {fieldErrors.phone && (
@@ -361,7 +361,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="cpf" className="text-white">
+                  <Label htmlFor="cpf" className="text-foreground">
                     CPF
                   </Label>
                   <Input
@@ -370,7 +370,7 @@ export default function LoginPage() {
                     type="text"
                     value={formData.cpf}
                     onChange={handleInputChange}
-                    className={`mt-1 bg-gray-800 border-gray-700 text-white ${fieldErrors.cpf ? 'border-red-500' : ''}`}
+                    className={`mt-1 bg-accent border-border text-foreground ${fieldErrors.cpf ? 'border-red-500' : ''}`}
                     placeholder="000.000.000-00"
                     maxLength={14}
                   />
@@ -380,7 +380,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="country" className="text-white">
+                  <Label htmlFor="country" className="text-foreground">
                     País
                   </Label>
                   <Input
@@ -389,7 +389,7 @@ export default function LoginPage() {
                     type="text"
                     value={formData.country}
                     onChange={handleInputChange}
-                    className={`mt-1 bg-gray-800 border-gray-700 text-white ${fieldErrors.country ? 'border-red-500' : ''}`}
+                    className={`mt-1 bg-accent border-border text-foreground ${fieldErrors.country ? 'border-red-500' : ''}`}
                     placeholder="Ex: Brasil"
                   />
                   {fieldErrors.country && (
@@ -400,7 +400,7 @@ export default function LoginPage() {
             )}
 
             <div>
-              <Label htmlFor="email" className="text-white">
+              <Label htmlFor="email" className="text-foreground">
                 Email
               </Label>
               <Input
@@ -411,7 +411,7 @@ export default function LoginPage() {
                 required
                 value={formData.email}
                 onChange={handleInputChange}
-                className={`mt-1 bg-gray-800 border-gray-700 text-white ${fieldErrors.email ? 'border-red-500' : ''}`}
+                className={`mt-1 bg-accent border-border text-foreground ${fieldErrors.email ? 'border-red-500' : ''}`}
               />
               {fieldErrors.email && (
                 <p className="mt-1 text-sm text-red-400">{fieldErrors.email}</p>
@@ -420,7 +420,7 @@ export default function LoginPage() {
 
             <div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-white">
+                <Label htmlFor="password" className="text-foreground">
                   Senha
                 </Label>
                 {isLoginMode && (
@@ -439,13 +439,13 @@ export default function LoginPage() {
                 required
                 value={formData.password}
                 onChange={handleInputChange}
-                className="mt-1 bg-gray-800 border-gray-700 text-white"
+                className="mt-1 bg-accent border-border text-foreground"
               />
             </div>
 
             {!isLoginMode && (
               <div>
-                <Label htmlFor="confirmPassword" className="text-white">
+                <Label htmlFor="confirmPassword" className="text-foreground">
                   Confirmar senha
                 </Label>
                 <Input
@@ -456,13 +456,13 @@ export default function LoginPage() {
                   required={!isLoginMode}
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className="mt-1 bg-gray-800 border-gray-700 text-white"
+                  className="mt-1 bg-accent border-border text-foreground"
                 />
               </div>
             )}
 
             <div className="space-y-4">
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isLoading}>
                 {isLoading
                   ? isLoginMode
                     ? "Entrando..."

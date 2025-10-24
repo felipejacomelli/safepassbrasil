@@ -201,8 +201,8 @@ export default function NotificationsPage() {
       case 'urgent': return <AlertTriangle className="h-4 w-4 text-red-500" />
       case 'high': return <AlertTriangle className="h-4 w-4 text-orange-500" />
       case 'medium': return <Bell className="h-4 w-4 text-blue-500" />
-      case 'low': return <Bell className="h-4 w-4 text-gray-500" />
-      default: return <Bell className="h-4 w-4 text-gray-500" />
+      case 'low': return <Bell className="h-4 w-4 text-muted-foreground" />
+      default: return <Bell className="h-4 w-4 text-muted-foreground" />
     }
   }
 
@@ -387,7 +387,7 @@ export default function NotificationsPage() {
                         className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                           !notification.is_read 
                             ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' 
-                            : 'hover:bg-gray-50'
+                            : 'hover:bg-accent'
                         }`}
                         onClick={() => !notification.is_read && markNotificationAsRead(notification.id)}
                       >

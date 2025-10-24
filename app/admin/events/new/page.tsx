@@ -185,17 +185,17 @@ export default function NewEventPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
+    <div className="min-h-screen bg-background text-foreground p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold">Criar Novo Evento</h1>
-            <p className="text-gray-400 mt-2">Preencha as informações básicas para criar um novo evento</p>
+            <p className="text-muted-foreground mt-2">Preencha as informações básicas para criar um novo evento</p>
           </div>
           <Button 
             onClick={() => router.push('/admin/events')} 
             variant="outline" 
-            className="border-zinc-700 text-white hover:bg-zinc-800"
+            className="border-border text-foreground hover:bg-accent"
           >
             Voltar
           </Button>
@@ -218,9 +218,9 @@ export default function NewEventPage() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Informações Básicas */}
-          <Card className="bg-zinc-900 border-zinc-700">
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="flex items-center text-white">
+              <CardTitle className="flex items-center text-foreground">
                 <Info className="w-5 h-5 mr-2" />
                 Informações do Evento
               </CardTitle>
@@ -228,13 +228,13 @@ export default function NewEventPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name" className="text-white">Nome do Evento *</Label>
+                  <Label htmlFor="name" className="text-foreground">Nome do Evento *</Label>
                   <Input
                     id="name"
                     name="name"
                     value={eventForm.name}
                     onChange={handleEventChange}
-                    className="bg-zinc-800 border-zinc-600 text-white"
+                    className="bg-accent border-zinc-600 text-foreground"
                     placeholder="Digite o nome do evento"
                     required
                   />
@@ -244,7 +244,7 @@ export default function NewEventPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="category" className="text-white">Categoria *</Label>
+                  <Label htmlFor="category" className="text-foreground">Categoria *</Label>
                   <Select 
                     name="category" 
                     value={eventForm.category} 
@@ -259,7 +259,7 @@ export default function NewEventPage() {
                     }}
                     disabled={categoriesLoading}
                   >
-                    <SelectTrigger className="bg-zinc-800 border-zinc-600 text-white">
+                    <SelectTrigger className="bg-accent border-zinc-600 text-foreground">
                       <SelectValue placeholder={
                         categoriesLoading 
                           ? "Carregando categorias..." 
@@ -268,7 +268,7 @@ export default function NewEventPage() {
                             : "Selecione uma categoria"
                       } />
                     </SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-600">
+                    <SelectContent className="bg-accent border-zinc-600">
                       {categories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
@@ -288,13 +288,13 @@ export default function NewEventPage() {
               </div>
 
               <div>
-                <Label htmlFor="description" className="text-white">Descrição *</Label>
+                <Label htmlFor="description" className="text-foreground">Descrição *</Label>
                 <Textarea
                   id="description"
                   name="description"
                   value={eventForm.description}
                   onChange={handleEventChange}
-                  className="bg-zinc-800 border-zinc-600 text-white min-h-[100px]"
+                  className="bg-accent border-zinc-600 text-foreground min-h-[100px]"
                   placeholder="Descreva o evento..."
                   required
                 />
@@ -304,7 +304,7 @@ export default function NewEventPage() {
               </div>
 
               <div>
-                <Label htmlFor="image" className="text-white">Imagem do Evento *</Label>
+                <Label htmlFor="image" className="text-foreground">Imagem do Evento *</Label>
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4">
                     <Input
@@ -312,7 +312,7 @@ export default function NewEventPage() {
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
-                      className="bg-zinc-800 border-zinc-600 text-white"
+                      className="bg-accent border-zinc-600 text-foreground"
                       disabled={imageUploading}
                       required
                     />
@@ -360,19 +360,19 @@ export default function NewEventPage() {
           </Card>
 
           {/* Botões de Ação */}
-          <div className="flex justify-end space-x-4 pt-6 border-t border-zinc-700">
+          <div className="flex justify-end space-x-4 pt-6 border-t border-border">
             <Button
               type="button"
               onClick={() => router.push('/admin/events')}
               variant="outline"
-              className="border-zinc-700 text-white hover:bg-zinc-800"
+              className="border-border text-foreground hover:bg-accent"
               disabled={isPending}
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-foreground"
               disabled={isPending || !eventForm.image || !eventForm.category}
             >
               {isPending ? (

@@ -37,10 +37,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return (
         <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center">
           <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
-          <h2 className="text-xl font-semibold text-white mb-2">
+          <h2 className="text-xl font-semibold text-foreground mb-2">
             Algo deu errado
           </h2>
-          <p className="text-gray-400 mb-6 max-w-md">
+          <p className="text-muted-foreground mb-6 max-w-md">
             Ocorreu um erro inesperado. Tente recarregar a página ou entre em contato com o suporte se o problema persistir.
           </p>
           <Button

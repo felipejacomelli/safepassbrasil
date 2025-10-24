@@ -137,14 +137,14 @@ export default function VerificationPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar */}
@@ -154,15 +154,15 @@ export default function VerificationPage() {
 
           {/* Main Content */}
           <div className="md:w-3/4">
-            <h1 className="text-3xl font-bold text-white mb-6">Verificação de Vendedor</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-6">Verificação de Vendedor</h1>
 
-            <div className="bg-zinc-900 rounded-lg p-6 mb-6">
-              <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+            <div className="bg-card rounded-lg p-6 mb-6">
+              <h2 className="text-xl font-bold text-foreground mb-4 flex items-center">
                 <Shield className="w-5 h-5 mr-2 text-primary" />
                 Status de Verificação
               </h2>
 
-              <div className="bg-zinc-800 rounded-lg p-4 mb-6">
+              <div className="bg-accent rounded-lg p-4 mb-6">
                 <div className="flex items-start">
                   {user?.verificationStatus === "verified" ? (
                     <div className="bg-green-900 bg-opacity-20 p-2 rounded-full mr-4">
@@ -178,14 +178,14 @@ export default function VerificationPage() {
                     </div>
                   )}
                   <div>
-                    <h3 className="text-white font-medium mb-1">
+                    <h3 className="text-foreground font-medium mb-1">
                       {user?.verificationStatus === "verified"
                         ? "Verificado"
                         : user?.verificationStatus === "pending"
                           ? "Verificação Pendente"
                           : "Não Verificado"}
                     </h3>
-                    <p className="text-gray-400 text-sm mb-4">
+                    <p className="text-muted-foreground text-sm mb-4">
                       {user?.verificationStatus === "verified"
                         ? "Sua conta foi verificada. Você pode vender ingressos com confiança."
                         : user?.verificationStatus === "pending"
@@ -198,7 +198,7 @@ export default function VerificationPage() {
                         size="sm"
                         onClick={handleCancelVerification}
                         disabled={isSubmitting}
-                        className="border-zinc-700 text-white hover:bg-zinc-800"
+                        className="border-border text-foreground hover:bg-accent"
                       >
                         Cancelar Verificação
                       </Button>
@@ -209,25 +209,25 @@ export default function VerificationPage() {
 
               {!user?.verificationStatus && !success && (
                 <>
-                  <p className="text-gray-300 mb-6">
+                  <p className="text-muted-foreground mb-6">
                     Para se tornar um vendedor verificado, precisamos confirmar sua identidade. Por favor, envie os
                     seguintes documentos:
                   </p>
 
                   <form onSubmit={handleSubmit} className="space-y-6">
                     {/* ID Document */}
-                    <div className="bg-zinc-800 rounded-lg p-4">
-                      <h3 className="text-white font-medium mb-2">Documento de Identidade</h3>
-                      <p className="text-gray-400 text-sm mb-4">
+                    <div className="bg-accent rounded-lg p-4">
+                      <h3 className="text-foreground font-medium mb-2">Documento de Identidade</h3>
+                      <p className="text-muted-foreground text-sm mb-4">
                         Envie uma foto clara do seu RG, CNH ou Passaporte (frente e verso).
                       </p>
                       <div className="flex items-center">
                         <label
                           htmlFor="id-upload"
-                          className="flex items-center justify-center px-4 py-2 border border-zinc-700 rounded-md cursor-pointer hover:bg-zinc-700 transition-colors"
+                          className="flex items-center justify-center px-4 py-2 border border-border rounded-md cursor-pointer hover:bg-zinc-700 transition-colors"
                         >
                           <Upload className="w-4 h-4 mr-2 text-primary" />
-                          <span className="text-sm text-white">{idFile ? idFile.name : "Selecionar Arquivo"}</span>
+                          <span className="text-sm text-foreground">{idFile ? idFile.name : "Selecionar Arquivo"}</span>
                           <input
                             id="id-upload"
                             type="file"
@@ -251,18 +251,18 @@ export default function VerificationPage() {
                     </div>
 
                     {/* Selfie */}
-                    <div className="bg-zinc-800 rounded-lg p-4">
-                      <h3 className="text-white font-medium mb-2">Selfie com Documento</h3>
-                      <p className="text-gray-400 text-sm mb-4">
+                    <div className="bg-accent rounded-lg p-4">
+                      <h3 className="text-foreground font-medium mb-2">Selfie com Documento</h3>
+                      <p className="text-muted-foreground text-sm mb-4">
                         Envie uma selfie sua segurando o documento de identidade ao lado do rosto.
                       </p>
                       <div className="flex items-center">
                         <label
                           htmlFor="selfie-upload"
-                          className="flex items-center justify-center px-4 py-2 border border-zinc-700 rounded-md cursor-pointer hover:bg-zinc-700 transition-colors"
+                          className="flex items-center justify-center px-4 py-2 border border-border rounded-md cursor-pointer hover:bg-zinc-700 transition-colors"
                         >
                           <Upload className="w-4 h-4 mr-2 text-primary" />
-                          <span className="text-sm text-white">
+                          <span className="text-sm text-foreground">
                             {selfieFile ? selfieFile.name : "Selecionar Arquivo"}
                           </span>
                           <input
@@ -288,18 +288,18 @@ export default function VerificationPage() {
                     </div>
 
                     {/* Proof of Address */}
-                    <div className="bg-zinc-800 rounded-lg p-4">
-                      <h3 className="text-white font-medium mb-2">Comprovante de Residência</h3>
-                      <p className="text-gray-400 text-sm mb-4">
+                    <div className="bg-accent rounded-lg p-4">
+                      <h3 className="text-foreground font-medium mb-2">Comprovante de Residência</h3>
+                      <p className="text-muted-foreground text-sm mb-4">
                         Envie um comprovante de residência recente (conta de luz, água, telefone, etc.).
                       </p>
                       <div className="flex items-center">
                         <label
                           htmlFor="address-upload"
-                          className="flex items-center justify-center px-4 py-2 border border-zinc-700 rounded-md cursor-pointer hover:bg-zinc-700 transition-colors"
+                          className="flex items-center justify-center px-4 py-2 border border-border rounded-md cursor-pointer hover:bg-zinc-700 transition-colors"
                         >
                           <Upload className="w-4 h-4 mr-2 text-primary" />
-                          <span className="text-sm text-white">
+                          <span className="text-sm text-foreground">
                             {addressFile ? addressFile.name : "Selecionar Arquivo"}
                           </span>
                           <input
@@ -348,17 +348,17 @@ export default function VerificationPage() {
                     <div className="bg-green-900 bg-opacity-20 p-3 rounded-full mb-4">
                       <CheckCircle className="w-10 h-10 text-green-500" />
                     </div>
-                    <h3 className="text-lg font-medium text-white mb-2">Documentos Enviados com Sucesso</h3>
-                    <p className="text-gray-300 mb-4">
+                    <h3 className="text-lg font-medium text-foreground mb-2">Documentos Enviados com Sucesso</h3>
+                    <p className="text-muted-foreground mb-4">
                       Seus documentos foram enviados e estão sendo analisados. Você receberá uma notificação quando a
                       verificação for concluída.
                     </p>
-                    <div className="bg-zinc-800 p-4 rounded-lg w-full max-w-md">
+                    <div className="bg-accent p-4 rounded-lg w-full max-w-md">
                       <div className="flex items-center">
                         <Clock className="w-5 h-5 text-primary mr-2" />
                         <div>
-                          <h4 className="text-white font-medium">Tempo Estimado</h4>
-                          <p className="text-gray-400 text-sm">A verificação pode levar até 48 horas.</p>
+                          <h4 className="text-foreground font-medium">Tempo Estimado</h4>
+                          <p className="text-muted-foreground text-sm">A verificação pode levar até 48 horas.</p>
                         </div>
                       </div>
                     </div>
@@ -372,13 +372,13 @@ export default function VerificationPage() {
                     <div className="bg-green-900 bg-opacity-20 p-3 rounded-full mb-4">
                       <CheckCircle className="w-10 h-10 text-green-500" />
                     </div>
-                    <h3 className="text-lg font-medium text-white mb-2">Conta Verificada</h3>
-                    <p className="text-gray-300 mb-4">
+                    <h3 className="text-lg font-medium text-foreground mb-2">Conta Verificada</h3>
+                    <p className="text-muted-foreground mb-4">
                       Parabéns! Sua conta foi verificada. Agora você pode vender ingressos com confiança.
                     </p>
-                    <div className="bg-zinc-800 p-4 rounded-lg w-full max-w-md">
-                      <h4 className="text-white font-medium mb-2">Benefícios de ser um Vendedor Verificado:</h4>
-                      <ul className="text-gray-300 text-sm space-y-2">
+                    <div className="bg-accent p-4 rounded-lg w-full max-w-md">
+                      <h4 className="text-foreground font-medium mb-2">Benefícios de ser um Vendedor Verificado:</h4>
+                      <ul className="text-muted-foreground text-sm space-y-2">
                         <li className="flex items-start">
                           <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5" />
                           <span>Maior visibilidade nos resultados de busca</span>
@@ -409,7 +409,7 @@ export default function VerificationPage() {
                     </div>
                     <div>
                       <h3 className="text-yellow-500 font-medium mb-1">Verificação em Andamento</h3>
-                      <p className="text-gray-300 text-sm">
+                      <p className="text-muted-foreground text-sm">
                         Sua solicitação de verificação está sendo analisada. Isso pode levar até 48 horas. Você receberá
                         uma notificação quando a verificação for concluída.
                       </p>

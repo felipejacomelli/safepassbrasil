@@ -377,34 +377,34 @@ export default function CheckoutPage() {
   // ✅ Evitar hydration error - renderizar loading até montagem
   if (!isMounted) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-white">Carregando checkout...</p>
+          <p className="text-foreground">Carregando checkout...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="w-full py-4 border-b border-zinc-800">
+      <nav className="w-full py-4 border-b border-border">
         <div className="container mx-auto px-4 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2">
             <div className="bg-primary p-1.5 rounded">
-              <div className="w-6 h-6 bg-black rounded" />
+              <div className="w-6 h-6 bg-background rounded" />
             </div>
-            <span className="text-white text-xl font-bold">Safe Pass</span>
+            <span className="text-foreground text-xl font-bold">Safe Pass</span>
           </a>
           <div className="flex items-center gap-6">
-            <a href="/#como-funciona" className="text-white hover:text-primary transition">
+            <a href="/#como-funciona" className="text-foreground hover:text-primary transition">
               Como Funciona
             </a>
-            <a href="#" className="text-white hover:text-primary transition">
+            <a href="#" className="text-foreground hover:text-primary transition">
               WhatsApp
             </a>
-            <Button variant="outline" className="bg-black text-white border-primary hover:bg-primary hover:text-black">
+            <Button variant="outline" className="bg-background text-foreground border-primary hover:bg-primary hover:text-black">
               Acessar
             </Button>
           </div>
@@ -416,10 +416,10 @@ export default function CheckoutPage() {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Left Column - Payment Methods */}
           <div className="md:w-2/3">
-            <h1 className="text-3xl font-bold text-white mb-6">Finalizar Compra</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-6">Finalizar Compra</h1>
 
             {/* Breadcrumb */}
-            <div className="flex items-center text-sm text-gray-400 mb-8">
+            <div className="flex items-center text-sm text-muted-foreground mb-8">
               <a href="/" className="hover:text-primary">
                 Início
               </a>
@@ -433,64 +433,64 @@ export default function CheckoutPage() {
 
             <form onSubmit={handleSubmit}>
               {/* Payment Methods */}
-              <div className="bg-zinc-900 rounded-lg p-6 mb-6">
-                <h2 className="text-xl font-bold text-white mb-4">Método de Pagamento</h2>
+              <div className="bg-card rounded-lg p-6 mb-6">
+                <h2 className="text-xl font-bold text-foreground mb-4">Método de Pagamento</h2>
 
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                   {/* PIX */}
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.PIX ? "border-primary bg-blue-900 bg-opacity-20" : "border-zinc-700 bg-zinc-800 hover:border-zinc-600"}`}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.PIX ? "border-primary bg-blue-900 bg-opacity-20" : "border-border bg-accent hover:border-zinc-600"}`}
                     onClick={() => setPaymentMethod(PAYMENT_METHODS.PIX)}
                   >
-                    <QrCode className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.PIX ? "text-primary" : "text-gray-400"}`} />
-                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.PIX ? "text-primary" : "text-gray-300"}`}>PIX</span>
+                    <QrCode className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.PIX ? "text-primary" : "text-muted-foreground"}`} />
+                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.PIX ? "text-primary" : "text-muted-foreground"}`}>PIX</span>
                   </div>
 
                   {/* Cartão de Crédito */}
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.CREDIT_CARD ? "border-primary bg-blue-900 bg-opacity-20" : "border-zinc-700 bg-zinc-800 hover:border-zinc-600"}`}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.CREDIT_CARD ? "border-primary bg-blue-900 bg-opacity-20" : "border-border bg-accent hover:border-zinc-600"}`}
                     onClick={() => setPaymentMethod(PAYMENT_METHODS.CREDIT_CARD)}
                   >
-                    <CreditCard className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.CREDIT_CARD ? "text-primary" : "text-gray-400"}`} />
-                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.CREDIT_CARD ? "text-primary" : "text-gray-300"}`}>Crédito</span>
+                    <CreditCard className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.CREDIT_CARD ? "text-primary" : "text-muted-foreground"}`} />
+                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.CREDIT_CARD ? "text-primary" : "text-muted-foreground"}`}>Crédito</span>
                   </div>
 
                   {/* Cartão de Débito */}
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.DEBIT_CARD ? "border-primary bg-blue-900 bg-opacity-20" : "border-zinc-700 bg-zinc-800 hover:border-zinc-600"}`}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.DEBIT_CARD ? "border-primary bg-blue-900 bg-opacity-20" : "border-border bg-accent hover:border-zinc-600"}`}
                     onClick={() => setPaymentMethod(PAYMENT_METHODS.DEBIT_CARD)}
                   >
-                    <CreditCard className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.DEBIT_CARD ? "text-primary" : "text-gray-400"}`} />
-                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.DEBIT_CARD ? "text-primary" : "text-gray-300"}`}>Débito</span>
+                    <CreditCard className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.DEBIT_CARD ? "text-primary" : "text-muted-foreground"}`} />
+                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.DEBIT_CARD ? "text-primary" : "text-muted-foreground"}`}>Débito</span>
                   </div>
 
                   {/* Boleto */}
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.BOLETO ? "border-primary bg-blue-900 bg-opacity-20" : "border-zinc-700 bg-zinc-800 hover:border-zinc-600"}`}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.BOLETO ? "border-primary bg-blue-900 bg-opacity-20" : "border-border bg-accent hover:border-zinc-600"}`}
                     onClick={() => setPaymentMethod(PAYMENT_METHODS.BOLETO)}
                   >
-                    <Banknote className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.BOLETO ? "text-primary" : "text-gray-400"}`} />
-                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.BOLETO ? "text-primary" : "text-gray-300"}`}>Boleto</span>
+                    <Banknote className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.BOLETO ? "text-primary" : "text-muted-foreground"}`} />
+                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.BOLETO ? "text-primary" : "text-muted-foreground"}`}>Boleto</span>
                   </div>
 
                   {/* Transferência */}
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.TRANSFER ? "border-primary bg-blue-900 bg-opacity-20" : "border-zinc-700 bg-zinc-800 hover:border-zinc-600"}`}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.TRANSFER ? "border-primary bg-blue-900 bg-opacity-20" : "border-border bg-accent hover:border-zinc-600"}`}
                     onClick={() => setPaymentMethod(PAYMENT_METHODS.TRANSFER)}
                   >
-                    <Landmark className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.TRANSFER ? "text-primary" : "text-gray-400"}`} />
-                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.TRANSFER ? "text-primary" : "text-gray-300"}`}>Transfer</span>
+                    <Landmark className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.TRANSFER ? "text-primary" : "text-muted-foreground"}`} />
+                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.TRANSFER ? "text-primary" : "text-muted-foreground"}`}>Transfer</span>
                   </div>
                 </div>
 
                 {/* Credit Card Form */}
                 {(paymentMethod === PAYMENT_METHODS.CREDIT_CARD || paymentMethod === PAYMENT_METHODS.DEBIT_CARD) && (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white mb-4">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
                       Dados do Cartão de {paymentMethod === PAYMENT_METHODS.CREDIT_CARD ? 'Crédito' : 'Débito'}
                     </h3>
                     <div>
-                      <label htmlFor="card-number" className="block text-sm font-medium text-gray-300 mb-1">
+                      <label htmlFor="card-number" className="block text-sm font-medium text-muted-foreground mb-1">
                         Número do Cartão
                       </label>
                       <div className="relative">
@@ -501,7 +501,7 @@ export default function CheckoutPage() {
                           onChange={handleCardNumberChange}
                           placeholder="0000 0000 0000 0000"
                           maxLength={19}
-                          className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.cardNumber ? "border-red-500" : "border-zinc-700"}`}
+                          className={`w-full bg-accent text-foreground p-3 rounded-md border ${errors.cardNumber ? "border-red-500" : "border-border"}`}
                         />
                         {errors.cardNumber && (
                           <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
@@ -510,13 +510,13 @@ export default function CheckoutPage() {
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Para teste: Use 0000 0000 0000 0000 para sucesso ou 1111 1111 1111 1111 para falha
                       </p>
                     </div>
 
                     <div>
-                      <label htmlFor="card-name" className="block text-sm font-medium text-gray-300 mb-1">
+                      <label htmlFor="card-name" className="block text-sm font-medium text-muted-foreground mb-1">
                         Nome no Cartão
                       </label>
                       <div className="relative">
@@ -526,7 +526,7 @@ export default function CheckoutPage() {
                           value={cardName}
                           onChange={(e) => setCardName(e.target.value)}
                           placeholder="Nome como está no cartão"
-                          className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.cardName ? "border-red-500" : "border-zinc-700"}`}
+                          className={`w-full bg-accent text-foreground p-3 rounded-md border ${errors.cardName ? "border-red-500" : "border-border"}`}
                         />
                         {errors.cardName && (
                           <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
@@ -539,7 +539,7 @@ export default function CheckoutPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label htmlFor="card-expiry" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="card-expiry" className="block text-sm font-medium text-muted-foreground mb-1">
                           Validade
                         </label>
                         <div className="relative">
@@ -550,7 +550,7 @@ export default function CheckoutPage() {
                             onChange={handleExpiryChange}
                             placeholder="MM/AA"
                             maxLength={5}
-                            className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.cardExpiry ? "border-red-500" : "border-zinc-700"}`}
+                            className={`w-full bg-accent text-foreground p-3 rounded-md border ${errors.cardExpiry ? "border-red-500" : "border-border"}`}
                           />
                           {errors.cardExpiry && (
                             <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
@@ -562,7 +562,7 @@ export default function CheckoutPage() {
                       </div>
 
                       <div>
-                        <label htmlFor="card-cvv" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="card-cvv" className="block text-sm font-medium text-muted-foreground mb-1">
                           CVV
                         </label>
                         <div className="relative">
@@ -573,7 +573,7 @@ export default function CheckoutPage() {
                             onChange={handleCvvChange}
                             placeholder="123"
                             maxLength={4}
-                            className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.cardCvv ? "border-red-500" : "border-zinc-700"}`}
+                            className={`w-full bg-accent text-foreground p-3 rounded-md border ${errors.cardCvv ? "border-red-500" : "border-border"}`}
                           />
                           {errors.cardCvv && (
                             <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
@@ -586,14 +586,14 @@ export default function CheckoutPage() {
                     </div>
 
                     <div>
-                      <label htmlFor="installments" className="block text-sm font-medium text-gray-300 mb-1">
+                      <label htmlFor="installments" className="block text-sm font-medium text-muted-foreground mb-1">
                         Parcelamento
                       </label>
                       <select
                         id="installments"
                         value={installments}
                         onChange={(e) => setInstallments(e.target.value)}
-                        className="w-full bg-zinc-800 text-white p-3 rounded-md border border-zinc-700"
+                        className="w-full bg-accent text-foreground p-3 rounded-md border border-border"
                       >
                         <option value="1">À vista - R$ {total.toFixed(2).replace(".", ",")}</option>
                         <option value="2">2x de R$ {(total / 2).toFixed(2).replace(".", ",")}</option>
@@ -609,16 +609,16 @@ export default function CheckoutPage() {
 
                 {/* PIX Payment */}
                 {paymentMethod === PAYMENT_METHODS.PIX && (
-                  <div className="flex flex-col items-center p-6 bg-zinc-800 rounded-lg">
+                  <div className="flex flex-col items-center p-6 bg-accent rounded-lg">
                     <div className="w-48 h-48 bg-white p-4 rounded-lg mb-4 flex items-center justify-center">
                       <QrCode className="w-32 h-32 text-black" />
                     </div>
-                    <p className="text-gray-300 mb-2">Escaneie o QR Code com seu aplicativo de banco</p>
+                    <p className="text-muted-foreground mb-2">Escaneie o QR Code com seu aplicativo de banco</p>
                     <div className="bg-zinc-700 p-3 rounded-lg w-full text-center mb-4">
-                      <p className="text-gray-300 text-sm mb-1">Código PIX</p>
-                      <p className="text-white font-mono">00020126580014BR.GOV.BCB.PIX0136a629532e-7693-4846-b028</p>
+                      <p className="text-muted-foreground text-sm mb-1">Código PIX</p>
+                      <p className="text-foreground font-mono">00020126580014BR.GOV.BCB.PIX0136a629532e-7693-4846-b028</p>
                     </div>
-                    <Button variant="outline" className="bg-transparent border-zinc-600 text-white hover:bg-zinc-700">
+                    <Button variant="outline" className="bg-transparent border-zinc-600 text-foreground hover:bg-zinc-700">
                       Copiar Código PIX
                     </Button>
                   </div>
@@ -626,48 +626,48 @@ export default function CheckoutPage() {
 
                 {/* Boleto Payment */}
                 {paymentMethod === PAYMENT_METHODS.BOLETO && (
-                  <div className="p-6 bg-zinc-800 rounded-lg">
-                    <p className="text-gray-300 mb-4">
+                  <div className="p-6 bg-accent rounded-lg">
+                    <p className="text-muted-foreground mb-4">
                       Ao finalizar a compra, você receberá o boleto para pagamento. O prazo de compensação é de até 3
                       dias úteis.
                     </p>
                     <div className="flex items-center justify-between p-3 bg-zinc-700 rounded-lg mb-4">
-                      <span className="text-white">Valor do Boleto:</span>
+                      <span className="text-foreground">Valor do Boleto:</span>
                       <span className="text-primary font-bold">R$ {total.toFixed(2).replace(".", ",")}</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-zinc-700 rounded-lg">
-                      <span className="text-white">Vencimento:</span>
-                      <span className="text-white">3 dias após a emissão</span>
+                      <span className="text-foreground">Vencimento:</span>
+                      <span className="text-foreground">3 dias após a emissão</span>
                     </div>
                   </div>
                 )}
 
                 {/* Bank Transfer */}
                 {paymentMethod === PAYMENT_METHODS.TRANSFER && (
-                  <div className="p-6 bg-zinc-800 rounded-lg">
-                    <p className="text-gray-300 mb-4">
+                  <div className="p-6 bg-accent rounded-lg">
+                    <p className="text-muted-foreground mb-4">
                       Faça uma transferência bancária para a conta abaixo. Seus ingressos serão liberados após a
                       confirmação do pagamento.
                     </p>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between p-3 bg-zinc-700 rounded-lg">
-                        <span className="text-white">Banco:</span>
-                        <span className="text-white">260 - Nu Pagamentos S.A.</span>
+                        <span className="text-foreground">Banco:</span>
+                        <span className="text-foreground">260 - Nu Pagamentos S.A.</span>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-zinc-700 rounded-lg">
-                        <span className="text-white">Agência:</span>
-                        <span className="text-white">0001</span>
+                        <span className="text-foreground">Agência:</span>
+                        <span className="text-foreground">0001</span>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-zinc-700 rounded-lg">
-                        <span className="text-white">Conta:</span>
-                        <span className="text-white">0000000-0</span>
+                        <span className="text-foreground">Conta:</span>
+                        <span className="text-foreground">0000000-0</span>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-zinc-700 rounded-lg">
-                        <span className="text-white">CNPJ:</span>
-                        <span className="text-white">00.000.000/0001-00</span>
+                        <span className="text-foreground">CNPJ:</span>
+                        <span className="text-foreground">00.000.000/0001-00</span>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-zinc-700 rounded-lg">
-                        <span className="text-white">Valor:</span>
+                        <span className="text-foreground">Valor:</span>
                         <span className="text-primary font-bold">R$ {total.toFixed(2).replace(".", ",")}</span>
                       </div>
                     </div>
@@ -676,13 +676,13 @@ export default function CheckoutPage() {
               </div>
 
               {/* Buyer Information */}
-              <div className="bg-zinc-900 rounded-lg p-6 mb-6">
-                <h2 className="text-xl font-bold text-white mb-4">Informações do Comprador</h2>
+              <div className="bg-card rounded-lg p-6 mb-6">
+                <h2 className="text-xl font-bold text-foreground mb-4">Informações do Comprador</h2>
 
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
+                      <label htmlFor="name" className="block text-sm font-medium text-muted-foreground mb-1">
                         Nome Completo
                       </label>
                       <div className="relative">
@@ -691,7 +691,7 @@ export default function CheckoutPage() {
                           type="text"
                           value={buyerName}
                           onChange={(e) => setBuyerName(e.target.value)}
-                          className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.buyerName ? "border-red-500" : "border-zinc-700"}`}
+                          className={`w-full bg-accent text-foreground p-3 rounded-md border ${errors.buyerName ? "border-red-500" : "border-border"}`}
                         />
                         {errors.buyerName && (
                           <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
@@ -703,7 +703,7 @@ export default function CheckoutPage() {
                     </div>
 
                     <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+                      <label htmlFor="email" className="block text-sm font-medium text-muted-foreground mb-1">
                         Email
                       </label>
                       <div className="relative">
@@ -712,7 +712,7 @@ export default function CheckoutPage() {
                           type="email"
                           value={buyerEmail}
                           onChange={(e) => setBuyerEmail(e.target.value)}
-                          className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.buyerEmail ? "border-red-500" : "border-zinc-700"}`}
+                          className={`w-full bg-accent text-foreground p-3 rounded-md border ${errors.buyerEmail ? "border-red-500" : "border-border"}`}
                         />
                         {errors.buyerEmail && (
                           <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
@@ -726,7 +726,7 @@ export default function CheckoutPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="cpf" className="block text-sm font-medium text-gray-300 mb-1">
+                      <label htmlFor="cpf" className="block text-sm font-medium text-muted-foreground mb-1">
                         CPF
                       </label>
                       <div className="relative">
@@ -737,7 +737,7 @@ export default function CheckoutPage() {
                           onChange={handleCpfChange}
                           placeholder="000.000.000-00"
                           maxLength={14}
-                          className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.buyerCpf ? "border-red-500" : "border-zinc-700"}`}
+                          className={`w-full bg-accent text-foreground p-3 rounded-md border ${errors.buyerCpf ? "border-red-500" : "border-border"}`}
                         />
                         {errors.buyerCpf && (
                           <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
@@ -749,7 +749,7 @@ export default function CheckoutPage() {
                     </div>
 
                     <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-1">
+                      <label htmlFor="phone" className="block text-sm font-medium text-muted-foreground mb-1">
                         Telefone
                       </label>
                       <div className="relative">
@@ -760,7 +760,7 @@ export default function CheckoutPage() {
                           onChange={handlePhoneChange}
                           placeholder="(00) 00000-0000"
                           maxLength={15}
-                          className={`w-full bg-zinc-800 text-white p-3 rounded-md border ${errors.buyerPhone ? "border-red-500" : "border-zinc-700"}`}
+                          className={`w-full bg-accent text-foreground p-3 rounded-md border ${errors.buyerPhone ? "border-red-500" : "border-border"}`}
                         />
                         {errors.buyerPhone && (
                           <div className="absolute -top-6 left-0 flex items-center text-red-500 text-xs">
@@ -775,7 +775,7 @@ export default function CheckoutPage() {
               </div>
 
               {/* Terms and Conditions */}
-              <div className="bg-zinc-900 rounded-lg p-6 mb-6">
+              <div className="bg-card rounded-lg p-6 mb-6">
                 <div className="relative flex items-start gap-3">
                   <input
                     type="checkbox"
@@ -784,7 +784,7 @@ export default function CheckoutPage() {
                     checked={termsAccepted}
                     onChange={(e) => setTermsAccepted(e.target.checked)}
                   />
-                  <label htmlFor="terms" className="text-gray-300 text-sm">
+                  <label htmlFor="terms" className="text-muted-foreground text-sm">
                     Eu li e concordo com os{" "}
                     <a href="#" className="text-primary hover:underline">
                       Termos e Condições
@@ -836,14 +836,14 @@ export default function CheckoutPage() {
 
           {/* Right Column - Order Summary */}
           <div className="md:w-1/3">
-            <div className="bg-zinc-900 rounded-lg p-6 sticky top-24">
-              <h2 className="text-xl font-bold text-white mb-4">Resumo do Pedido</h2>
+            <div className="bg-card rounded-lg p-6 sticky top-24">
+              <h2 className="text-xl font-bold text-foreground mb-4">Resumo do Pedido</h2>
 
               {/* Cart Items */}
               <div className="space-y-4 mb-6">
                 {cartItems.map((item: CartItem) => (
                   <div key={item.id} className="flex gap-4">
-                    <div className="w-20 h-20 bg-zinc-800 rounded-md overflow-hidden flex-shrink-0">
+                    <div className="w-20 h-20 bg-accent rounded-md overflow-hidden flex-shrink-0">
                       <img
                         src={item.image || "/placeholder.svg"}
                         alt={item.eventName}
@@ -851,15 +851,15 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-white font-medium">{item.eventName}</h3>
-                      <p className="text-gray-400 text-sm">{item.date}</p>
+                      <h3 className="text-foreground font-medium">{item.eventName}</h3>
+                      <p className="text-muted-foreground text-sm">{item.date}</p>
                       <div className="flex justify-between mt-1">
-                        <span className="text-gray-400 text-sm">{item.ticketType}</span>
-                        <span className="text-white">R$ {item.price.toFixed(2).replace(".", ",")}</span>
+                        <span className="text-muted-foreground text-sm">{item.ticketType}</span>
+                        <span className="text-foreground">R$ {item.price.toFixed(2).replace(".", ",")}</span>
                       </div>
                       <div className="flex justify-between mt-1">
-                        <span className="text-gray-400 text-sm">Quantidade:</span>
-                        <span className="text-white">{item.quantity}</span>
+                        <span className="text-muted-foreground text-sm">Quantidade:</span>
+                        <span className="text-foreground">{item.quantity}</span>
                       </div>
                     </div>
                   </div>
@@ -867,17 +867,17 @@ export default function CheckoutPage() {
               </div>
 
               {/* Price Summary */}
-              <div className="border-t border-zinc-800 pt-4 mb-4">
+              <div className="border-t border-border pt-4 mb-4">
                 <div className="flex justify-between mb-2">
-                  <span className="text-gray-300">Subtotal</span>
-                  <span className="text-white">R$ {subtotal.toFixed(2).replace(".", ",")}</span>
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-foreground">R$ {subtotal.toFixed(2).replace(".", ",")}</span>
                 </div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-gray-300">Taxa de serviço</span>
-                  <span className="text-white">R$ {serviceFee.toFixed(2).replace(".", ",")}</span>
+                  <span className="text-muted-foreground">Taxa de serviço</span>
+                  <span className="text-foreground">R$ {serviceFee.toFixed(2).replace(".", ",")}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg mt-4">
-                  <span className="text-white">Total</span>
+                  <span className="text-foreground">Total</span>
                   <span className="text-primary">R$ {total.toFixed(2).replace(".", ",")}</span>
                 </div>
               </div>
@@ -888,7 +888,7 @@ export default function CheckoutPage() {
                   <ShieldCheck className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
                   <div>
                     <h3 className="text-primary font-medium mb-1">Compra Segura</h3>
-                    <p className="text-gray-300 text-sm">
+                    <p className="text-muted-foreground text-sm">
                       Todos os ingressos são verificados e garantidos pela Safe Pass. Caso ocorra algum problema, você
                       receberá um reembolso total.
                     </p>
@@ -901,19 +901,19 @@ export default function CheckoutPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-zinc-900 border-t border-zinc-800 py-8 mt-16">
+      <footer className="bg-card border-t border-border py-8 mt-16">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
               <a href="/" className="flex items-center gap-2">
                 <div className="bg-primary p-1.5 rounded">
-                  <div className="w-6 h-6 bg-black rounded" />
+                  <div className="w-6 h-6 bg-background rounded" />
                 </div>
-                <span className="text-white text-xl font-bold">Safe Pass</span>
+                <span className="text-foreground text-xl font-bold">Safe Pass</span>
               </a>
             </div>
             <div className="text-center md:text-right">
-              <p className="text-gray-400 text-sm">© 2023 Safe Pass. Todos os direitos reservados.</p>
+              <p className="text-muted-foreground text-sm">© 2023 Safe Pass. Todos os direitos reservados.</p>
             </div>
           </div>
         </div>

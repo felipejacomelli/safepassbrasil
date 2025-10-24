@@ -58,26 +58,26 @@ export default function BoletoCheckoutPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Banknote className="w-12 h-12 text-primary animate-pulse mx-auto mb-4" />
-          <p className="text-gray-300">Gerando boleto...</p>
+          <p className="text-muted-foreground">Gerando boleto...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black text-white py-12">
+    <div className="min-h-screen bg-background text-foreground py-12">
       <div className="container mx-auto px-4 max-w-2xl">
-        <div className="bg-zinc-900 rounded-lg p-8">
+        <div className="bg-card rounded-lg p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Banknote className="w-8 h-8 text-primary" />
             </div>
             <h1 className="text-3xl font-bold mb-2">Boleto Bancário</h1>
-            <p className="text-gray-400">
+            <p className="text-muted-foreground">
               Seu boleto foi gerado com sucesso
             </p>
           </div>
@@ -87,14 +87,14 @@ export default function BoletoCheckoutPage() {
             <div className="flex items-center justify-center gap-4">
               <Calendar className="w-8 h-8 text-primary" />
               <div>
-                <p className="text-sm text-gray-400">Vencimento em:</p>
+                <p className="text-sm text-muted-foreground">Vencimento em:</p>
                 <p className="text-2xl font-bold text-primary">{dueDate}</p>
               </div>
             </div>
           </div>
 
           {/* Código de Barras */}
-          <div className="bg-zinc-800 rounded-lg p-6 mb-6">
+          <div className="bg-accent rounded-lg p-6 mb-6">
             <h3 className="font-semibold mb-4">Código de Barras:</h3>
             <div className="bg-white p-4 rounded mb-4">
               {/* Simulação de código de barras */}
@@ -102,7 +102,7 @@ export default function BoletoCheckoutPage() {
                 {Array.from({ length: 44 }).map((_, i) => (
                   <div
                     key={i}
-                    className="bg-black"
+                    className="bg-background"
                     style={{
                       width: Math.random() > 0.5 ? '2px' : '4px',
                       height: '60px',
@@ -112,7 +112,7 @@ export default function BoletoCheckoutPage() {
               </div>
             </div>
             
-            <label className="block text-sm font-medium text-gray-400 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               Linha digitável:
             </label>
             <div className="flex gap-2">
@@ -120,7 +120,7 @@ export default function BoletoCheckoutPage() {
                 type="text"
                 value={boletoCode}
                 readOnly
-                className="flex-1 bg-zinc-700 text-white p-3 rounded-lg border border-zinc-600 font-mono text-sm"
+                className="flex-1 bg-zinc-700 text-foreground p-3 rounded-lg border border-zinc-600 font-mono text-sm"
               />
               <Button
                 onClick={handleCopyBoletoCode}
@@ -142,9 +142,9 @@ export default function BoletoCheckoutPage() {
           </div>
 
           {/* Instruções */}
-          <div className="bg-zinc-800 rounded-lg p-6 mb-6">
+          <div className="bg-accent rounded-lg p-6 mb-6">
             <h3 className="font-semibold mb-4">Como pagar:</h3>
-            <ol className="space-y-3 text-gray-300">
+            <ol className="space-y-3 text-muted-foreground">
               <li className="flex">
                 <span className="font-bold text-primary mr-3">1.</span>
                 <span>Copie a linha digitável acima ou faça o download do boleto</span>
@@ -169,9 +169,9 @@ export default function BoletoCheckoutPage() {
           </div>
 
           {/* Informações do Pedido */}
-          <div className="bg-zinc-800 rounded-lg p-6 mb-6">
+          <div className="bg-accent rounded-lg p-6 mb-6">
             <h3 className="font-semibold mb-4">Detalhes do Pedido</h3>
-            <div className="space-y-2 text-gray-300">
+            <div className="space-y-2 text-muted-foreground">
               <div className="flex justify-between">
                 <span>Número do Pedido:</span>
                 <span className="font-mono">{orderId || '---'}</span>
@@ -192,7 +192,7 @@ export default function BoletoCheckoutPage() {
             <Button
               onClick={handleDownloadBoleto}
               variant="outline"
-              className="border-zinc-700 text-gray-300 hover:bg-zinc-800"
+              className="border-border text-muted-foreground hover:bg-accent"
             >
               <Download className="w-5 h-5 mr-2" />
               Baixar PDF
@@ -200,7 +200,7 @@ export default function BoletoCheckoutPage() {
             <Button
               onClick={handlePrintBoleto}
               variant="outline"
-              className="border-zinc-700 text-gray-300 hover:bg-zinc-800"
+              className="border-border text-muted-foreground hover:bg-accent"
             >
               <Printer className="w-5 h-5 mr-2" />
               Imprimir
@@ -212,7 +212,7 @@ export default function BoletoCheckoutPage() {
             <Button
               onClick={() => router.push('/account/orders')}
               variant="outline"
-              className="flex-1 border-zinc-700 text-gray-300 hover:bg-zinc-800"
+              className="flex-1 border-border text-muted-foreground hover:bg-accent"
             >
               Ver Meus Pedidos
             </Button>

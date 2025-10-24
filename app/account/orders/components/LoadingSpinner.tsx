@@ -25,7 +25,7 @@ export function LoadingSpinner({
         className={`${sizeClasses[size]} animate-spin text-blue-500 mb-2`}
         aria-hidden="true"
       />
-      <p className="text-gray-400 text-sm" aria-live="polite">
+      <p className="text-muted-foreground text-sm" aria-live="polite">
         {text}
       </p>
     </div>

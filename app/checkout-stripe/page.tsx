@@ -80,11 +80,11 @@ export default function CheckoutStripePage() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-black text-white">
+      <div className="min-h-screen bg-background text-foreground">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-md mx-auto text-center">
             <h1 className="text-2xl font-bold mb-4">Carrinho Vazio</h1>
-            <p className="text-gray-400 mb-6">
+            <p className="text-muted-foreground mb-6">
               Você não tem itens no seu carrinho.
             </p>
             <Button onClick={() => router.push("/")} className="w-full">
@@ -97,7 +97,7 @@ export default function CheckoutStripePage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -106,23 +106,23 @@ export default function CheckoutStripePage() {
               variant="ghost"
               size="sm"
               onClick={handleBackToCart}
-              className="text-white hover:bg-gray-800"
+              className="text-foreground hover:bg-accent"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar ao Carrinho
             </Button>
             <div>
               <h1 className="text-2xl font-bold">Finalizar Compra</h1>
-              <p className="text-gray-400">Complete seu pagamento de forma segura</p>
+              <p className="text-muted-foreground">Complete seu pagamento de forma segura</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Resumo do Pedido */}
             <div className="space-y-6">
-              <Card className="bg-gray-900 border-gray-800">
+              <Card className="bg-card border-gray-800">
                 <CardHeader>
-                  <CardTitle className="text-white">Resumo do Pedido</CardTitle>
+                  <CardTitle className="text-foreground">Resumo do Pedido</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {cartItems.map((item) => (
@@ -136,15 +136,15 @@ export default function CheckoutStripePage() {
                         />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-white">{item.eventName}</h3>
-                        <p className="text-sm text-gray-400">{item.ticketType}</p>
-                        <p className="text-sm text-gray-400">{item.date}</p>
-                        <p className="text-sm text-gray-400">{item.location}</p>
+                        <h3 className="font-semibold text-foreground">{item.eventName}</h3>
+                        <p className="text-sm text-muted-foreground">{item.ticketType}</p>
+                        <p className="text-sm text-muted-foreground">{item.date}</p>
+                        <p className="text-sm text-muted-foreground">{item.location}</p>
                         <div className="flex items-center justify-between mt-2">
-                          <Badge variant="secondary" className="bg-gray-800 text-white">
+                          <Badge variant="secondary" className="bg-accent text-foreground">
                             Qtd: {item.quantity}
                           </Badge>
-                          <span className="font-semibold text-white">
+                          <span className="font-semibold text-foreground">
                             {formatAmount(item.price * item.quantity)}
                           </span>
                         </div>
@@ -152,30 +152,30 @@ export default function CheckoutStripePage() {
                     </div>
                   ))}
 
-                  <Separator className="bg-gray-700" />
+                  <Separator className="bg-accent" />
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Subtotal</span>
-                      <span className="text-white">{formatAmount(subtotal)}</span>
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="text-foreground">{formatAmount(subtotal)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Taxa de serviço</span>
-                      <span className="text-white">{formatAmount(serviceFee)}</span>
+                      <span className="text-muted-foreground">Taxa de serviço</span>
+                      <span className="text-foreground">{formatAmount(serviceFee)}</span>
                     </div>
-                    <Separator className="bg-gray-700" />
+                    <Separator className="bg-accent" />
                     <div className="flex justify-between text-lg font-bold">
-                      <span className="text-white">Total</span>
-                      <span className="text-white">{formatAmount(total)}</span>
+                      <span className="text-foreground">Total</span>
+                      <span className="text-foreground">{formatAmount(total)}</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Informações de Segurança */}
-              <Card className="bg-gray-900 border-gray-800">
+              <Card className="bg-card border-gray-800">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
+                  <CardTitle className="text-foreground flex items-center gap-2">
                     <Shield className="h-5 w-5" />
                     Pagamento Seguro
                   </CardTitle>
@@ -183,19 +183,19 @@ export default function CheckoutStripePage() {
                 <CardContent className="space-y-3">
                   <div className="flex items-center gap-3 text-sm">
                     <Lock className="h-4 w-4 text-green-500" />
-                    <span className="text-gray-300">
+                    <span className="text-muted-foreground">
                       Seus dados são protegidos com criptografia SSL
                     </span>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
                     <CreditCard className="h-4 w-4 text-green-500" />
-                    <span className="text-gray-300">
+                    <span className="text-muted-foreground">
                       Processado pelo Stripe, líder mundial em pagamentos
                     </span>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-gray-300">
+                    <span className="text-muted-foreground">
                       Garantia de reembolso em caso de problemas
                     </span>
                   </div>

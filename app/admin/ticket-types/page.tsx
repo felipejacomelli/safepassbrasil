@@ -139,10 +139,10 @@ export default function TicketTypesPage() {
       <div className="flex items-start gap-4">
         <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${
           isCompleted 
-            ? 'bg-green-600 border-green-600 text-white' 
+            ? 'bg-green-600 border-green-600 text-foreground' 
             : isActive 
-            ? 'bg-blue-600 border-blue-600 text-white' 
-            : 'bg-zinc-800 border-zinc-600 text-zinc-400'
+            ? 'bg-blue-600 border-blue-600 text-foreground' 
+            : 'bg-accent border-zinc-600 text-zinc-400'
         }`}>
           {isCompleted ? (
             <CheckCircle className="w-5 h-5" />
@@ -152,7 +152,7 @@ export default function TicketTypesPage() {
         </div>
         <div className="flex-1 min-w-0">
           <h3 className={`text-sm font-medium transition-colors ${
-            isActive ? 'text-white' : isPast ? 'text-green-400' : 'text-zinc-400'
+            isActive ? 'text-foreground' : isPast ? 'text-green-400' : 'text-zinc-400'
           }`}>
             {title}
           </h3>
@@ -177,13 +177,13 @@ export default function TicketTypesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Gerenciar Tipos de Ingressos</h1>
-          <p className="text-gray-400">Configure preços, quantidades e tipos de ingressos para as ocorrências</p>
+          <h1 className="text-2xl font-bold text-foreground">Gerenciar Tipos de Ingressos</h1>
+          <p className="text-muted-foreground">Configure preços, quantidades e tipos de ingressos para as ocorrências</p>
         </div>
         <Button 
           onClick={() => router.push('/admin/events')}
           variant="outline"
-          className="border-zinc-700 text-white hover:bg-zinc-800 rounded-lg"
+          className="border-border text-foreground hover:bg-accent rounded-lg"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar para Eventos
@@ -191,10 +191,10 @@ export default function TicketTypesPage() {
       </div>
 
       {/* Indicador de Progresso */}
-      <Card className="bg-zinc-900 border-zinc-800 rounded-lg">
+      <Card className="bg-card border-zinc-800 rounded-lg">
         <CardContent className="p-6">
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-white mb-4">Progresso da Configuração</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Progresso da Configuração</h2>
             <div className="space-y-4">
               <ProgressStep
                 step={1}
@@ -240,18 +240,18 @@ export default function TicketTypesPage() {
       )}
 
       {/* Seleção de Evento */}
-      <Card className={`bg-zinc-900 border-zinc-800 rounded-lg transition-all duration-200 ${
+      <Card className={`bg-card border-zinc-800 rounded-lg transition-all duration-200 ${
         currentStep >= 1 ? 'ring-2 ring-blue-500 ring-opacity-20' : ''
       }`}>
         <CardHeader className="pb-4">
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="text-foreground flex items-center gap-2">
             <div className={`p-1.5 rounded-lg ${
               selectedEvent ? 'bg-green-600' : currentStep === 1 ? 'bg-blue-600' : 'bg-zinc-700'
             }`}>
               <Ticket className="h-5 w-5" />
             </div>
             Selecionar Evento
-            {selectedEvent && <Badge variant="secondary" className="ml-2 bg-green-600 text-white">Concluído</Badge>}
+            {selectedEvent && <Badge variant="secondary" className="ml-2 bg-green-600 text-foreground">Concluído</Badge>}
             {eventsLoading && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
           </CardTitle>
         </CardHeader>
@@ -278,18 +278,18 @@ export default function TicketTypesPage() {
 
       {/* Seleção de Ocorrência */}
       {selectedEvent && (
-        <Card className={`bg-zinc-900 border-zinc-800 rounded-lg transition-all duration-200 ${
+        <Card className={`bg-card border-zinc-800 rounded-lg transition-all duration-200 ${
           currentStep >= 2 ? 'ring-2 ring-blue-500 ring-opacity-20' : ''
         }`}>
           <CardHeader className="pb-4">
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <div className={`p-1.5 rounded-lg ${
                 selectedOccurrence ? 'bg-green-600' : currentStep === 2 ? 'bg-blue-600' : 'bg-zinc-700'
               }`}>
                 <Ticket className="h-5 w-5" />
               </div>
               Selecionar Ocorrência
-              {selectedOccurrence && <Badge variant="secondary" className="ml-2 bg-green-600 text-white">Concluído</Badge>}
+              {selectedOccurrence && <Badge variant="secondary" className="ml-2 bg-green-600 text-foreground">Concluído</Badge>}
               {occurrencesLoading && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
             </CardTitle>
           </CardHeader>
@@ -320,11 +320,11 @@ export default function TicketTypesPage() {
 
       {/* Formulário de Tipos de Ingressos */}
       {selectedOccurrence && (
-        <Card className={`bg-zinc-900 border-zinc-800 rounded-lg transition-all duration-200 ${
+        <Card className={`bg-card border-zinc-800 rounded-lg transition-all duration-200 ${
           currentStep >= 3 ? 'ring-2 ring-blue-500 ring-opacity-20' : ''
         }`}>
           <CardHeader className="pb-4">
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <div className={`p-1.5 rounded-lg ${
                 ticketTypes.length > 0 ? 'bg-green-600' : currentStep === 3 ? 'bg-blue-600' : 'bg-zinc-700'
               }`}>
@@ -332,7 +332,7 @@ export default function TicketTypesPage() {
               </div>
               Tipos de Ingressos
               {ticketTypes.length > 0 && (
-                <Badge variant="secondary" className="ml-2 bg-green-600 text-white">
+                <Badge variant="secondary" className="ml-2 bg-green-600 text-foreground">
                   {ticketTypes.length} {ticketTypes.length === 1 ? 'tipo' : 'tipos'} configurado{ticketTypes.length > 1 ? 's' : ''}
                 </Badge>
               )}
@@ -365,13 +365,13 @@ export default function TicketTypesPage() {
                 />
                 
                 {/* Preview dos tipos de ingressos */}
-                <div className="mt-6 p-4 bg-zinc-800 rounded-lg border border-zinc-700">
-                  <h4 className="text-white font-medium mb-3">Resumo dos Tipos de Ingressos</h4>
+                <div className="mt-6 p-4 bg-accent rounded-lg border border-border">
+                  <h4 className="text-foreground font-medium mb-3">Resumo dos Tipos de Ingressos</h4>
                   <div className="space-y-2">
                     {ticketTypes.map((ticketType, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-zinc-900 rounded-lg">
+                      <div key={index} className="flex items-center justify-between p-3 bg-card rounded-lg">
                         <div className="flex-1">
-                          <p className="text-white font-medium">{ticketType.name}</p>
+                          <p className="text-foreground font-medium">{ticketType.name}</p>
                           <p className="text-zinc-400 text-sm">
                             R$ {ticketType.price}
                           </p>
@@ -396,13 +396,13 @@ export default function TicketTypesPage() {
 
       {/* Botões de Ação */}
       {selectedOccurrence && ticketTypes.length > 0 && (
-        <Card className={`bg-zinc-900 border-zinc-800 rounded-lg transition-all duration-200 ${
+        <Card className={`bg-card border-zinc-800 rounded-lg transition-all duration-200 ${
           currentStep >= 4 ? 'ring-2 ring-green-500 ring-opacity-20' : ''
         }`}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-white font-medium">Pronto para salvar!</h3>
+                <h3 className="text-foreground font-medium">Pronto para salvar!</h3>
                 <p className="text-zinc-400 text-sm mt-1">
                   {ticketTypes.length} {ticketTypes.length === 1 ? 'tipo de ingresso' : 'tipos de ingressos'} configurado{ticketTypes.length > 1 ? 's' : ''} para a ocorrência
                 </p>
@@ -415,7 +415,7 @@ export default function TicketTypesPage() {
                     resetForm()
                   }}
                   variant="outline"
-                  className="border-zinc-700 text-white hover:bg-zinc-800 rounded-lg"
+                  className="border-border text-foreground hover:bg-accent rounded-lg"
                   disabled={isSubmitting}
                 >
                   Limpar Tudo

@@ -89,8 +89,8 @@ export default function OccurrencesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Gerenciar Ocorrências</h1>
-          <p className="text-gray-400">Adicione datas, horários e locais para os eventos</p>
+          <h1 className="text-2xl font-bold text-foreground">Gerenciar Ocorrências</h1>
+          <p className="text-muted-foreground">Adicione datas, horários e locais para os eventos</p>
         </div>
         <Button 
           onClick={addOccurrence}
@@ -149,7 +149,7 @@ export default function OccurrencesPage() {
         <Button
           variant="outline"
           onClick={() => router.push('/admin/events')}
-          className="border-zinc-700 text-white rounded hover:bg-zinc-800"
+          className="border-border text-foreground rounded hover:bg-accent"
         >
           Voltar para Eventos
         </Button>

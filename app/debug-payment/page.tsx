@@ -129,9 +129,9 @@ export default function DebugPaymentPage() {
           
           <div className="space-y-2">
             <Label>Logs de Debug:</Label>
-            <div className="bg-black text-green-400 p-4 rounded font-mono text-sm max-h-96 overflow-y-auto">
+            <div className="bg-background text-green-400 p-4 rounded font-mono text-sm max-h-96 overflow-y-auto">
               {debugLogs.length === 0 ? (
-                <div className="text-gray-500">Clique em "Testar Pagamento" para ver os logs...</div>
+                <div className="text-muted-foreground">Clique em "Testar Pagamento" para ver os logs...</div>
               ) : (
                 debugLogs.map((log, index) => (
                   <div key={index} className="mb-1">{log}</div>

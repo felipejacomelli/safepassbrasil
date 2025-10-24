@@ -413,7 +413,7 @@ export default function UniqueTicketsPage() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-            <Sparkles className="h-6 w-6 text-white" />
+            <Sparkles className="h-6 w-6 text-foreground" />
           </div>
         <div>
             <h1 className="text-3xl font-bold text-gray-900">
@@ -477,7 +477,7 @@ export default function UniqueTicketsPage() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {ticketTypes.map((type) => (
-                    <div key={type.id} className="border rounded-lg p-4 bg-gray-50">
+                    <div key={type.id} className="border rounded-lg p-4 bg-accent">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium text-gray-900">{type.name}</h4>
                         <Badge variant="outline" className="text-xs">
@@ -504,8 +504,8 @@ export default function UniqueTicketsPage() {
           {!selectedOccurrence && (
             <Card className="border-dashed border-2 border-gray-300">
               <CardContent className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <AlertCircle className="h-8 w-8 text-gray-400" />
+                <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertCircle className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   Selecione uma Ocorrência
@@ -591,7 +591,7 @@ export default function UniqueTicketsPage() {
         <Button
           onClick={handleSave}
                   disabled={saving || hasValidationErrors}
-                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400"
+                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-muted"
                   size="lg"
                 >
                   {saving ? (

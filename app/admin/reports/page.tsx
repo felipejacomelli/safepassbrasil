@@ -241,7 +241,7 @@ export default function AdminReportsPage() {
       case 'decrease':
         return <TrendingDown className="w-4 h-4 text-red-500" />
       default:
-        return <Activity className="w-4 h-4 text-gray-500" />
+        return <Activity className="w-4 h-4 text-muted-foreground" />
     }
   }
 
@@ -252,7 +252,7 @@ export default function AdminReportsPage() {
       case 'decrease':
         return 'text-red-500'
       default:
-        return 'text-gray-500'
+        return 'text-muted-foreground'
     }
   }
 
@@ -285,13 +285,13 @@ export default function AdminReportsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Relatórios</h1>
-          <p className="text-gray-400">Análise detalhada de performance e métricas</p>
+          <h1 className="text-3xl font-bold text-foreground">Relatórios</h1>
+          <p className="text-muted-foreground">Análise detalhada de performance e métricas</p>
         </div>
         
         <div className="flex items-center gap-3">
           <Select value={dateRange} onValueChange={setDateRange}>
-            <SelectTrigger className="w-40 bg-zinc-900 border-zinc-800">
+            <SelectTrigger className="w-40 bg-card border-zinc-800">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -322,20 +322,20 @@ export default function AdminReportsPage() {
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {metrics.map((metric, index) => (
-          <Card key={index} className="bg-zinc-900 border-zinc-800">
+          <Card key={index} className="bg-card border-zinc-800">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-400">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
                   {metric.title}
                 </CardTitle>
-                <div className="text-gray-400">
+                <div className="text-muted-foreground">
                   {metric.icon}
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {metric.value}
                 </div>
                 <div className="flex items-center gap-2">
@@ -344,7 +344,7 @@ export default function AdminReportsPage() {
                     {metric.change > 0 ? '+' : ''}{metric.change}%
                   </span>
                   {metric.description && (
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-muted-foreground">
                       {metric.description}
                     </span>
                   )}
@@ -357,7 +357,7 @@ export default function AdminReportsPage() {
 
       {/* Tabs for different report views */}
       <Tabs value={reportType} onValueChange={setReportType} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 bg-zinc-900">
+        <TabsList className="grid w-full grid-cols-4 bg-card">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="revenue">Receita</TabsTrigger>
           <TabsTrigger value="users">Usuários</TabsTrigger>
@@ -368,9 +368,9 @@ export default function AdminReportsPage() {
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Revenue Chart */}
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-card border-zinc-800">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
+                <CardTitle className="text-foreground flex items-center gap-2">
                   <BarChart3 className="w-5 h-5" />
                   Receita por Mês
                 </CardTitle>
@@ -383,9 +383,9 @@ export default function AdminReportsPage() {
                   {revenueData.map((data, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 text-sm text-gray-400">{data.month}</div>
+                        <div className="w-12 text-sm text-muted-foreground">{data.month}</div>
                         <div className="flex-1">
-                          <div className="w-full bg-zinc-800 rounded-full h-2">
+                          <div className="w-full bg-accent rounded-full h-2">
                             <div 
                               className="bg-blue-500 h-2 rounded-full" 
                               style={{ width: `${(data.revenue / 70000) * 100}%` }}
@@ -394,10 +394,10 @@ export default function AdminReportsPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-medium text-white">
+                        <div className="text-sm font-medium text-foreground">
                           {formatCurrency(data.revenue)}
                         </div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-muted-foreground">
                           {data.transactions} vendas
                         </div>
                       </div>
@@ -408,9 +408,9 @@ export default function AdminReportsPage() {
             </Card>
 
             {/* Category Distribution */}
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-card border-zinc-800">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
+                <CardTitle className="text-foreground flex items-center gap-2">
                   <PieChart className="w-5 h-5" />
                   Distribuição por Categoria
                 </CardTitle>
@@ -427,10 +427,10 @@ export default function AdminReportsPage() {
                           className="w-4 h-4 rounded-full" 
                           style={{ backgroundColor: category.color }}
                         />
-                        <span className="text-white">{category.name}</span>
+                        <span className="text-foreground">{category.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-20 bg-zinc-800 rounded-full h-2">
+                        <div className="w-20 bg-accent rounded-full h-2">
                           <div 
                             className="h-2 rounded-full" 
                             style={{ 
@@ -439,7 +439,7 @@ export default function AdminReportsPage() {
                             }}
                           />
                         </div>
-                        <span className="text-sm text-white w-8 text-right">
+                        <span className="text-sm text-foreground w-8 text-right">
                           {category.value}%
                         </span>
                       </div>
@@ -451,9 +451,9 @@ export default function AdminReportsPage() {
           </div>
 
           {/* Top Events */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-card border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-white">Top Eventos</CardTitle>
+              <CardTitle className="text-foreground">Top Eventos</CardTitle>
               <CardDescription>
                 Eventos com melhor desempenho de vendas
               </CardDescription>
@@ -463,30 +463,30 @@ export default function AdminReportsPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-zinc-800">
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Evento</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Vendas</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Receita</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Data</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Status</th>
-                      <th className="text-right py-3 px-4 text-gray-400 font-medium">Ações</th>
+                      <th className="text-left py-3 px-4 text-muted-foreground font-medium">Evento</th>
+                      <th className="text-left py-3 px-4 text-muted-foreground font-medium">Vendas</th>
+                      <th className="text-left py-3 px-4 text-muted-foreground font-medium">Receita</th>
+                      <th className="text-left py-3 px-4 text-muted-foreground font-medium">Data</th>
+                      <th className="text-left py-3 px-4 text-muted-foreground font-medium">Status</th>
+                      <th className="text-right py-3 px-4 text-muted-foreground font-medium">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
                     {topEvents.map((event) => (
-                      <tr key={event.id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
+                      <tr key={event.id} className="border-b border-zinc-800 hover:bg-accent/50">
                         <td className="py-4 px-4">
-                          <div className="font-medium text-white">{event.name}</div>
+                          <div className="font-medium text-foreground">{event.name}</div>
                         </td>
                         <td className="py-4 px-4">
-                          <div className="text-white">{formatNumber(event.sales)}</div>
+                          <div className="text-foreground">{formatNumber(event.sales)}</div>
                         </td>
                         <td className="py-4 px-4">
-                          <div className="text-white font-medium">
+                          <div className="text-foreground font-medium">
                             {formatCurrency(event.revenue)}
                           </div>
                         </td>
                         <td className="py-4 px-4">
-                          <div className="text-gray-400">
+                          <div className="text-muted-foreground">
                             {new Date(event.date).toLocaleDateString('pt-BR')}
                           </div>
                         </td>
@@ -512,76 +512,76 @@ export default function AdminReportsPage() {
         {/* Revenue Tab */}
         <TabsContent value="revenue" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-card border-zinc-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-400">Receita Total</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Receita Total</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {dashboardStats ? formatCurrency(parseFloat(dashboardStats.total_revenue)) : 'R$ 0,00'}
                 </div>
                 <div className="flex items-center gap-1 mt-1">
                   <TrendingUp className="w-4 h-4 text-green-500" />
                   <span className="text-sm text-green-500">+18.2%</span>
-                  <span className="text-xs text-gray-500">vs mês anterior</span>
+                  <span className="text-xs text-muted-foreground">vs mês anterior</span>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-card border-zinc-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-400">Receita Média/Dia</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Receita Média/Dia</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {dashboardStats ? formatCurrency(parseFloat(dashboardStats.total_revenue) / 30) : 'R$ 0,00'}
                 </div>
                 <div className="flex items-center gap-1 mt-1">
                   <TrendingUp className="w-4 h-4 text-green-500" />
                   <span className="text-sm text-green-500">+5.7%</span>
-                  <span className="text-xs text-gray-500">vs mês anterior</span>
+                  <span className="text-xs text-muted-foreground">vs mês anterior</span>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-card border-zinc-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-400">Taxa de Comissão</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Taxa de Comissão</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {dashboardStats ? formatCurrency(parseFloat(dashboardStats.total_revenue) * 0.05) : 'R$ 0,00'}
                 </div>
                 <div className="flex items-center gap-1 mt-1">
-                  <span className="text-sm text-gray-400">5% das vendas</span>
+                  <span className="text-sm text-muted-foreground">5% das vendas</span>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-card border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-white">Detalhamento de Receita</CardTitle>
+              <CardTitle className="text-foreground">Detalhamento de Receita</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {revenueData.map((data, index) => (
-                  <div key={index} className="grid grid-cols-4 gap-4 p-4 bg-zinc-800 rounded-lg">
+                  <div key={index} className="grid grid-cols-4 gap-4 p-4 bg-accent rounded-lg">
                     <div>
-                      <div className="text-sm text-gray-400">Mês</div>
-                      <div className="text-white font-medium">{data.month}</div>
+                      <div className="text-sm text-muted-foreground">Mês</div>
+                      <div className="text-foreground font-medium">{data.month}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-400">Receita</div>
-                      <div className="text-white font-medium">{formatCurrency(data.revenue)}</div>
+                      <div className="text-sm text-muted-foreground">Receita</div>
+                      <div className="text-foreground font-medium">{formatCurrency(data.revenue)}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-400">Transações</div>
-                      <div className="text-white font-medium">{formatNumber(data.transactions)}</div>
+                      <div className="text-sm text-muted-foreground">Transações</div>
+                      <div className="text-foreground font-medium">{formatNumber(data.transactions)}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-400">Ticket Médio</div>
-                      <div className="text-white font-medium">
+                      <div className="text-sm text-muted-foreground">Ticket Médio</div>
+                      <div className="text-foreground font-medium">
                         {formatCurrency(data.revenue / data.transactions)}
                       </div>
                     </div>
@@ -595,44 +595,44 @@ export default function AdminReportsPage() {
         {/* Users Tab */}
         <TabsContent value="users" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-card border-zinc-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-400">Total de Usuários</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total de Usuários</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {dashboardStats ? formatNumber(dashboardStats.total_users) : '0'}
                 </div>
-                <div className="text-xs text-gray-500">Usuários cadastrados</div>
+                <div className="text-xs text-muted-foreground">Usuários cadastrados</div>
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-card border-zinc-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-400">Usuários Verificados</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Usuários Verificados</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {dashboardStats ? Math.floor(dashboardStats.total_users * 0.758).toLocaleString('pt-BR') : '0'}
                 </div>
-                <div className="text-xs text-gray-500">75.8% do total</div>
+                <div className="text-xs text-muted-foreground">75.8% do total</div>
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-card border-zinc-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-400">Taxa de Retenção</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Taxa de Retenção</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">68.4%</div>
-                <div className="text-xs text-gray-500">Usuários ativos 30d</div>
+                <div className="text-2xl font-bold text-foreground">68.4%</div>
+                <div className="text-xs text-muted-foreground">Usuários ativos 30d</div>
               </CardContent>
             </Card>
           </div>
 
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-card border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-white">Atividade de Usuários</CardTitle>
+              <CardTitle className="text-foreground">Atividade de Usuários</CardTitle>
               <CardDescription>
                 Registros e atividade dos últimos 7 dias
               </CardDescription>
@@ -640,24 +640,24 @@ export default function AdminReportsPage() {
             <CardContent>
               <div className="space-y-4">
                 {userActivity.map((activity, index) => (
-                  <div key={index} className="grid grid-cols-4 gap-4 p-4 bg-zinc-800 rounded-lg">
+                  <div key={index} className="grid grid-cols-4 gap-4 p-4 bg-accent rounded-lg">
                     <div>
-                      <div className="text-sm text-gray-400">Data</div>
-                      <div className="text-white font-medium">
+                      <div className="text-sm text-muted-foreground">Data</div>
+                      <div className="text-foreground font-medium">
                         {new Date(activity.date).toLocaleDateString('pt-BR')}
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-400">Novos Registros</div>
-                      <div className="text-white font-medium">{activity.registrations}</div>
+                      <div className="text-sm text-muted-foreground">Novos Registros</div>
+                      <div className="text-foreground font-medium">{activity.registrations}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-400">Usuários Ativos</div>
-                      <div className="text-white font-medium">{formatNumber(activity.activeUsers)}</div>
+                      <div className="text-sm text-muted-foreground">Usuários Ativos</div>
+                      <div className="text-foreground font-medium">{formatNumber(activity.activeUsers)}</div>
                     </div>
                     <div>
-                      <div className="text-sm text-gray-400">Transações</div>
-                      <div className="text-white font-medium">{activity.transactions}</div>
+                      <div className="text-sm text-muted-foreground">Transações</div>
+                      <div className="text-foreground font-medium">{activity.transactions}</div>
                     </div>
                   </div>
                 ))}
@@ -669,56 +669,56 @@ export default function AdminReportsPage() {
         {/* Events Tab */}
         <TabsContent value="events" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-card border-zinc-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-400">Eventos Ativos</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Eventos Ativos</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {dashboardStats ? formatNumber(dashboardStats.total_events) : '0'}
                 </div>
-                <div className="text-xs text-gray-500">Total de eventos</div>
+                <div className="text-xs text-muted-foreground">Total de eventos</div>
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-card border-zinc-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-400">Pedidos Concluídos</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Pedidos Concluídos</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {dashboardStats?.orders_by_status?.completed || 0}
                 </div>
-                <div className="text-xs text-gray-500">Pedidos finalizados</div>
+                <div className="text-xs text-muted-foreground">Pedidos finalizados</div>
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-card border-zinc-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-400">Taxa de Ocupação</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Taxa de Ocupação</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">78.5%</div>
-                <div className="text-xs text-gray-500">Ingressos vendidos</div>
+                <div className="text-2xl font-bold text-foreground">78.5%</div>
+                <div className="text-xs text-muted-foreground">Ingressos vendidos</div>
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-card border-zinc-800">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-gray-400">Pedidos Cancelados</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Pedidos Cancelados</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-red-500">
                   {dashboardStats?.orders_by_status?.cancelled || 0}
                 </div>
-                <div className="text-xs text-gray-500">Pedidos cancelados</div>
+                <div className="text-xs text-muted-foreground">Pedidos cancelados</div>
               </CardContent>
             </Card>
           </div>
 
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-card border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-white">Performance de Eventos</CardTitle>
+              <CardTitle className="text-foreground">Performance de Eventos</CardTitle>
               <CardDescription>
                 Análise detalhada dos eventos mais populares
               </CardDescription>
@@ -728,29 +728,29 @@ export default function AdminReportsPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-zinc-800">
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Evento</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Categoria</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Vendas</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Capacidade</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Ocupação</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Receita</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Status</th>
+                      <th className="text-left py-3 px-4 text-muted-foreground font-medium">Evento</th>
+                      <th className="text-left py-3 px-4 text-muted-foreground font-medium">Categoria</th>
+                      <th className="text-left py-3 px-4 text-muted-foreground font-medium">Vendas</th>
+                      <th className="text-left py-3 px-4 text-muted-foreground font-medium">Capacidade</th>
+                      <th className="text-left py-3 px-4 text-muted-foreground font-medium">Ocupação</th>
+                      <th className="text-left py-3 px-4 text-muted-foreground font-medium">Receita</th>
+                      <th className="text-left py-3 px-4 text-muted-foreground font-medium">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {topEvents.map((event) => (
-                      <tr key={event.id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
+                      <tr key={event.id} className="border-b border-zinc-800 hover:bg-accent/50">
                         <td className="py-4 px-4">
-                          <div className="font-medium text-white">{event.name}</div>
+                          <div className="font-medium text-foreground">{event.name}</div>
                         </td>
                         <td className="py-4 px-4">
                           <Badge variant="outline">Shows</Badge>
                         </td>
                         <td className="py-4 px-4">
-                          <div className="text-white">{formatNumber(event.sales)}</div>
+                          <div className="text-foreground">{formatNumber(event.sales)}</div>
                         </td>
                         <td className="py-4 px-4">
-                          <div className="text-gray-400">2.000</div>
+                          <div className="text-muted-foreground">2.000</div>
                         </td>
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
@@ -760,13 +760,13 @@ export default function AdminReportsPage() {
                                 style={{ width: `${(event.sales / 2000) * 100}%` }}
                               />
                             </div>
-                            <span className="text-sm text-white">
+                            <span className="text-sm text-foreground">
                               {Math.round((event.sales / 2000) * 100)}%
                             </span>
                           </div>
                         </td>
                         <td className="py-4 px-4">
-                          <div className="text-white font-medium">
+                          <div className="text-foreground font-medium">
                             {formatCurrency(event.revenue)}
                           </div>
                         </td>

@@ -86,7 +86,7 @@ export default function TestCreditCardPage() {
           
           <div className="space-y-2">
             <Label>Resultado:</Label>
-            <div className="bg-black text-green-400 p-4 rounded font-mono text-sm max-h-96 overflow-y-auto whitespace-pre-wrap">
+            <div className="bg-background text-green-400 p-4 rounded font-mono text-sm max-h-96 overflow-y-auto whitespace-pre-wrap">
               {result || "Clique em 'Testar Cartão de Crédito' para ver o resultado..."}
             </div>
           </div>

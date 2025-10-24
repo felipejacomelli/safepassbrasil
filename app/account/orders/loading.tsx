@@ -2,12 +2,12 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function OrdersLoading() {
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar */}
           <div className="md:w-1/4">
-            <div className="bg-zinc-900 rounded-lg p-6">
+            <div className="bg-card rounded-lg p-6">
               <Skeleton className="h-12 w-12 rounded-full mb-4" />
               <Skeleton className="h-6 w-32 mb-2" />
               <Skeleton className="h-4 w-24 mb-6" />

@@ -129,7 +129,7 @@ export default function AccountPage() {
   // Mostrar loading enquanto verifica autenticação
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
           <p>Carregando...</p>
@@ -336,7 +336,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       <Header />
 
       <div className="container mx-auto px-4 py-8">
@@ -348,17 +348,17 @@ export default function AccountPage() {
 
           {/* Main Content */}
           <div className="md:w-3/4">
-            <h1 className="text-3xl font-bold text-white mb-6">Minha Conta</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-6">Minha Conta</h1>
 
             {/* Profile Card */}
-            <div className="bg-zinc-900 rounded p-6 mb-6">
+            <div className="bg-card rounded p-6 mb-6">
               <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
                 <div className="relative">
-                  <div className="w-24 h-24 bg-zinc-800 rounded overflow-hidden relative">
+                  <div className="w-24 h-24 bg-accent rounded overflow-hidden relative">
                     {profileImage ? (
                       <>
                         {imageLoading && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-zinc-800">
+                          <div className="absolute inset-0 flex items-center justify-center bg-accent">
                             <div className="animate-spin rounded h-6 w-6 border-b-2 border-blue-500"></div>
                           </div>
                         )}
@@ -392,13 +392,13 @@ export default function AccountPage() {
                       className="absolute -top-1 -right-1 w-6 h-6 bg-red-600 hover:bg-red-700 rounded flex items-center justify-center transition-colors"
                       title="Remover foto"
                     >
-                      <Trash2 className="w-3 h-3 text-white" />
+                      <Trash2 className="w-3 h-3 text-foreground" />
                     </button>
                   )}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-bold text-white">{user?.name}</h2>
+                    <h2 className="text-2xl font-bold text-foreground">{user?.name}</h2>
                     {user?.verificationStatus === "verified" && (
                       <div className="bg-green-900 bg-opacity-20 text-green-500 px-2 py-1 rounded text-xs flex items-center">
                         <CheckCircle className="w-3 h-3 mr-1" />
@@ -412,7 +412,7 @@ export default function AccountPage() {
                       </div>
                     )}
                   </div>
-                  <p className="text-gray-400">Membro desde {user?.memberSince}</p>
+                  <p className="text-muted-foreground">Membro desde {user?.memberSince}</p>
                   <div className="flex items-center gap-2 mt-2">
                     <input
                       ref={fileInputRef}
@@ -424,7 +424,7 @@ export default function AccountPage() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="border-zinc-700 rounded text-white bg-transparent hover:bg-zinc-800"
+                      className="border-border rounded text-foreground bg-transparent hover:bg-accent"
                       onClick={handleChangePhotoClick}
                     >
                       <Camera className="w-4 h-4 mr-2" />
@@ -441,7 +441,7 @@ export default function AccountPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="name" className="text-gray-300">
+                    <Label htmlFor="name" className="text-muted-foreground">
                       Nome Completo
                     </Label>
                     {isEditing ? (
@@ -449,18 +449,18 @@ export default function AccountPage() {
                         id="name"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="bg-zinc-800 border-zinc-700 text-white"
+                        className="bg-accent border-border text-foreground"
                       />
                     ) : (
-                      <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded">
+                      <div className="flex items-center gap-3 p-3 bg-accent rounded">
                         <User className="w-5 h-5 text-primary" />
-                        <span className="text-white">{user?.name}</span>
+                        <span className="text-foreground">{user?.name}</span>
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <Label htmlFor="email" className="text-gray-300">
+                    <Label htmlFor="email" className="text-muted-foreground">
                       Email
                     </Label>
                     {isEditing ? (
@@ -474,7 +474,7 @@ export default function AccountPage() {
                             // Limpar erro quando o usuário começar a digitar
                             if (emailError) setEmailError("")
                           }}
-                          className={`bg-zinc-800 border-zinc-700 text-white ${emailError ? 'border-red-500' : ''}`}
+                          className={`bg-accent border-border text-foreground ${emailError ? 'border-red-500' : ''}`}
                           placeholder="seu@email.com"
                         />
                         {emailError && (
@@ -482,26 +482,26 @@ export default function AccountPage() {
                         )}
                       </div>
                     ) : (
-                      <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded">
+                      <div className="flex items-center gap-3 p-3 bg-accent rounded">
                         <Mail className="w-5 h-5 text-primary" />
-                        <span className="text-white">{user?.email}</span>
+                        <span className="text-foreground">{user?.email}</span>
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <Label htmlFor="cpf" className="text-gray-300">
+                    <Label htmlFor="cpf" className="text-muted-foreground">
                       CPF
                     </Label>
-                    <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded">
+                    <div className="flex items-center gap-3 p-3 bg-accent rounded">
                       <Shield className="w-5 h-5 text-primary" />
-                      <span className="text-white">{user?.cpfFormatted || "Não informado"}</span>
-                      <span className="text-xs text-gray-500 ml-auto">Não editável</span>
+                      <span className="text-foreground">{user?.cpfFormatted || "Não informado"}</span>
+                      <span className="text-xs text-muted-foreground ml-auto">Não editável</span>
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="phone" className="text-gray-300">
+                    <Label htmlFor="phone" className="text-muted-foreground">
                       Telefone
                     </Label>
                     {isEditing ? (
@@ -514,7 +514,7 @@ export default function AccountPage() {
                             // Limpar erro quando o usuário começar a digitar
                             if (phoneError) setPhoneError("")
                           }}
-                          className={`bg-zinc-800 border-zinc-700 text-white ${phoneError ? 'border-red-500' : ''}`}
+                          className={`bg-accent border-border text-foreground ${phoneError ? 'border-red-500' : ''}`}
                           placeholder="(11) 99999-9999"
                         />
                         {phoneError && (
@@ -522,21 +522,21 @@ export default function AccountPage() {
                         )}
                       </div>
                     ) : (
-                      <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded">
+                      <div className="flex items-center gap-3 p-3 bg-accent rounded">
                         <Phone className="w-5 h-5 text-primary" />
-                        <span className="text-white">{user?.phone}</span>
+                        <span className="text-foreground">{user?.phone}</span>
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <Label htmlFor="country" className="text-gray-300">
+                    <Label htmlFor="country" className="text-muted-foreground">
                       País
                     </Label>
-                    <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded">
+                    <div className="flex items-center gap-3 p-3 bg-accent rounded">
                       <MapPin className="w-5 h-5 text-primary" />
-                      <span className="text-white">{user?.country || "Não informado"}</span>
-                      <span className="text-xs text-gray-500 ml-auto">Não editável</span>
+                      <span className="text-foreground">{user?.country || "Não informado"}</span>
+                      <span className="text-xs text-muted-foreground ml-auto">Não editável</span>
                     </div>
                   </div>
                 </div>
@@ -545,8 +545,8 @@ export default function AccountPage() {
                   <div className="flex items-center gap-3 p-3 bg-blue-900 bg-opacity-20 border border-blue-800 rounded">
                     <Shield className="w-5 h-5 text-primary" />
                     <div>
-                      <p className="text-white font-medium">Verificação de Vendedor</p>
-                      <p className="text-gray-300 text-sm">
+                      <p className="text-foreground font-medium">Verificação de Vendedor</p>
+                      <p className="text-muted-foreground text-sm">
                         {user?.verificationStatus === "pending"
                           ? "Sua verificação está em análise."
                           : "Verifique sua identidade para se tornar um vendedor verificado."}
@@ -586,7 +586,7 @@ export default function AccountPage() {
                       <Button
                         onClick={handleCancel}
                         variant="outline"
-                        className="border-zinc-700 text-white bg-transparent"
+                        className="border-border text-foreground bg-transparent"
                       >
                         Cancelar
                       </Button>
@@ -606,28 +606,28 @@ export default function AccountPage() {
 
             {/* Account Status Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="bg-zinc-900 rounded p-4">
+              <div className="bg-card rounded p-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-green-900 bg-opacity-20 rounded">
                     <CheckCircle className="w-6 h-6 text-green-500" />
                   </div>
                   <div>
-                    <h3 className="text-white font-medium">Conta Verificada</h3>
-                    <p className="text-gray-400 text-sm">
+                    <h3 className="text-foreground font-medium">Conta Verificada</h3>
+                    <p className="text-muted-foreground text-sm">
                       {user?.verificationStatus === "verified" ? "Verificado" : "Pendente"}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-zinc-900 rounded p-4">
+              <div className="bg-card rounded p-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-purple-900 bg-opacity-20 rounded">
                     <CreditCard className="w-6 h-6 text-purple-500" />
                   </div>
                   <div>
-                    <h3 className="text-white font-medium">Tipo de Conta</h3>
-                    <p className="text-gray-400 text-sm">{user?.isAdmin ? "Administrador" : "Usuário"}</p>
+                    <h3 className="text-foreground font-medium">Tipo de Conta</h3>
+                    <p className="text-muted-foreground text-sm">{user?.isAdmin ? "Administrador" : "Usuário"}</p>
                   </div>
                 </div>
               </div>
@@ -639,13 +639,13 @@ export default function AccountPage() {
 
       {/* Modal de Confirmação de Upload de Foto */}
       {showPhotoDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-zinc-900 rounded p-6 max-w-md w-full border border-zinc-700">
-            <h3 className="text-xl font-bold text-white mb-4">Confirmar Nova Foto</h3>
+        <div className="fixed inset-0 bg-background/75 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded p-6 max-w-md w-full border border-border">
+            <h3 className="text-xl font-bold text-foreground mb-4">Confirmar Nova Foto</h3>
             
             {/* Preview da foto */}
             <div className="mb-6">
-              <div className="w-32 h-32 mx-auto bg-zinc-800 rounded overflow-hidden">
+              <div className="w-32 h-32 mx-auto bg-accent rounded overflow-hidden">
                 {photoPreview && (
                   <img
                     src={photoPreview}
@@ -664,7 +664,7 @@ export default function AccountPage() {
             )}
 
             {/* Informação */}
-            <p className="text-gray-400 text-sm mb-6">
+            <p className="text-muted-foreground text-sm mb-6">
               Deseja atualizar sua foto de perfil com esta imagem?
             </p>
 
@@ -673,7 +673,7 @@ export default function AccountPage() {
               <Button
                 onClick={handleCancelPhotoUpload}
                 variant="outline"
-                className="flex-1 border-zinc-700 text-white bg-transparent hover:bg-zinc-800"
+                className="flex-1 border-border text-foreground bg-transparent hover:bg-accent"
                 disabled={isUploadingPhoto}
               >
                 Cancelar

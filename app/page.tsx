@@ -6,6 +6,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { useData } from "@/contexts/data-context"
+import Header from "@/components/Header"
 import {
     MapPin,
     User,
@@ -136,7 +137,7 @@ export default function Page() {
             const searchLower = searchTerm.toLowerCase()
             
             // Verificar se as propriedades existem antes de chamar toLowerCase()
-            const title = event.title || event.name || ''
+            const title = event.title || ''
             const location = event.location || ''
             const date = event.date || ''
             
@@ -167,157 +168,100 @@ export default function Page() {
     }, [isSellModalOpen])
 
     return (
-        <div className="min-h-screen rounded flex flex-col bg-black text-white">
-            {/* Header */}
-            <header className="sticky top-0 z-10 bg-black border-b border-zinc-800">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-                    <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-                        <div className="bg-blue-500 p-1.5 rounded">
-                            <div className="w-6 h-6 bg-black rounded" />
-                        </div>
-                        Safe Pass
-                    </Link>
-                    <nav className="flex items-center gap-4">
-                        {isAuthenticated ? (
-                            <div className="relative">
+        <div className="min-h-screen flex flex-col bg-background text-foreground">
+            <Header />
+
+            {/* Main Content */}
+            <main role="main">
+                {/* Hero Section */}
+                <section className="max-w-6xl mx-auto px-4 py-12 text-center" aria-labelledby="hero-title">
+                    <h1 id="hero-title" className="text-4xl font-bold mb-4">
+                        COMPRA E VENDA DE INGRESSOS COM SEGURANÇA
+                    </h1>
+                    <p className="text-primary text-lg mb-6">
+                        Compre e revenda com proteção total sem estresse e sem golpe.
+                    </p>
+
+                    <form onSubmit={handleSearch} className="max-w-lg mx-auto mb-6 relative" role="search">
+                        <label htmlFor="search-input" className="sr-only">
+                            Buscar eventos
+                        </label>
+                        <input
+                            id="search-input"
+                            type="search"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Busque por evento, categoria ou palavra-chave"
+                            className="w-full px-4 py-3 rounded bg-muted text-foreground placeholder-muted-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                    </form>
+
+                    <div className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
+                        <button
+                            onClick={() =>
+                                router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
+                            }
+                            className="bg-primary text-primary-foreground font-bold py-3 px-6 rounded flex-1 hover:bg-primary/90 transition-colors"
+                        >
+                            Buscar Eventos
+                        </button>
+                        <button
+                            onClick={handleSellClick}
+                            disabled={isLoadingRedirect}
+                            className="border-2 border-primary text-primary font-bold py-3 px-6 rounded flex items-center justify-center gap-2 flex-1 hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isLoadingRedirect ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                    Redirecionando...
+                                </>
+                            ) : (
+                                <>
+                                    <Plus size={18} />
+                                    Vender Ingressos
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </section>
+
+                {/* Events Section */}
+                <section className="bg-muted py-12 px-4" aria-labelledby="events-title">
+                    <div className="max-w-6xl mx-auto">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 id="events-title" className="text-2xl font-bold">
+                                {selectedState ? `Eventos em ${selectedState}` : "Próximos eventos"}
+                            </h2>
+                            {selectedState && (
                                 <button
-                                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                    className="flex items-center gap-2 border border-blue-500 px-3 py-1.5 rounded text-sm font-semibold hover:bg-blue-500/10 transition-colors"
+                                    onClick={clearFilter}
+                                    className="flex items-center gap-2 bg-background hover:bg-accent px-3 py-2 rounded-lg text-sm transition-colors"
+                                    aria-label={`Remover filtro de ${selectedState}`}
                                 >
-                                    <UserCircle size={18} />
-                                    <span>{user?.name || 'Usuário'}</span>
-                                    <ChevronDown size={16} className={`transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                                    <X size={16} />
+                                    Limpar filtro
                                 </button>
-                                
-                                {isUserMenuOpen && (
-                                    <div className="absolute right-0 top-full mt-2 w-48 bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg z-50">
-                                        <div className="py-2">
-                                            <button
-                                                onClick={handleAccountAccess}
-                                                className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-800 transition-colors text-left"
-                                            >
-                                                <UserCircle size={16} />
-                                                Minha Conta
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    router.push("/cart")
-                                                    setIsUserMenuOpen(false)
-                                                }}
-                                                className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-800 transition-colors text-left"
-                                            >
-                                                <ShoppingCart size={16} />
-                                                Carrinho
-                                            </button>
-                                            <button
-                                                onClick={handleLogoutFromDropdown}
-                                                className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-zinc-800 transition-colors text-left text-red-400"
-                                            >
-                                                <LogOut size={16} />
-                                                Sair
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
+                            )}
+                        </div>
+
+                        {isLoading ? (
+                            <div className="text-center py-8" role="status" aria-live="polite">
+                                <p>Carregando eventos...</p>
+                            </div>
+                        ) : error ? (
+                            <div className="text-center py-8" role="alert">
+                                <p className="text-destructive">Erro ao carregar eventos.</p>
+                            </div>
+                        ) : paginatedEvents.length === 0 ? (
+                            <div className="text-center py-8">
+                                <p>
+                                    {selectedState 
+                                        ? `Nenhum evento encontrado em ${selectedState}.` 
+                                        : "Nenhum evento encontrado."
+                                    }
+                                </p>
                             </div>
                         ) : (
-                            <>
-                                <button
-                                    onClick={() => router.push("/login")}
-                                    className="p-2 border border-blue-500 rounded"
-                                >
-                                    <User size={18} />
-                                </button>
-                                <button
-                                    onClick={() => router.push("/cart")}
-                                    className="p-2 border border-blue-500 rounded"
-                                >
-                                    <ShoppingCart size={18} />
-                                </button>
-                            </>
-                        )}
-                    </nav>
-                </div>
-            </header>
-
-            {/* Hero */}
-            <section className="max-w-6xl mx-auto rounded px-4 py-12 text-center">
-                <h1 className="text-4xl font-bold mb-4">
-                    COMPRA E VENDA DE INGRESSOS COM SEGURANÇA
-                </h1>
-                <p className="text-blue-500 text-lg mb-6">
-                    Compre e revenda com proteção total sem estresse e sem golpe.
-                </p>
-
-                <form onSubmit={handleSearch} className="max-w-lg rounded mx-auto mb-6 relative">
-                    <input
-                        type="search"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Busque por evento, categoria ou palavra-chave"
-                        className="w-full px-4 py-3 rounded bg-zinc-800 text-white placeholder-zinc-500"
-                    />
-                </form>
-
-                <div className="flex rounded flex-col sm:flex-row gap-4 max-w-lg mx-auto">
-                    <button
-                        onClick={() =>
-                            router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
-                        }
-                        className="bg-blue-500 text-black font-bold py-3 px-6 rounded flex-1"
-                    >
-                        Buscar Eventos
-                    </button>
-                    <button
-                        onClick={handleSellClick}
-                        disabled={isLoadingRedirect}
-                        className="border-2 border-blue-500 text-blue-500 font-bold py-3 px-6 rounded flex items-center justify-center gap-2 flex-1 hover:bg-blue-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isLoadingRedirect ? (
-                            <>
-                                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                Redirecionando...
-                            </>
-                        ) : (
-                            <>
-                                <Plus size={18} />
-                                Vender Ingressos
-                            </>
-                        )}
-                    </button>
-                </div>
-            </section>
-
-            {/* Eventos */}
-            <section className="bg-zinc-900 py-12 px-4">
-                <div className="max-w-6xl mx-auto">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold">
-                            {selectedState ? `Eventos em ${selectedState}` : "Próximos eventos"}
-                        </h2>
-                        {selectedState && (
-                            <button
-                                onClick={clearFilter}
-                                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded-lg text-sm transition-colors"
-                            >
-                                <X size={16} />
-                                Limpar filtro
-                            </button>
-                        )}
-                    </div>
-
-                    {isLoading ? (
-                        <p>Carregando...</p>
-                    ) : error ? (
-                        <p className="text-red-500">Erro ao carregar eventos.</p>
-                    ) : paginatedEvents.length === 0 ? (
-                        <p>
-                            {selectedState 
-                                ? `Nenhum evento encontrado em ${selectedState}.` 
-                                : "Nenhum evento encontrado."
-                            }
-                        </p>
-                    ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {paginatedEvents.map((event: any) => (
                                 <EventCard key={event.id} event={event} />
@@ -351,7 +295,7 @@ export default function Page() {
             </section>
 
             {/* Categorias */}
-            <section className="bg-black py-12 px-4 border-t border-zinc-800">
+            <section className="bg-card py-12 px-4 border-t border-border">
                 <div className="max-w-6xl mx-auto">
                     <h2 className="text-2xl font-bold mb-6">Eventos por categoria</h2>
                     {categories.length === 0 ? (
@@ -364,7 +308,7 @@ export default function Page() {
                                     onClick={() =>
                                         router.push(`/search?category=${encodeURIComponent(cat.slug)}`)
                                     }
-                                    className="bg-zinc-800 rounded overflow-hidden hover:shadow-lg hover:scale-105 transition"
+                                    className="bg-accent rounded overflow-hidden hover:shadow-lg hover:scale-105 transition"
                                 >
                                     {cat.image && (
                                         <Image
@@ -377,7 +321,7 @@ export default function Page() {
                                     )}
                                     <div className="p-3 text-left">
                                         <span className="font-semibold">{cat.name}</span>
-                                        <span className="block text-sm text-zinc-400">
+                                        <span className="block text-sm text-muted-foreground">
                 {cat.event_count} eventos
               </span>
                                     </div>
@@ -388,25 +332,31 @@ export default function Page() {
                 </div>
             </section>
 
-            {/* Eventos Populares */}
-            <section className="bg-zinc-900 py-12 px-4 border-t border-zinc-800">
+            {/* Popular Events Section */}
+            <section className="bg-muted py-12 px-4 border-t border-border" aria-labelledby="popular-events-title">
                 <div className="max-w-6xl mx-auto">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold">Eventos populares</h2>
+                        <h2 id="popular-events-title" className="text-2xl font-bold">Eventos populares</h2>
                         <button
                             onClick={() => router.push("/search")}
-                            className="text-blue-500 hover:text-blue-400 font-medium text-sm transition-colors"
+                            className="text-primary hover:text-primary/80 font-medium text-sm transition-colors"
                         >
                             Ver tudo
                         </button>
                     </div>
                     
                     {isLoading ? (
-                        <p>Carregando...</p>
+                        <div className="text-center py-8" role="status" aria-live="polite">
+                            <p>Carregando eventos...</p>
+                        </div>
                     ) : error ? (
-                        <p className="text-red-500">Erro ao carregar eventos.</p>
+                        <div className="text-center py-8" role="alert">
+                            <p className="text-destructive">Erro ao carregar eventos.</p>
+                        </div>
                     ) : events.length === 0 ? (
-                        <p>Nenhum evento encontrado.</p>
+                        <div className="text-center py-8">
+                            <p>Nenhum evento encontrado.</p>
+                        </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                             {events
@@ -418,9 +368,9 @@ export default function Page() {
                                 })
                                 .slice(0, 8)
                                 .map((event: any) => (
-                                    <div
+                                    <article
                                         key={event.id}
-                                        className="bg-zinc-800 rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition cursor-pointer"
+                                        className="bg-card rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition cursor-pointer"
                                         onClick={() => {
                                             if (event.occurrences && event.occurrences.length > 0) {
                                                 const firstOccurrence = event.occurrences[0]
@@ -437,7 +387,7 @@ export default function Page() {
                                                 height={128}
                                                 className="w-full h-32 object-cover"
                                             />
-                                            <div className="absolute top-2 right-2 bg-blue-500 text-black text-xs font-bold px-2 py-1 rounded">
+                                            <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
                                                 {event.occurrences && event.occurrences.length > 0 && (
                                                     <>
                                                         {new Date(event.occurrences[0].start_at).toLocaleDateString('pt-BR', {
@@ -449,10 +399,10 @@ export default function Page() {
                                             </div>
                                         </div>
                                         <div className="p-3">
-                                            <h3 className="font-semibold text-white text-sm mb-1 line-clamp-2">
+                                            <h3 className="font-semibold text-card-foreground text-sm mb-1 line-clamp-2">
                                                 {event.name}
                                             </h3>
-                                            <div className="flex items-center gap-1 text-zinc-400 text-xs mb-2">
+                                            <div className="flex items-center gap-1 text-muted-foreground text-xs mb-2">
                                                 <MapPin size={12} />
                                                 <span>
                                                     {event.occurrences && event.occurrences.length > 0 && (
@@ -460,7 +410,7 @@ export default function Page() {
                                                     )}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-1 text-blue-500 text-xs">
+                                            <div className="flex items-center gap-1 text-primary text-xs">
                                                 <Ticket size={12} className="mr-1" />
                                                 <span>
                                                     {event.total_available_tickets !== undefined 
@@ -469,34 +419,35 @@ export default function Page() {
                                                 </span>
                                             </div>
                                         </div>
-                                    </div>
+                                    </article>
                                 ))}
                         </div>
                     )}
                 </div>
             </section>
+        </main>
 
             {/* Modal de Seleção de Evento para Venda */}
             {isSellModalOpen && (
                 <div 
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                    className="fixed inset-0 bg-background/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                     onClick={closeSellModal}
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="sell-modal-title"
                 >
                     <div 
-                        className="bg-zinc-900 rounded-xl border border-zinc-700 w-full max-w-2xl max-h-[80vh] flex flex-col"
+                        className="bg-card rounded-xl border border-border w-full max-w-2xl max-h-[80vh] flex flex-col"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header da Modal */}
-                        <div className="flex items-center justify-between p-6 border-b border-zinc-700 flex-shrink-0">
-                            <h2 id="sell-modal-title" className="text-xl font-bold text-white">
+                        <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
+                            <h2 id="sell-modal-title" className="text-xl font-bold text-foreground">
                                 Selecione um evento para vender
                             </h2>
                             <button
                                 onClick={closeSellModal}
-                                className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                                className="p-2 hover:bg-accent rounded-lg transition-colors"
                                 aria-label="Fechar modal"
                             >
                                 <X size={20} />
@@ -504,18 +455,18 @@ export default function Page() {
                         </div>
 
                         {/* Campo de Busca */}
-                        <div className="p-6 border-b border-zinc-700 flex-shrink-0">
+                        <div className="p-6 border-b border-border flex-shrink-0">
                             <div className="relative">
                                 <input
                                     type="text"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     placeholder="Buscar por nome do evento, localização ou data..."
-                                    className="w-full px-4 py-3 pl-10 bg-zinc-800 border border-zinc-600 rounded-xl text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    className="w-full px-4 py-3 pl-10 bg-accent border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                                     aria-label="Campo de busca de eventos"
                                 />
                                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                                    <svg className="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </div>
@@ -525,7 +476,7 @@ export default function Page() {
                                         className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-zinc-700 rounded transition-colors"
                                         aria-label="Limpar busca"
                                     >
-                                        <X size={16} className="text-zinc-400" />
+                                        <X size={16} className="text-muted-foreground" />
                                     </button>
                                 )}
                             </div>
@@ -536,7 +487,7 @@ export default function Page() {
                             {isLoading ? (
                                 <div className="flex items-center justify-center py-8">
                                     <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                    <span className="ml-3 text-zinc-400">Carregando eventos...</span>
+                                    <span className="ml-3 text-muted-foreground">Carregando eventos...</span>
                                 </div>
                             ) : error ? (
                                 <div className="text-center py-8">
@@ -550,10 +501,10 @@ export default function Page() {
                                 </div>
                             ) : events.length === 0 ? (
                                 <div className="text-center py-8">
-                                    <p className="text-zinc-400 mb-4">Nenhum evento disponível no momento.</p>
+                                    <p className="text-muted-foreground mb-4">Nenhum evento disponível no momento.</p>
                                     <button
                                         onClick={closeSellModal}
-                                        className="bg-zinc-700 hover:bg-zinc-600 text-white font-semibold py-2 px-4 rounded transition-colors"
+                                        className="bg-secondary hover:bg-accent text-foreground font-semibold py-2 px-4 rounded transition-colors"
                                     >
                                         Fechar
                                     </button>
@@ -562,7 +513,7 @@ export default function Page() {
                                 <div className="grid gap-4">
                                     {filteredSellEvents.length === 0 ? (
                                         <div className="text-center py-8">
-                                            <p className="text-zinc-400 mb-2">Nenhum evento encontrado para "{searchTerm}"</p>
+                                            <p className="text-muted-foreground mb-2">Nenhum evento encontrado para "{searchTerm}"</p>
                                             <button
                                                 onClick={() => setSearchTerm('')}
                                                 className="text-blue-400 hover:text-blue-300 text-sm underline"
@@ -573,8 +524,8 @@ export default function Page() {
                                     ) : (
                                         <>
                                             {searchTerm && (
-                                                <div className="mb-4 p-3 bg-zinc-800/50 rounded-xl">
-                                                    <p className="text-sm text-zinc-300">
+                                                <div className="mb-4 p-3 bg-accent/50 rounded-xl">
+                                                    <p className="text-sm text-muted-foreground">
                                                         Encontrados <span className="font-semibold text-blue-400">{filteredSellEvents.length}</span> eventos para "{searchTerm}"
                                                     </p>
                                                 </div>
@@ -583,7 +534,7 @@ export default function Page() {
                                         <button
                                             key={event.id}
                                             onClick={() => handleSellEventSelect(event)}
-                                            className="flex items-center gap-4 p-4 bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-colors text-left w-full group"
+                                            className="flex items-center gap-4 p-4 bg-accent hover:bg-secondary rounded-xl transition-colors text-left w-full group"
                                             aria-label={`Selecionar evento ${event.name}`}
                                         >
                                             <div className="flex-shrink-0">
@@ -596,10 +547,10 @@ export default function Page() {
                                                 />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors truncate">
+                                                <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                                                     {event.name}
                                                 </h3>
-                                                <div className="flex items-center gap-2 text-sm text-zinc-400 mt-1">
+                                                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                                                     <MapPin size={14} />
                                                     <span className="truncate">
                                                         {(() => {
@@ -646,7 +597,7 @@ export default function Page() {
                                                 )}
                                             </div>
                                             <div className="flex-shrink-0">
-                                                <ChevronRight size={20} className="text-zinc-400 group-hover:text-blue-400 transition-colors" />
+                                                <ChevronRight size={20} className="text-muted-foreground group-hover:text-blue-400 transition-colors" />
                                             </div>
                                         </button>
                                     ))}
@@ -657,14 +608,14 @@ export default function Page() {
                         </div>
 
                         {/* Footer da Modal */}
-                        <div className="p-6 border-t border-zinc-700 bg-zinc-800/30 flex-shrink-0">
+                        <div className="p-6 border-t border-border bg-accent/30 flex-shrink-0">
                             <div className="flex items-center justify-center gap-2 mb-3">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                <p className="text-sm font-medium text-zinc-300">
+                                <p className="text-sm font-medium text-muted-foreground">
                                     Precisa de ajuda?
                                 </p>
                             </div>
-                            <p className="text-sm text-zinc-400 text-center leading-relaxed">
+                            <p className="text-sm text-muted-foreground text-center leading-relaxed">
                                 Caso não encontre o evento desejado, entre em contato com nosso suporte através do email{' '}
                                 <a 
                                     href="mailto:suporte@safepass.com" 
@@ -679,102 +630,102 @@ export default function Page() {
             )}
 
             {/* Seção Como funciona */}
-            <section className="py-16 bg-black">
+            <section className="py-16 bg-card">
                 <div className="max-w-6xl mx-auto px-4">
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl font-bold text-white mb-4">Como funciona</h2>
-                        <p className="text-zinc-400">Compre e venda ingressos online de um jeito mais seguro</p>
+                        <h2 className="text-3xl font-bold text-foreground mb-4">Como funciona</h2>
+                        <p className="text-muted-foreground">Compre e venda ingressos online de um jeito mais seguro</p>
                     </div>
                     
                     <div className="grid md:grid-cols-3 gap-8">
                         {/* Passo 1 */}
                         <div className="text-center">
                             <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-10 h-10 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-semibold text-white mb-3">Encontre seu evento</h3>
-                            <p className="text-zinc-400">Busque por eventos, categorias ou localização e encontre a experiência que você procura</p>
+                            <h3 className="text-xl font-semibold text-foreground mb-3">Encontre seu evento</h3>
+                            <p className="text-muted-foreground">Busque por eventos, categorias ou localização e encontre a experiência que você procura</p>
                         </div>
 
                         {/* Passo 2 */}
                         <div className="text-center">
                             <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-10 h-10 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-semibold text-white mb-3">Compre com segurança</h3>
-                            <p className="text-zinc-400">Realize o pagamento de forma segura e receba seu ingresso digital na entrada do evento</p>
+                            <h3 className="text-xl font-semibold text-foreground mb-3">Compre com segurança</h3>
+                            <p className="text-muted-foreground">Realize o pagamento de forma segura e receba seu ingresso digital na entrada do evento</p>
                         </div>
 
                         {/* Passo 3 */}
                         <div className="text-center">
                             <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-10 h-10 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-semibold text-white mb-3">Aproveite o evento</h3>
-                            <p className="text-zinc-400">Apresente seu ingresso digital na entrada do evento e aproveite</p>
+                            <h3 className="text-xl font-semibold text-foreground mb-3">Aproveite o evento</h3>
+                            <p className="text-muted-foreground">Apresente seu ingresso digital na entrada do evento e aproveite</p>
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* Rodapé */}
-            <footer className="bg-zinc-900 py-12">
+            <footer className="bg-card py-12">
                 <div className="max-w-6xl mx-auto px-4">
                     <div className="grid md:grid-cols-4 gap-8">
                         {/* Sobre */}
                         <div>
-                            <h3 className="text-white font-semibold mb-4">Sobre</h3>
-                            <p className="text-zinc-400 text-sm mb-4">
+                            <h3 className="text-foreground font-semibold mb-4">Sobre</h3>
+                            <p className="text-muted-foreground text-sm mb-4">
                                 Safe Pass é uma plataforma confiável para compra e venda de ingressos de eventos. 
                                 Nossa missão é conectar pessoas aos eventos que elas amam.
                             </p>
-                            <p className="text-zinc-400 text-sm">
+                            <p className="text-muted-foreground text-sm">
                                 Acesse nosso e-mail para dúvidas, sugestões e reclamações sobre nossa plataforma.
                             </p>
-                            <p className="text-zinc-400 text-sm mt-2">
+                            <p className="text-muted-foreground text-sm mt-2">
                                 Belo Horizonte - MG, Brasil
                             </p>
                         </div>
 
                         {/* Acesso Rápido */}
                         <div>
-                            <h3 className="text-white font-semibold mb-4">Acesso Rápido</h3>
+                            <h3 className="text-foreground font-semibold mb-4">Acesso Rápido</h3>
                             <ul className="space-y-2">
-                                <li><a href="#" className="text-zinc-400 hover:text-white text-sm">Como Funciona</a></li>
-                                <li><a href="#" className="text-zinc-400 hover:text-white text-sm">Termos de Uso</a></li>
-                                <li><a href="#" className="text-zinc-400 hover:text-white text-sm">Política de Privacidade</a></li>
+                                <li><a href="#" className="text-muted-foreground hover:text-foreground text-sm">Como Funciona</a></li>
+                                <li><a href="#" className="text-muted-foreground hover:text-foreground text-sm">Termos de Uso</a></li>
+                                <li><a href="#" className="text-muted-foreground hover:text-foreground text-sm">Política de Privacidade</a></li>
                             </ul>
                         </div>
 
                         {/* Garantia Safe Pass */}
                         <div>
-                            <h3 className="text-white font-semibold mb-4">Garantia Safe Pass</h3>
+                            <h3 className="text-foreground font-semibold mb-4">Garantia Safe Pass</h3>
                             <div className="space-y-3">
                                 <div className="flex items-start">
                                     <div className="w-2 h-2 bg-green-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                                     <div>
-                                        <p className="text-white text-sm font-medium">Ingressos Garantidos</p>
-                                        <p className="text-zinc-400 text-xs">Sua compra é garantida até a entrada do evento</p>
+                                        <p className="text-foreground text-sm font-medium">Ingressos Garantidos</p>
+                                        <p className="text-muted-foreground text-xs">Sua compra é garantida até a entrada do evento</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start">
                                     <div className="w-2 h-2 bg-green-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                                     <div>
-                                        <p className="text-white text-sm font-medium">Pagamento Seguro</p>
-                                        <p className="text-zinc-400 text-xs">Seus dados de pagamento são protegidos</p>
+                                        <p className="text-foreground text-sm font-medium">Pagamento Seguro</p>
+                                        <p className="text-muted-foreground text-xs">Seus dados de pagamento são protegidos</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start">
                                     <div className="w-2 h-2 bg-green-400 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                                     <div>
-                                        <p className="text-white text-sm font-medium">Suporte Confiável</p>
-                                        <p className="text-zinc-400 text-xs">Atendimento especializado para suas dúvidas</p>
+                                        <p className="text-foreground text-sm font-medium">Suporte Confiável</p>
+                                        <p className="text-muted-foreground text-xs">Atendimento especializado para suas dúvidas</p>
                                     </div>
                                 </div>
                             </div>
@@ -782,25 +733,25 @@ export default function Page() {
 
                         {/* Redes Sociais */}
                         <div>
-                            <h3 className="text-white font-semibold mb-4">Redes Sociais</h3>
+                            <h3 className="text-foreground font-semibold mb-4">Redes Sociais</h3>
                             <div className="flex space-x-4">
-                                <a href="#" className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center hover:bg-zinc-700 transition-colors">
-                                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <a href="#" className="w-10 h-10 bg-accent rounded-full flex items-center justify-center hover:bg-zinc-700 transition-colors">
+                                    <svg className="w-5 h-5 text-foreground" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
                                     </svg>
                                 </a>
-                                <a href="#" className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center hover:bg-zinc-700 transition-colors">
-                                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <a href="#" className="w-10 h-10 bg-accent rounded-full flex items-center justify-center hover:bg-zinc-700 transition-colors">
+                                    <svg className="w-5 h-5 text-foreground" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/>
                                     </svg>
                                 </a>
-                                <a href="#" className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center hover:bg-zinc-700 transition-colors">
-                                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <a href="#" className="w-10 h-10 bg-accent rounded-full flex items-center justify-center hover:bg-zinc-700 transition-colors">
+                                    <svg className="w-5 h-5 text-foreground" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.097.118.112.221.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.746-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001.012.001z.017 0z"/>
                                     </svg>
                                 </a>
-                                <a href="#" className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center hover:bg-zinc-700 transition-colors">
-                                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <a href="#" className="w-10 h-10 bg-accent rounded-full flex items-center justify-center hover:bg-zinc-700 transition-colors">
+                                    <svg className="w-5 h-5 text-foreground" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                                     </svg>
                                 </a>
@@ -810,7 +761,7 @@ export default function Page() {
 
                     {/* Copyright */}
                     <div className="border-t border-zinc-800 mt-8 pt-8 text-center">
-                        <p className="text-zinc-400 text-sm">© 2024 Safe Pass. Todos os direitos reservados.</p>
+                        <p className="text-muted-foreground text-sm">© 2024 Safe Pass. Todos os direitos reservados.</p>
                     </div>
                 </div>
             </footer>
@@ -890,7 +841,7 @@ export function EventCard({ event }: { event: any }) {
     }
 
     return (
-        <div className="bg-black rounded overflow-hidden shadow hover:scale-105 transition-transform">
+        <div className="bg-background rounded overflow-hidden shadow hover:scale-105 transition-transform">
             <div
                 onClick={handleCardClick}
                 className="cursor-pointer"
@@ -908,7 +859,7 @@ export function EventCard({ event }: { event: any }) {
                         <Calendar className="w-4 h-4 mr-1" />
                         <span>{getEventDates(event)}</span>
                     </div>
-                    <div className="flex items-center text-sm text-zinc-400 mb-2">
+                    <div className="flex items-center text-sm text-muted-foreground mb-2">
                         <MapPin className="w-4 h-4 mr-1" />
                         <span>{getEventLocations(event)}</span>
                     </div>

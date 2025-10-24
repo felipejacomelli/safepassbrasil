@@ -80,20 +80,20 @@ const SellTicketPageClient = memo(({ params }: { params: Promise<{ slug: string 
   }
 
   return (
-    <div className="bg-black text-white min-h-screen flex flex-col">
+    <div className="bg-background text-foreground min-h-screen flex flex-col">
       <Header />
 
       {/* Main Content */}
       <main className="p-6 max-w-7xl mx-auto w-full">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 mb-6 text-zinc-400 text-sm">
-          <a href="/" className="text-zinc-400 hover:text-white transition-colors">
+          <a href="/" className="text-zinc-400 hover:text-foreground transition-colors">
             Início
           </a>
           <span>›</span>
           <a 
             href={`/event/${event?.slug || resolvedParams.slug}`}
-            className="text-zinc-400 hover:text-white transition-colors"
+            className="text-zinc-400 hover:text-foreground transition-colors"
           >
             {event?.name || "Carregando..."}
           </a>
@@ -129,7 +129,7 @@ const SellTicketPageClient = memo(({ params }: { params: Promise<{ slug: string 
       </main>
 
       {/* Footer */}
-      <footer className="bg-zinc-900 border-t border-zinc-800 p-8 mt-auto">
+      <footer className="bg-card border-t border-zinc-800 p-8 mt-auto">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
             <h3 className="text-lg font-bold mb-3">Sobre</h3>

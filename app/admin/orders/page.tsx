@@ -181,31 +181,31 @@ export default function AdminOrdersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white">Carregando pedidos...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground">Carregando pedidos...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       {/* Header/Navigation */}
-      <header className="bg-black sticky top-0 z-10 border-b border-zinc-800">
+      <header className="bg-background sticky top-0 z-10 border-b border-zinc-800">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           {/* Logo */}
           <a href="/" className="flex items-center gap-2">
             <div className="bg-primary p-1.5 rounded">
-              <div className="w-6 h-6 bg-black rounded"></div>
+              <div className="w-6 h-6 bg-background rounded"></div>
             </div>
-            <span className="text-white text-2xl font-bold">Safe Pass</span>
+            <span className="text-foreground text-2xl font-bold">Safe Pass</span>
           </a>
 
           {/* Navigation Links */}
           <nav className="flex items-center gap-4">
-            <a href="/#como-funciona" className="text-white text-sm">
+            <a href="/#como-funciona" className="text-foreground text-sm">
               Como Funciona
             </a>
-            <a href="#" className="text-white text-sm">
+            <a href="#" className="text-foreground text-sm">
               WhatsApp
             </a>
 
@@ -213,7 +213,7 @@ export default function AdminOrdersPage() {
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="bg-transparent border border-primary text-white px-4 py-2 rounded flex items-center gap-2 text-sm font-bold"
+                  className="bg-transparent border border-primary text-foreground px-4 py-2 rounded flex items-center gap-2 text-sm font-bold"
                 >
                   <UserIcon className="w-4 h-4" />
                   {user.name.split(" ")[0]}
@@ -236,30 +236,30 @@ export default function AdminOrdersPage() {
                 </button>
 
                 {showUserMenu && (
-                  <div className="absolute top-full right-0 mt-2 bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg min-w-[200px] z-50">
-                    <div className="p-3 border-b border-zinc-700">
-                      <p className="font-medium text-white">{user.name}</p>
-                      <p className="text-sm text-gray-400">{user.email}</p>
+                  <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-lg shadow-lg min-w-[200px] z-50">
+                    <div className="p-3 border-b border-border">
+                      <p className="font-medium text-foreground">{user.name}</p>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
                     </div>
 
-                    <a href="/account" className="block px-3 py-2 text-white hover:bg-zinc-800 text-sm">
+                    <a href="/account" className="block px-3 py-2 text-foreground hover:bg-accent text-sm">
                       Minha Conta
                     </a>
 
-                    <a href="/account/orders" className="block px-3 py-2 text-white hover:bg-zinc-800 text-sm">
+                    <a href="/account/orders" className="block px-3 py-2 text-foreground hover:bg-accent text-sm">
                       Meus Pedidos
                     </a>
 
                     {user.isAdmin && (
-                      <a href="/admin" className="block px-3 py-2 text-blue-500 hover:bg-zinc-800 text-sm">
+                      <a href="/admin" className="block px-3 py-2 text-blue-500 hover:bg-accent text-sm">
                         Painel Admin
                       </a>
                     )}
 
-                    <div className="border-t border-zinc-700 mt-1">
+                    <div className="border-t border-border mt-1">
                       <button
                         onClick={handleLogout}
-                        className="block w-full px-3 py-2 text-red-500 hover:bg-zinc-800 text-left text-sm"
+                        className="block w-full px-3 py-2 text-red-500 hover:bg-accent text-left text-sm"
                       >
                         Sair
                       </button>
@@ -275,28 +275,28 @@ export default function AdminOrdersPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col gap-8">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Gerenciar Pedidos</h1>
-            <p className="text-gray-400">Visualize e gerencie todos os pedidos da plataforma</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Gerenciar Pedidos</h1>
+            <p className="text-muted-foreground">Visualize e gerencie todos os pedidos da plataforma</p>
           </div>
 
           {/* Filters and Search */}
-          <div className="bg-zinc-900 rounded-lg p-6">
+          <div className="bg-card rounded-lg p-6">
             <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
               <div className="flex flex-col md:flex-row gap-4 flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
                     type="text"
                     placeholder="Buscar por ID, cliente ou evento..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="bg-zinc-800 border-zinc-700 text-white pl-10 w-full md:w-80"
+                    className="bg-accent border-border text-foreground pl-10 w-full md:w-80"
                   />
                 </div>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-white"
+                  className="bg-accent border border-border rounded-md px-3 py-2 text-foreground"
                 >
                   <option value="all">Todos os Status</option>
                   <option value="completed">Concluído</option>
@@ -305,7 +305,7 @@ export default function AdminOrdersPage() {
                 </select>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" className="border-zinc-700 text-white bg-transparent hover:bg-zinc-800">
+                <Button variant="outline" className="border-border text-foreground bg-transparent hover:bg-accent">
                   <Filter className="w-4 h-4 mr-2" />
                   Filtros
                 </Button>
@@ -318,81 +318,81 @@ export default function AdminOrdersPage() {
           </div>
 
           {/* Orders Table */}
-          <div className="bg-zinc-900 rounded-lg overflow-hidden">
+          <div className="bg-card rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-zinc-800">
+                <thead className="bg-accent">
                   <tr>
                     <th
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                      className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground"
                       onClick={() => handleSort("id")}
                     >
                       ID do Pedido
                       {sortField === "id" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
                     </th>
                     <th
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                      className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground"
                       onClick={() => handleSort("user")}
                     >
                       Cliente
                     </th>
                     <th
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                      className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground"
                       onClick={() => handleSort("event")}
                     >
                       Evento
                     </th>
                     <th
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                      className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground"
                       onClick={() => handleSort("total")}
                     >
                       Total
                       {sortField === "total" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
                     </th>
                     <th
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                      className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground"
                       onClick={() => handleSort("status")}
                     >
                       Status
                     </th>
                     <th
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                      className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground"
                       onClick={() => handleSort("date")}
                     >
                       Data
                       {sortField === "date" && <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Ações
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800">
                   {filteredOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-zinc-800 transition-colors">
+                    <tr key={order.id} className="hover:bg-accent transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-white">#{order.id}</div>
+                        <div className="text-sm font-medium text-foreground">#{order.id}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="h-8 w-8 rounded-full bg-zinc-700 flex items-center justify-center mr-3">
-                            <UserIcon className="w-4 h-4 text-gray-400" />
+                            <UserIcon className="w-4 h-4 text-muted-foreground" />
                           </div>
                           <div>
-                            <div className="text-sm font-medium text-white">{order.user.name}</div>
-                            <div className="text-sm text-gray-400">{order.user.email}</div>
+                            <div className="text-sm font-medium text-foreground">{order.user.name}</div>
+                            <div className="text-sm text-muted-foreground">{order.user.email}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-white">{order.event.name}</div>
-                          <div className="text-sm text-gray-400">
+                          <div className="text-sm font-medium text-foreground">{order.event.name}</div>
+                          <div className="text-sm text-muted-foreground">
                             {order.ticketType} • Qtd: {order.quantity}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                         {formatCurrency(order.total)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -413,11 +413,11 @@ export default function AdminOrdersPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-400">
+                        <div className="flex items-center text-sm text-muted-foreground">
                           <Calendar className="w-4 h-4 mr-1" />
                           {new Date(order.date).toLocaleDateString("pt-BR")}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           {new Date(order.date).toLocaleTimeString("pt-BR", {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -439,59 +439,59 @@ export default function AdminOrdersPage() {
 
             {filteredOrders.length === 0 && !loading && (
               <div className="p-8 text-center">
-                <p className="text-gray-400">Nenhum pedido encontrado com os filtros aplicados.</p>
+                <p className="text-muted-foreground">Nenhum pedido encontrado com os filtros aplicados.</p>
               </div>
             )}
           </div>
 
           {/* Summary Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-zinc-900 rounded-lg p-6">
+            <div className="bg-card rounded-lg p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-blue-900 bg-opacity-20 rounded-lg">
                   <UserIcon className="w-6 h-6 text-blue-500" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-400">Total de Pedidos</p>
-                  <p className="text-2xl font-bold text-white">{orders.length}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Total de Pedidos</p>
+                  <p className="text-2xl font-bold text-foreground">{orders.length}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-zinc-900 rounded-lg p-6">
+            <div className="bg-card rounded-lg p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-green-900 bg-opacity-20 rounded-lg">
                   <Calendar className="w-6 h-6 text-green-500" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-400">Concluídos</p>
-                  <p className="text-2xl font-bold text-white">
+                  <p className="text-sm font-medium text-muted-foreground">Concluídos</p>
+                  <p className="text-2xl font-bold text-foreground">
                     {orders.filter((o) => o.status === "completed").length}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-zinc-900 rounded-lg p-6">
+            <div className="bg-card rounded-lg p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-yellow-900 bg-opacity-20 rounded-lg">
                   <Clock className="w-6 h-6 text-yellow-500" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-400">Pendentes</p>
-                  <p className="text-2xl font-bold text-white">{orders.filter((o) => o.status === "pending").length}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
+                  <p className="text-2xl font-bold text-foreground">{orders.filter((o) => o.status === "pending").length}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-zinc-900 rounded-lg p-6">
+            <div className="bg-card rounded-lg p-6">
               <div className="flex items-center">
                 <div className="p-2 bg-purple-900 bg-opacity-20 rounded-lg">
                   <Download className="w-6 h-6 text-purple-500" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-400">Receita Total</p>
-                  <p className="text-2xl font-bold text-white">
+                  <p className="text-sm font-medium text-muted-foreground">Receita Total</p>
+                  <p className="text-2xl font-bold text-foreground">
                     {formatCurrency(orders.reduce((sum, order) => sum + order.total, 0))}
                   </p>
                 </div>

@@ -209,7 +209,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-white mb-6">Dashboard</h1>
+      <h1 className="text-3xl font-bold text-foreground mb-6">Dashboard</h1>
 
       {error && (
         <div className="bg-red-900 border border-red-700 text-red-100 px-4 py-3 rounded mb-6">
@@ -221,13 +221,13 @@ export default function AdminDashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="bg-zinc-900 border-zinc-800 text-white">
+        <Card className="bg-card border-zinc-800 text-foreground">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Vendas Totais</p>
+                <p className="text-muted-foreground text-sm">Vendas Totais</p>
                 {isLoading ? (
-                  <div className="h-8 w-24 bg-zinc-800 animate-pulse rounded mt-1"></div>
+                  <div className="h-8 w-24 bg-accent animate-pulse rounded mt-1"></div>
                 ) : (
                   <p className="text-2xl font-bold">
                     {new Intl.NumberFormat('pt-BR', {
@@ -245,19 +245,19 @@ export default function AdminDashboardPage() {
               <div className="flex items-center mt-4 text-xs">
                 <TrendingUp className="text-green-500 h-4 w-4 mr-1" />
                 <span className="text-green-500">+{stats.salesGrowth}%</span>
-                <span className="text-gray-400 ml-2">vs. mês anterior</span>
+                <span className="text-muted-foreground ml-2">vs. mês anterior</span>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="bg-zinc-900 border-zinc-800 text-white">
+        <Card className="bg-card border-zinc-800 text-foreground">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Ingressos Vendidos</p>
+                <p className="text-muted-foreground text-sm">Ingressos Vendidos</p>
                 {isLoading ? (
-                  <div className="h-8 w-24 bg-zinc-800 animate-pulse rounded mt-1"></div>
+                  <div className="h-8 w-24 bg-accent animate-pulse rounded mt-1"></div>
                 ) : (
                   <p className="text-2xl font-bold">
                     {new Intl.NumberFormat('pt-BR').format(stats.ticketsSold)}
@@ -272,19 +272,19 @@ export default function AdminDashboardPage() {
               <div className="flex items-center mt-4 text-xs">
                 <TrendingUp className="text-green-500 h-4 w-4 mr-1" />
                 <span className="text-green-500">+{stats.ticketsGrowth}%</span>
-                <span className="text-gray-400 ml-2">vs. mês anterior</span>
+                <span className="text-muted-foreground ml-2">vs. mês anterior</span>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="bg-zinc-900 border-zinc-800 text-white">
+        <Card className="bg-card border-zinc-800 text-foreground">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Eventos Ativos</p>
+                <p className="text-muted-foreground text-sm">Eventos Ativos</p>
                 {isLoading ? (
-                  <div className="h-8 w-24 bg-zinc-800 animate-pulse rounded mt-1"></div>
+                  <div className="h-8 w-24 bg-accent animate-pulse rounded mt-1"></div>
                 ) : (
                   <p className="text-2xl font-bold">{stats.activeEvents}</p>
                 )}
@@ -297,19 +297,19 @@ export default function AdminDashboardPage() {
               <div className="flex items-center mt-4 text-xs">
                 <TrendingUp className="text-green-500 h-4 w-4 mr-1" />
                 <span className="text-green-500">+{stats.eventsGrowth}</span>
-                <span className="text-gray-400 ml-2">novos este mês</span>
+                <span className="text-muted-foreground ml-2">novos este mês</span>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="bg-zinc-900 border-zinc-800 text-white">
+        <Card className="bg-card border-zinc-800 text-foreground">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Usuários</p>
+                <p className="text-muted-foreground text-sm">Usuários</p>
                 {isLoading ? (
-                  <div className="h-8 w-24 bg-zinc-800 animate-pulse rounded mt-1"></div>
+                  <div className="h-8 w-24 bg-accent animate-pulse rounded mt-1"></div>
                 ) : (
                   <p className="text-2xl font-bold">
                     {new Intl.NumberFormat('pt-BR').format(stats.totalUsers)}
@@ -324,7 +324,7 @@ export default function AdminDashboardPage() {
               <div className="flex items-center mt-4 text-xs">
                 <TrendingUp className="text-green-500 h-4 w-4 mr-1" />
                 <span className="text-green-500">+{stats.usersGrowth}</span>
-                <span className="text-gray-400 ml-2">novos este mês</span>
+                <span className="text-muted-foreground ml-2">novos este mês</span>
               </div>
             )}
           </CardContent>
@@ -333,33 +333,33 @@ export default function AdminDashboardPage() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Card className="bg-zinc-900 border-zinc-800 text-white">
+        <Card className="bg-card border-zinc-800 text-foreground">
           <CardHeader>
             <CardTitle className="text-lg font-medium">Vendas por Evento</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="h-64 bg-zinc-800 animate-pulse rounded"></div>
+              <div className="h-64 bg-accent animate-pulse rounded"></div>
             ) : (
               <div className="h-64 flex items-center justify-center">
                 <BarChart3 className="h-32 w-32 text-gray-600" />
-                <p className="text-gray-400 mt-4">Gráfico de vendas por evento</p>
+                <p className="text-muted-foreground mt-4">Gráfico de vendas por evento</p>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="bg-zinc-900 border-zinc-800 text-white">
+        <Card className="bg-card border-zinc-800 text-foreground">
           <CardHeader>
             <CardTitle className="text-lg font-medium">Vendas por Período</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="h-64 bg-zinc-800 animate-pulse rounded"></div>
+              <div className="h-64 bg-accent animate-pulse rounded"></div>
             ) : (
               <div className="h-64 flex items-center justify-center">
                 <BarChart3 className="h-32 w-32 text-gray-600" />
-                <p className="text-gray-400 mt-4">Gráfico de vendas por período</p>
+                <p className="text-muted-foreground mt-4">Gráfico de vendas por período</p>
               </div>
             )}
           </CardContent>
@@ -367,7 +367,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Recent Activity */}
-      <Card className="bg-zinc-900 border-zinc-800 text-white">
+      <Card className="bg-card border-zinc-800 text-foreground">
         <CardHeader>
           <CardTitle className="text-lg font-medium">Atividade Recente</CardTitle>
         </CardHeader>
@@ -375,7 +375,7 @@ export default function AdminDashboardPage() {
           {isLoading ? (
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-12 bg-zinc-800 animate-pulse rounded"></div>
+                <div key={i} className="h-12 bg-accent animate-pulse rounded"></div>
               ))}
             </div>
           ) : recentActivities.length > 0 ? (
@@ -409,29 +409,29 @@ export default function AdminDashboardPage() {
                     case 'purple':
                       return 'bg-purple-900 bg-opacity-20'
                     default:
-                      return 'bg-gray-900 bg-opacity-20'
+                      return 'bg-card bg-opacity-20'
                   }
                 }
 
                 return (
-                  <div key={activity.id} className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
+                  <div key={activity.id} className="flex items-center justify-between p-3 bg-accent rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className={`${getBgColor()} p-2 rounded-full`}>
                         {getIcon()}
                       </div>
                       <div>
                         <p className="text-sm font-medium">{activity.title}</p>
-                        <p className="text-xs text-gray-400">{activity.description}</p>
+                        <p className="text-xs text-muted-foreground">{activity.description}</p>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-400">{activity.time}</p>
+                    <p className="text-xs text-muted-foreground">{activity.time}</p>
                   </div>
                 )
               })}
             </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-400">Nenhuma atividade recente encontrada</p>
+              <p className="text-muted-foreground">Nenhuma atividade recente encontrada</p>
             </div>
           )}
         </CardContent>

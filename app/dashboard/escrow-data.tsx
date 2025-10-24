@@ -42,9 +42,9 @@ async function EscrowDataLoader({ userId, children }: { userId: string, children
 function EscrowDataSkeleton() {
   return (
     <div className="space-y-4">
-      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-      <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
-      <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+      <div className="h-4 bg-accent rounded animate-pulse"></div>
+      <div className="h-4 bg-accent rounded animate-pulse w-3/4"></div>
+      <div className="h-4 bg-accent rounded animate-pulse w-1/2"></div>
     </div>
   )
 }

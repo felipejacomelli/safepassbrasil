@@ -34,8 +34,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Mostrar loading enquanto verifica autenticação
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white">Carregando...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground">Carregando...</div>
       </div>
     )
   }
@@ -63,32 +63,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ]
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       {/* Mobile sidebar toggle */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-zinc-900 border-b border-zinc-800 rounded-b-lg">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-card border-b border-zinc-800 rounded-b-lg">
         <div className="flex items-center gap-2">
           <div className="bg-primary p-1.5 rounded">
-            <div className="w-6 h-6 bg-black rounded" />
+            <div className="w-6 h-6 bg-background rounded" />
           </div>
-          <span className="text-white text-xl font-bold">Safe Pass</span>
+          <span className="text-foreground text-xl font-bold">Safe Pass</span>
           <span className="text-xs text-primary ml-1">ADMIN</span>
         </div>
-        <Button variant="ghost" size="icon" className="text-white rounded-lg" onClick={() => setSidebarOpen(!sidebarOpen)}>
+        <Button variant="ghost" size="icon" className="text-foreground rounded-lg" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </Button>
       </div>
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 bottom-0 z-40 w-64 bg-zinc-900 border-r border-zinc-800 transition-transform duration-300 transform rounded-r-xl ${
+        className={`fixed top-0 left-0 bottom-0 z-40 w-64 bg-card border-r border-zinc-800 transition-transform duration-300 transform rounded-r-xl ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
         <div className="flex items-center gap-2 p-6 border-b border-zinc-800 rounded-t-r-xl">
           <div className="bg-primary p-1.5 rounded-lg">
-            <div className="w-6 h-6 bg-black rounded-lg" />
+            <div className="w-6 h-6 bg-background rounded-lg" />
           </div>
-          <span className="text-white text-xl font-bold">Safe Pass</span>
+          <span className="text-foreground text-xl font-bold">Safe Pass</span>
           <span className="text-xs text-primary ml-1">ADMIN</span>
         </div>
         <nav className="p-4 space-y-1">
@@ -101,7 +101,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                   isActive
                     ? "bg-blue-900 bg-opacity-20 text-primary"
-                    : "text-gray-400 hover:text-white hover:bg-zinc-800"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
                 }`}
                 onClick={() => setSidebarOpen(false)}
               >
@@ -114,7 +114,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-zinc-800 rounded-b-r-xl">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors w-full text-left"
+            className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors w-full text-left"
           >
             <LogOut size={20} />
             <span>Sair</span>

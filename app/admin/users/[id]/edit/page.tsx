@@ -152,7 +152,7 @@ export default function UserEditPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white p-8">
+      <div className="min-h-screen bg-background text-foreground p-8">
         <div className="container mx-auto">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -167,7 +167,7 @@ export default function UserEditPage() {
 
   if (error && !user) {
     return (
-      <div className="min-h-screen bg-black text-white p-8">
+      <div className="min-h-screen bg-background text-foreground p-8">
         <div className="container mx-auto">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -175,7 +175,7 @@ export default function UserEditPage() {
                 <User className="w-16 h-16 mx-auto mb-2" />
               </div>
               <h2 className="text-xl font-semibold mb-2">Usuário não encontrado</h2>
-              <p className="text-gray-400 mb-4">{error}</p>
+              <p className="text-muted-foreground mb-4">{error}</p>
               <Button onClick={() => router.push('/admin/users')} variant="outline">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar para Usuários
@@ -188,7 +188,7 @@ export default function UserEditPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-8">
+    <div className="min-h-screen bg-background text-foreground p-8">
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -197,14 +197,14 @@ export default function UserEditPage() {
               onClick={() => router.push(`/admin/users/${userId}`)} 
               variant="ghost" 
               size="sm"
-              className="text-gray-400 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar
             </Button>
             <div>
               <h1 className="text-3xl font-bold">Editar Usuário</h1>
-              <p className="text-gray-400">Modificar informações do usuário</p>
+              <p className="text-muted-foreground">Modificar informações do usuário</p>
             </div>
           </div>
         </div>
@@ -217,38 +217,38 @@ export default function UserEditPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Informações Básicas */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-card border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <User className="h-5 w-5" />
                 Informações Básicas
               </CardTitle>
-              <CardDescription className="text-gray-400">
+              <CardDescription className="text-muted-foreground">
                 Dados pessoais do usuário
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name" className="text-white">Nome *</Label>
+                  <Label htmlFor="name" className="text-foreground">Nome *</Label>
                   <Input
                     id="name"
                     type="text"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    className="bg-zinc-800 border-zinc-700 text-white"
+                    className="bg-accent border-border text-foreground"
                     required
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="email" className="text-white">Email *</Label>
+                  <Label htmlFor="email" className="text-foreground">Email *</Label>
                   <Input
                     id="email"
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="bg-zinc-800 border-zinc-700 text-white"
+                    className="bg-accent border-border text-foreground"
                     required
                   />
                 </div>
@@ -256,25 +256,25 @@ export default function UserEditPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="cpf" className="text-white">CPF</Label>
+                  <Label htmlFor="cpf" className="text-foreground">CPF</Label>
                   <Input
                     id="cpf"
                     type="text"
                     value={formData.cpf}
                     onChange={(e) => handleInputChange('cpf', e.target.value)}
-                    className="bg-zinc-800 border-zinc-700 text-white"
+                    className="bg-accent border-border text-foreground"
                     placeholder="000.000.000-00"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="phone" className="text-white">Telefone</Label>
+                  <Label htmlFor="phone" className="text-foreground">Telefone</Label>
                   <Input
                     id="phone"
                     type="text"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="bg-zinc-800 border-zinc-700 text-white"
+                    className="bg-accent border-border text-foreground"
                     placeholder="(00) 00000-0000"
                   />
                 </div>
@@ -283,38 +283,38 @@ export default function UserEditPage() {
           </Card>
 
           {/* Localização */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-card border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <MapPin className="h-5 w-5" />
                 Localização
               </CardTitle>
-              <CardDescription className="text-gray-400">
+              <CardDescription className="text-muted-foreground">
                 Informações de localização do usuário
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="location" className="text-white">Localização</Label>
+                  <Label htmlFor="location" className="text-foreground">Localização</Label>
                   <Input
                     id="location"
                     type="text"
                     value={formData.location}
                     onChange={(e) => handleInputChange('location', e.target.value)}
-                    className="bg-zinc-800 border-zinc-700 text-white"
+                    className="bg-accent border-border text-foreground"
                     placeholder="Cidade, Estado"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="country" className="text-white">País</Label>
+                  <Label htmlFor="country" className="text-foreground">País</Label>
                   <Input
                     id="country"
                     type="text"
                     value={formData.country}
                     onChange={(e) => handleInputChange('country', e.target.value)}
-                    className="bg-zinc-800 border-zinc-700 text-white"
+                    className="bg-accent border-border text-foreground"
                     placeholder="Brasil"
                   />
                 </div>
@@ -323,21 +323,21 @@ export default function UserEditPage() {
           </Card>
 
           {/* Permissões e Status */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-card border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <Shield className="h-5 w-5" />
                 Permissões e Status
               </CardTitle>
-              <CardDescription className="text-gray-400">
+              <CardDescription className="text-muted-foreground">
                 Configurações de acesso e status do usuário
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="is_active" className="text-white font-medium">Usuário Ativo</Label>
-                  <p className="text-sm text-gray-400">Permite que o usuário faça login no sistema</p>
+                  <Label htmlFor="is_active" className="text-foreground font-medium">Usuário Ativo</Label>
+                  <p className="text-sm text-muted-foreground">Permite que o usuário faça login no sistema</p>
                 </div>
                 <Switch
                   id="is_active"
@@ -348,8 +348,8 @@ export default function UserEditPage() {
               
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="is_staff" className="text-white font-medium">Acesso Staff</Label>
-                  <p className="text-sm text-gray-400">Permite acesso ao painel administrativo</p>
+                  <Label htmlFor="is_staff" className="text-foreground font-medium">Acesso Staff</Label>
+                  <p className="text-sm text-muted-foreground">Permite acesso ao painel administrativo</p>
                 </div>
                 <Switch
                   id="is_staff"
@@ -360,8 +360,8 @@ export default function UserEditPage() {
               
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="is_superuser" className="text-white font-medium">Super Usuário</Label>
-                  <p className="text-sm text-gray-400">Acesso total a todas as funcionalidades</p>
+                  <Label htmlFor="is_superuser" className="text-foreground font-medium">Super Usuário</Label>
+                  <p className="text-sm text-muted-foreground">Acesso total a todas as funcionalidades</p>
                 </div>
                 <Switch
                   id="is_superuser"

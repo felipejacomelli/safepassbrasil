@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
 
   if (isEmailSent) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
             <div className="mx-auto w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
@@ -88,7 +88,7 @@ export default function ForgotPasswordPage() {
             </p>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <h3 className="font-semibold mb-2 flex items-center gap-2">
               <Mail className="w-4 h-4" />
               Próximos passos:
@@ -139,7 +139,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <div className="mx-auto w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-4">
@@ -162,7 +162,7 @@ export default function ForgotPasswordPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="email" className="text-white">
+            <Label htmlFor="email" className="text-foreground">
               Email
             </Label>
             <Input
@@ -173,7 +173,7 @@ export default function ForgotPasswordPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500"
+              className="bg-card border-border text-foreground placeholder:text-zinc-500 focus:border-blue-500 focus:ring-blue-500"
               placeholder="seu@email.com"
               disabled={isLoading}
             />
@@ -182,7 +182,7 @@ export default function ForgotPasswordPage() {
           <Button
             type="submit"
             disabled={isLoading || !email}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <div className="flex items-center gap-2">

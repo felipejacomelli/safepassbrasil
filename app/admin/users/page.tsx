@@ -110,7 +110,7 @@ export default function UsersPage() {
     if (isActive) {
       return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Ativo</Badge>;
     } else {
-      return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Inativo</Badge>;
+      return <Badge className="bg-muted/20 text-muted-foreground border-muted/30">Inativo</Badge>;
     }
   };
 
@@ -165,10 +165,10 @@ export default function UsersPage() {
       </div>
 
       {/* Filtros e Busca */}
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-card border-zinc-800">
         <CardHeader>
-          <CardTitle className="text-white">Filtros</CardTitle>
-          <CardDescription className="text-gray-400">
+          <CardTitle className="text-foreground">Filtros</CardTitle>
+          <CardDescription className="text-muted-foreground">
             Use os filtros abaixo para encontrar usuários específicos
           </CardDescription>
         </CardHeader>
@@ -181,20 +181,20 @@ export default function UsersPage() {
                   placeholder="Buscar por nome, email ou CPF..."
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-8 bg-zinc-800 border-zinc-700 text-white"
+                  className="pl-8 bg-accent border-border text-foreground"
                 />
               </div>
             </div>
             <div className="w-full md:w-48">
               <Select value={statusFilter} onValueChange={handleStatusFilter}>
-                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
+                <SelectTrigger className="bg-accent border-border text-foreground">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
-                  <SelectItem value="all" className="text-white hover:bg-zinc-700">Todos os Status</SelectItem>
-                  <SelectItem value="active" className="text-white hover:bg-zinc-700">Ativo</SelectItem>
-                  <SelectItem value="inactive" className="text-white hover:bg-zinc-700">Inativo</SelectItem>
+                <SelectContent className="bg-accent border-border">
+                  <SelectItem value="all" className="text-foreground hover:bg-zinc-700">Todos os Status</SelectItem>
+                  <SelectItem value="active" className="text-foreground hover:bg-zinc-700">Ativo</SelectItem>
+                  <SelectItem value="inactive" className="text-foreground hover:bg-zinc-700">Inativo</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -202,7 +202,7 @@ export default function UsersPage() {
               onClick={() => loadUsers(currentPage, searchTerm, statusFilter)} 
               variant="outline"
               disabled={loading}
-              className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700"
+              className="bg-accent border-border text-foreground hover:bg-zinc-700"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Atualizar
@@ -212,29 +212,29 @@ export default function UsersPage() {
       </Card>
 
       {/* Tabela de Usuários */}
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-card border-zinc-800">
         <CardHeader>
-          <CardTitle className="text-white">Usuários ({users.length})</CardTitle>
-          <CardDescription className="text-gray-400">
+          <CardTitle className="text-foreground">Usuários ({users.length})</CardTitle>
+          <CardDescription className="text-muted-foreground">
             Lista de todos os usuários registrados na plataforma
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border border-zinc-700">
+          <div className="rounded-md border border-border">
             <Table>
               <TableHeader>
-                <TableRow className="border-zinc-700 hover:bg-zinc-800/50">
-                  <TableHead className="text-gray-300">Nome</TableHead>
-                  <TableHead className="text-gray-300">Email</TableHead>
-                  <TableHead className="text-gray-300">CPF</TableHead>
-                  <TableHead className="text-gray-300">Status</TableHead>
-                  <TableHead className="text-gray-300">Data de Cadastro</TableHead>
-                  <TableHead className="text-right text-gray-300">Ações</TableHead>
+                <TableRow className="border-border hover:bg-accent/50">
+                  <TableHead className="text-muted-foreground">Nome</TableHead>
+                  <TableHead className="text-muted-foreground">Email</TableHead>
+                  <TableHead className="text-muted-foreground">CPF</TableHead>
+                  <TableHead className="text-muted-foreground">Status</TableHead>
+                  <TableHead className="text-muted-foreground">Data de Cadastro</TableHead>
+                  <TableHead className="text-right text-muted-foreground">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.length === 0 ? (
-                  <TableRow className="border-zinc-700 hover:bg-zinc-800/50">
+                  <TableRow className="border-border hover:bg-accent/50">
                     <TableCell colSpan={6} className="text-center py-8">
                       <div className="flex flex-col items-center space-y-2">
                         <Users className="h-8 w-8 text-muted-foreground" />
@@ -249,31 +249,31 @@ export default function UsersPage() {
                   </TableRow>
                 ) : (
                   users.map((user) => (
-                    <TableRow key={user.id} className="border-zinc-700 hover:bg-zinc-800/50">
-                      <TableCell className="font-medium text-white">{user.name}</TableCell>
-                      <TableCell className="text-gray-300">{user.email}</TableCell>
-                      <TableCell className="text-gray-300">{user.cpf || 'N/A'}</TableCell>
+                    <TableRow key={user.id} className="border-border hover:bg-accent/50">
+                      <TableCell className="font-medium text-foreground">{user.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                      <TableCell className="text-muted-foreground">{user.cpf || 'N/A'}</TableCell>
                       <TableCell>{getStatusBadge(user)}</TableCell>
-                      <TableCell className="text-gray-300">{formatDate(user.created_at || user.date_joined)}</TableCell>
+                      <TableCell className="text-muted-foreground">{formatDate(user.created_at || user.date_joined)}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-zinc-700">
+                            <Button variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-zinc-700">
                               <span className="sr-only">Abrir menu</span>
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-zinc-800 border-zinc-700">
-                            <DropdownMenuLabel className="text-white">Ações</DropdownMenuLabel>
+                          <DropdownMenuContent align="end" className="bg-accent border-border">
+                            <DropdownMenuLabel className="text-foreground">Ações</DropdownMenuLabel>
                             <DropdownMenuItem 
-                              className="text-gray-300 hover:bg-zinc-700 hover:text-white"
+                              className="text-muted-foreground hover:bg-zinc-700 hover:text-foreground"
                               onClick={() => handleViewUser(user.id)}
                             >
                               <Eye className="mr-2 h-4 w-4" />
                               Visualizar
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              className="text-gray-300 hover:bg-zinc-700 hover:text-white"
+                              className="text-muted-foreground hover:bg-zinc-700 hover:text-foreground"
                               onClick={() => handleEditUser(user.id)}
                             >
                               <Edit className="mr-2 h-4 w-4" />
@@ -300,7 +300,7 @@ export default function UsersPage() {
           {/* Paginação */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between space-x-2 py-4">
-              <div className="text-sm text-gray-400">
+              <div className="text-sm text-muted-foreground">
                 Página {currentPage} de {totalPages}
               </div>
               <div className="flex space-x-2">
@@ -309,7 +309,7 @@ export default function UsersPage() {
                   size="sm"
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1 || loading}
-                  className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700"
+                  className="bg-accent border-border text-foreground hover:bg-zinc-700"
                 >
                   Anterior
                 </Button>
@@ -318,7 +318,7 @@ export default function UsersPage() {
                   size="sm"
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages || loading}
-                  className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700"
+                  className="bg-accent border-border text-foreground hover:bg-zinc-700"
                 >
                   Próxima
                 </Button>

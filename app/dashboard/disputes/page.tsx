@@ -624,7 +624,7 @@ export default function DisputesPage() {
                 <div key={message.id} className={`p-3 rounded-lg ${
                   message.message_type === 'buyer_message' ? 'bg-blue-50 border border-blue-200' :
                   message.message_type === 'seller_message' ? 'bg-green-50 border border-green-200' :
-                  'bg-gray-50 border border-gray-200'
+                  'bg-accent border border-border'
                 }`}>
                   <div className="flex items-center justify-between mb-2">
                     <p className="font-medium text-sm">

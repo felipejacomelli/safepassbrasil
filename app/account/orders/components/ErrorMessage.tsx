@@ -22,11 +22,11 @@ export function ErrorMessage({
     <div className={`flex flex-col items-center justify-center p-8 text-center ${className}`}>
       <AlertCircle className="w-12 h-12 text-red-500 mb-4" aria-hidden="true" />
       
-      <h3 className="text-lg font-semibold text-white mb-2">
+      <h3 className="text-lg font-semibold text-foreground mb-2">
         {title}
       </h3>
       
-      <p className="text-gray-400 mb-6 max-w-md">
+      <p className="text-muted-foreground mb-6 max-w-md">
         {message}
       </p>
       
@@ -34,7 +34,7 @@ export function ErrorMessage({
         <Button
           onClick={onRetry}
           variant="outline"
-          className="border-zinc-700 text-white hover:bg-zinc-800"
+          className="border-border text-foreground hover:bg-accent"
         >
           <RefreshCw className="w-4 h-4 mr-2" />
           {retryText}

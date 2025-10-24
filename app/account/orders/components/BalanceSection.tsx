@@ -19,9 +19,9 @@ export function BalanceSection({
     <div className="bg-blue-600 rounded-lg p-6 mb-8">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-semibold text-white mb-2">Saldo Disponível</h2>
-          <p className="text-3xl font-bold text-white">{formatCurrency(availableBalance)}</p>
-          <p className="text-gray-300 mt-1">
+          <h2 className="text-xl font-semibold text-foreground mb-2">Saldo Disponível</h2>
+          <p className="text-3xl font-bold text-foreground">{formatCurrency(availableBalance)}</p>
+          <p className="text-muted-foreground mt-1">
             Pendente: {formatCurrency(pendingBalance)}
           </p>
         </div>
@@ -29,7 +29,7 @@ export function BalanceSection({
         <div className="flex space-x-3">
           <Button
             onClick={onWithdrawClick}
-            className="bg-white text-black hover:bg-gray-200"
+            className="bg-background text-foreground hover:bg-accent"
             aria-label="Solicitar saque do saldo disponível"
           >
             <ArrowUpFromLine className="w-4 h-4 mr-2" />

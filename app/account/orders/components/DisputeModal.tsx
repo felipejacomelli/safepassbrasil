@@ -295,12 +295,12 @@ export function DisputeModal({ isOpen, onClose, ticketData }: DisputeModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-zinc-900 border-zinc-800">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card border-zinc-800">
         <DialogHeader>
-          <DialogTitle className="text-white text-xl">
+          <DialogTitle className="text-foreground text-xl">
             Abrir Disputa/Reclamação
           </DialogTitle>
-          <DialogDescription className="text-gray-400">
+          <DialogDescription className="text-muted-foreground">
             Preencha os dados abaixo para abrir uma disputa sobre seu ingresso. 
             Nossa equipe analisará seu caso em até 48 horas.
           </DialogDescription>
@@ -308,12 +308,12 @@ export function DisputeModal({ isOpen, onClose, ticketData }: DisputeModalProps)
 
         {/* Informações do ingresso (se disponível) */}
         {ticketData && (
-          <div className="bg-zinc-800 rounded-lg p-4 mb-6">
-            <h3 className="text-white font-medium mb-2">Dados do Ingresso</h3>
-            <div className="space-y-1 text-sm text-gray-300">
-              <p><span className="text-gray-400">Evento:</span> {ticketData.eventName}</p>
-              <p><span className="text-gray-400">Tipo:</span> {ticketData.ticketType}</p>
-              <p><span className="text-gray-400">Pedido:</span> {ticketData.orderNumber}</p>
+          <div className="bg-accent rounded-lg p-4 mb-6">
+            <h3 className="text-foreground font-medium mb-2">Dados do Ingresso</h3>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <p><span className="text-muted-foreground">Evento:</span> {ticketData.eventName}</p>
+              <p><span className="text-muted-foreground">Tipo:</span> {ticketData.ticketType}</p>
+              <p><span className="text-muted-foreground">Pedido:</span> {ticketData.orderNumber}</p>
             </div>
           </div>
         )}
@@ -342,13 +342,13 @@ export function DisputeModal({ isOpen, onClose, ticketData }: DisputeModalProps)
           {/* Campos obrigatórios */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="fullName" className="text-white">
+              <Label htmlFor="fullName" className="text-foreground">
                 Nome Completo *
               </Label>
               <Input
                 id="fullName"
                 {...register("fullName")}
-                className="bg-zinc-800 border-zinc-700 text-white"
+                className="bg-accent border-border text-foreground"
                 placeholder="Seu nome completo"
               />
               {errors.fullName && (
@@ -357,13 +357,13 @@ export function DisputeModal({ isOpen, onClose, ticketData }: DisputeModalProps)
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="orderNumber" className="text-white">
+              <Label htmlFor="orderNumber" className="text-foreground">
                 Número do Pedido/Ingresso *
               </Label>
               <Input
                 id="orderNumber"
                 {...register("orderNumber")}
-                className="bg-zinc-800 border-zinc-700 text-white"
+                className="bg-accent border-border text-foreground"
                 placeholder="Ex: #12345"
               />
               {errors.orderNumber && (
@@ -374,14 +374,14 @@ export function DisputeModal({ isOpen, onClose, ticketData }: DisputeModalProps)
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white">
+              <Label htmlFor="email" className="text-foreground">
                 E-mail para Contato *
               </Label>
               <Input
                 id="email"
                 type="email"
                 {...register("email")}
-                className="bg-zinc-800 border-zinc-700 text-white"
+                className="bg-accent border-border text-foreground"
                 placeholder="seu@email.com"
               />
               {errors.email && (
@@ -390,14 +390,14 @@ export function DisputeModal({ isOpen, onClose, ticketData }: DisputeModalProps)
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-white">
+              <Label htmlFor="phone" className="text-foreground">
                 Telefone para Contato *
               </Label>
               <Input
                 id="phone"
                 {...register("phone")}
                 onChange={handlePhoneChange}
-                className="bg-zinc-800 border-zinc-700 text-white"
+                className="bg-accent border-border text-foreground"
                 placeholder="(11) 99999-9999"
               />
               {errors.phone && (
@@ -408,20 +408,20 @@ export function DisputeModal({ isOpen, onClose, ticketData }: DisputeModalProps)
 
           {/* Descrição detalhada */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-white">
+            <Label htmlFor="description" className="text-foreground">
               Descrição Detalhada *
             </Label>
             <Textarea
               id="description"
               {...register("description")}
-              className="bg-zinc-800 border-zinc-700 text-white min-h-[120px]"
+              className="bg-accent border-border text-foreground min-h-[120px]"
               placeholder="Descreva detalhadamente o problema ou motivo da disputa. Inclua datas, horários e qualquer informação relevante."
             />
             <div className="flex justify-between items-center">
               {errors.description && (
                 <p className="text-red-400 text-sm">{errors.description.message}</p>
               )}
-              <p className={`text-sm ${remainingChars < 50 ? 'text-yellow-400' : 'text-gray-400'}`}>
+              <p className={`text-sm ${remainingChars < 50 ? 'text-yellow-400' : 'text-muted-foreground'}`}>
                 {remainingChars} caracteres restantes
               </p>
             </div>
@@ -430,14 +430,14 @@ export function DisputeModal({ isOpen, onClose, ticketData }: DisputeModalProps)
           {/* Upload de arquivos */}
           <div className="space-y-4">
             <div>
-              <Label className="text-white">Anexos/Comprovação</Label>
-              <p className="text-sm text-gray-400 mb-3">
+              <Label className="text-foreground">Anexos/Comprovação</Label>
+              <p className="text-sm text-muted-foreground mb-3">
                 Anexe comprovantes, prints ou documentos relevantes (PDF, JPG, PNG - máx. 5MB cada, até 5 arquivos)
               </p>
             </div>
 
             {/* Área de upload */}
-            <div className="border-2 border-dashed border-zinc-700 rounded-lg p-6 text-center">
+            <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
               <input
                 type="file"
                 id="file-upload"
@@ -451,14 +451,14 @@ export function DisputeModal({ isOpen, onClose, ticketData }: DisputeModalProps)
                 htmlFor="file-upload"
                 className={`cursor-pointer ${uploadedFiles.length >= 5 ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-400">
+                <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-muted-foreground">
                   {uploadedFiles.length >= 5 
                     ? "Limite de 5 arquivos atingido"
                     : "Clique para selecionar arquivos ou arraste aqui"
                   }
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   PDF, JPG, PNG - máx. 5MB cada
                 </p>
               </label>
@@ -467,9 +467,9 @@ export function DisputeModal({ isOpen, onClose, ticketData }: DisputeModalProps)
             {/* Lista de arquivos */}
             {uploadedFiles.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-white font-medium">Arquivos Anexados:</h4>
+                <h4 className="text-foreground font-medium">Arquivos Anexados:</h4>
                 {uploadedFiles.map((file) => (
-                  <div key={file.id} className="flex items-center gap-3 bg-zinc-800 rounded-lg p-3">
+                  <div key={file.id} className="flex items-center gap-3 bg-accent rounded-lg p-3">
                     <div className="flex-shrink-0">
                       {file.file.type.startsWith('image/') ? (
                         file.preview ? (
@@ -479,7 +479,7 @@ export function DisputeModal({ isOpen, onClose, ticketData }: DisputeModalProps)
                             className="w-10 h-10 object-cover rounded"
                           />
                         ) : (
-                          <ImageIcon className="w-10 h-10 text-gray-400" />
+                          <ImageIcon className="w-10 h-10 text-muted-foreground" />
                         )
                       ) : (
                         <FileText className="w-10 h-10 text-red-400" />
@@ -487,8 +487,8 @@ export function DisputeModal({ isOpen, onClose, ticketData }: DisputeModalProps)
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm truncate">{file.file.name}</p>
-                      <p className="text-gray-400 text-xs">
+                      <p className="text-foreground text-sm truncate">{file.file.name}</p>
+                      <p className="text-muted-foreground text-xs">
                         {(file.file.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
@@ -536,14 +536,14 @@ export function DisputeModal({ isOpen, onClose, ticketData }: DisputeModalProps)
               variant="outline"
               onClick={onClose}
               disabled={isSubmitting}
-              className="flex-1 border-zinc-700 text-white hover:bg-zinc-800"
+              className="flex-1 border-border text-foreground hover:bg-accent"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-foreground"
             >
               {isSubmitting ? (
                 <>

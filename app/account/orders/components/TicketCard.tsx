@@ -37,7 +37,7 @@ export function TicketCard({
       case "pending_verification":
         return "text-yellow-400"
       case "used":
-        return "text-gray-400"
+        return "text-muted-foreground"
       case "cancelled":
         return "text-red-400"
       case "expired":
@@ -51,7 +51,7 @@ export function TicketCard({
       case "revoked":
         return "text-red-600"
       default:
-        return "text-gray-400"
+        return "text-muted-foreground"
     }
   }
 
@@ -109,15 +109,15 @@ export function TicketCard({
   }
 
   return (
-    <div className="bg-zinc-900 rounded-lg p-4 border border-zinc-800">
+    <div className="bg-card rounded-lg p-4 border border-zinc-800">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
-          <h3 className="font-semibold text-white text-lg mb-2">
+          <h3 className="font-semibold text-foreground text-lg mb-2">
             {ticket.event.name}
           </h3>
           
           {/* Informações do evento */}
-          <div className="space-y-2 text-sm text-gray-400">
+          <div className="space-y-2 text-sm text-muted-foreground">
             {/* Local do evento */}
             {ticket.occurrence && (
               <div className="flex items-center gap-2">
@@ -157,7 +157,7 @@ export function TicketCard({
         </div>
         
         <div className="text-right ml-4">
-          <p className="text-xl font-bold text-white mb-1">
+          <p className="text-xl font-bold text-foreground mb-1">
             {formatCurrency(Number(ticket.price))}
           </p>
           <p className={`text-sm ${getStatusColor(ticket.status)}`}>
@@ -174,7 +174,7 @@ export function TicketCard({
                 size="sm"
                 variant="outline"
                 onClick={() => onShare(ticket.id, ticket.event.name)}
-                className="border-zinc-700 text-white hover:bg-zinc-800"
+                className="border-border text-foreground hover:bg-accent"
                 aria-label={`Compartilhar ingresso ${ticket.event.name}`}
               >
                 <Share2 className="w-4 h-4 mr-1" />
@@ -187,7 +187,7 @@ export function TicketCard({
                 size="sm"
                 variant="outline"
                 onClick={() => onDownload(ticket.id)}
-                className="border-zinc-700 text-white hover:bg-zinc-800"
+                className="border-border text-foreground hover:bg-accent"
                 aria-label={`Baixar ingresso ${ticket.event.name}`}
               >
                 <Download className="w-4 h-4 mr-1" />
@@ -239,7 +239,7 @@ export function TicketCard({
                 size="sm"
                 variant="outline"
                 onClick={() => onShare(ticket.id, ticket.event.name)}
-                className="border-zinc-700 text-white hover:bg-zinc-800"
+                className="border-border text-foreground hover:bg-accent"
                 aria-label={`Compartilhar anúncio ${ticket.event.name}`}
               >
                 <Share2 className="w-4 h-4 mr-1" />
@@ -252,7 +252,7 @@ export function TicketCard({
                 size="sm"
                 variant="outline"
                 onClick={() => onView(ticket.id)}
-                className="border-zinc-700 text-white hover:bg-zinc-800"
+                className="border-border text-foreground hover:bg-accent"
                 aria-label={`Ver detalhes do anúncio ${ticket.event.name}`}
               >
                 <Eye className="w-4 h-4 mr-1" />
