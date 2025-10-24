@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AccountSidebar } from "@/components/AccountSidebar"
 import Header from "@/components/Header"
+import { useTickets } from "@/hooks/use-tickets"
+import { useBalance } from "@/hooks/use-balance"
 import { CheckCircle, Clock, Edit, Mail, Phone, MapPin, Shield, User, CreditCard, Bell, Lock, Upload, Trash2, Camera } from "lucide-react"
 import { validateImageFile, uploadImage } from "@/lib/upload"
 
@@ -26,10 +28,9 @@ export default function AccountPage() {
   const [saveMessage, setSaveMessage] = useState("")
   const [saveError, setSaveError] = useState("")
   
-  // Estados para saldo
-  const [realBalance, setRealBalance] = useState(0)
-  const [realPendingBalance, setRealPendingBalance] = useState(0)
-  const [loading, setLoading] = useState(true)
+  // Hooks para dados de tickets e saldo
+  const { salesTickets, soldTickets, loading: ticketsLoading, error: ticketsError } = useTickets()
+  const { balance, loading: balanceLoading, error: balanceError } = useBalance({ salesTickets, soldTickets })
 
   // Estados para upload de foto
   const [profileImage, setProfileImage] = useState<string>("")
@@ -73,58 +74,6 @@ export default function AccountPage() {
     }
   }, [user])
 
-  // Carregar dados de saldo
-  useEffect(() => {
-    const loadBalanceData = async () => {
-      if (!user?.id) return
-      
-      setLoading(true)
-      
-      try {
-        const apiRequest = async (endpoint: string) => {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
-            headers: {
-              'Authorization': `Token ${localStorage.getItem('authToken')}`,
-              'Content-Type': 'application/json',
-            },
-          })
-          return response
-        }
-
-        // Carregar vendas (tickets à venda pelo usuário - sem comprador)
-        const salesResponse = await apiRequest(`/api/tickets/`)
-        if (salesResponse.ok) {
-          const salesData = await salesResponse.json()
-          
-          // Calcular saldo pendente baseado nos tickets à venda
-          const totalPendingBalance = salesData.tickets?.reduce((sum: number, ticket: any) => {
-            return sum + (parseFloat(ticket.price) * ticket.quantity)
-          }, 0) || 0
-          
-          setRealPendingBalance(totalPendingBalance)
-        }
-
-        // Carregar tickets vendidos (com comprador)
-        const soldResponse = await apiRequest(`/api/tickets/sold/`)
-        if (soldResponse.ok) {
-          const soldData = await soldResponse.json()
-          
-          // Calcular saldo disponível baseado nos tickets vendidos efetivamente
-          const totalSoldBalance = soldData.tickets?.reduce((sum: number, ticket: any) => {
-            return sum + (parseFloat(ticket.price) * ticket.quantity)
-          }, 0) || 0
-          
-          setRealBalance(totalSoldBalance)
-        }
-      } catch (error) {
-        console.error('Erro ao carregar dados de saldo:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadBalanceData()
-  }, [user])
 
   // Mostrar loading enquanto verifica autenticação
   if (isLoading) {
@@ -343,7 +292,7 @@ export default function AccountPage() {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar */}
           <div className="md:w-1/4">
-            <AccountSidebar balance={realBalance} pendingBalance={realPendingBalance} />
+            <AccountSidebar balance={balance?.available} pendingBalance={balance?.pending} />
           </div>
 
           {/* Main Content */}

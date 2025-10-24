@@ -34,36 +34,36 @@ export function AccountSidebar({ balance, pendingBalance }: AccountSidebarProps 
 
   return (
     <div className="w-full md:w-64 flex-shrink-0">
-      <Card className="bg-zinc-900 rounded border-zinc-800 flex flex-col h-full">
+      <Card className="bg-card rounded border-border flex flex-col h-full">
         {/* Header */}
         <CardHeader className="flex-shrink-0">
           <div className="flex items-center">
-            <div className="h-12 w-12 rounded bg-zinc-800 flex items-center justify-center text-white font-bold">
+            <div className="h-12 w-12 rounded bg-accent flex items-center justify-center text-card-foreground font-bold">
               {user?.name?.charAt(0) || "U"}
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-white">{user?.name || "Usuário"}</p>
-              <p className="text-xs text-gray-400">{user?.email || "email@example.com"}</p>
+              <p className="text-sm font-medium text-card-foreground">{user?.name || "Usuário"}</p>
+              <p className="text-xs text-muted-foreground">{user?.email || "email@example.com"}</p>
             </div>
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-2">
-            <Card className="bg-zinc-800 rounded border-zinc-700">
+            <Card className="bg-accent rounded border-border">
               <CardContent className="p-2">
-                <p className="text-xs text-gray-400">Saldo</p>
-                <p className="font-medium text-white">R$ {(balance !== undefined ? balance : user?.balance || 0).toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">Saldo</p>
+                <p className="font-medium text-card-foreground">R$ {(balance !== undefined ? balance : 0).toFixed(2)}</p>
               </CardContent>
             </Card>
-            <Card className="bg-zinc-800 rounded border-zinc-700">
+            <Card className="bg-accent rounded border-border">
               <CardContent className="p-2">
-                <p className="text-xs text-gray-400">Pendente</p>
-                <p className="font-medium text-white">R$ {(pendingBalance !== undefined ? pendingBalance : user?.pendingBalance || 0).toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">Pendente</p>
+                <p className="font-medium text-card-foreground">R$ {(pendingBalance !== undefined ? pendingBalance : 0).toFixed(2)}</p>
               </CardContent>
             </Card>
           </div>
         </CardHeader>
 
-        <Separator className="bg-zinc-800" />
+        <Separator className="bg-border" />
 
         {/* Navigation - Flex grow para ocupar espaço disponível */}
         <CardContent className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -75,8 +75,8 @@ export function AccountSidebar({ balance, pendingBalance }: AccountSidebarProps 
               className={cn(
                 "w-full justify-start h-auto p-3 rounded",
                 pathname === item.href
-                  ? "bg-blue-900 bg-opacity-20 text-primary"
-                  : "text-gray-400 hover:text-white hover:bg-zinc-800",
+                  ? "bg-primary/20 text-primary"
+                  : "text-muted-foreground hover:text-card-foreground hover:bg-accent",
               )}
             >
               <Link href={item.href}>
@@ -88,8 +88,8 @@ export function AccountSidebar({ balance, pendingBalance }: AccountSidebarProps 
                     className={cn(
                       "ml-auto",
                       item.status === "verified"
-                        ? "bg-green-900 bg-opacity-20 text-green-500 border-green-800"
-                        : "bg-yellow-900 bg-opacity-20 text-yellow-500 border-yellow-800",
+                        ? "bg-green-500/20 text-green-600 border-green-500/30"
+                        : "bg-yellow-500/20 text-yellow-600 border-yellow-500/30",
                     )}
                   >
                     {item.status === "verified" ? "Verificado" : "Pendente"}
@@ -100,14 +100,14 @@ export function AccountSidebar({ balance, pendingBalance }: AccountSidebarProps 
           ))}
         </CardContent>
 
-        <Separator className="bg-zinc-800" />
+        <Separator className="bg-border" />
 
         {/* Logout Button - Flex shrink para ficar fixo no bottom */}
         <CardContent className="flex-shrink-0 p-4">
           <Button
             variant="ghost"
             onClick={logout}
-            className="w-full justify-start h-auto p-3 rounded text-gray-400 hover:text-white hover:bg-zinc-800"
+            className="w-full justify-start h-auto p-3 rounded text-muted-foreground hover:text-card-foreground hover:bg-accent"
           >
             <LogOut size={20} />
             <span className="ml-3">Sair</span>
