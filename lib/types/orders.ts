@@ -36,7 +36,7 @@ export interface BaseTicket {
 
 // Interfaces específicas
 export interface PurchasedTicket extends BaseTicket {
-  order?: string
+  order?: string | { id: string; [key: string]: any }
   buyer?: string
 }
 

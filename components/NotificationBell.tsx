@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import { useNotifications } from '@/hooks/use-notifications'
 import { Button } from '@/components/ui/button'
@@ -31,6 +32,20 @@ export default function NotificationBell() {
     limit: 5
   })
 
+  // ✅ Estado de montagem para evitar hydration error
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // ✅ Memoizar notificações ordenadas para otimizar renderização
+  const sortedNotifications = useMemo(() => {
+    return notifications.slice().sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+  }, [notifications])
+
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -59,6 +74,15 @@ export default function NotificationBell() {
       case 'low': return 'text-gray-500'
       default: return 'text-gray-500'
     }
+  }
+
+  // ✅ Evitar hydration error - só renderizar após montagem
+  if (!isMounted) {
+    return (
+      <button className="p-2 border border-blue-500 rounded">
+        <Bell className="h-5 w-5" />
+      </button>
+    )
   }
 
   if (!user || !isAuthenticated) {
@@ -98,9 +122,9 @@ export default function NotificationBell() {
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
             <p className="text-sm text-muted-foreground">Carregando...</p>
           </div>
-        ) : notifications.length > 0 ? (
+        ) : sortedNotifications.length > 0 ? (
           <>
-            {notifications.map((notification) => (
+            {sortedNotifications.map((notification) => (
               <DropdownMenuItem
                 key={notification.id}
                 className={`p-3 cursor-pointer ${!notification.is_read ? 'bg-blue-50' : ''}`}

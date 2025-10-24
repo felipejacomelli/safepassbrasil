@@ -24,6 +24,8 @@ import {
   Send
 } from 'lucide-react'
 import { formatCurrency } from '@/utils/formatCurrency'
+import { useDisputes } from '@/hooks/use-disputes'
+import { toast } from 'sonner'
 
 interface Dispute {
   id: string
@@ -66,12 +68,20 @@ export default function DisputesPage() {
   const [escrows, setEscrows] = useState<EscrowTransaction[]>([])
   const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null)
   const [messages, setMessages] = useState<DisputeMessage[]>([])
-  const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showMessagesDialog, setShowMessagesDialog] = useState(false)
+  
+  // Hook para integração com API
+  const { 
+    loading, 
+    error: hookError, 
+    getUserDisputes, 
+    createDispute,
+    getEscrowByOrderId 
+  } = useDisputes()
 
   // Form data for creating dispute
   const [createFormData, setCreateFormData] = useState({
@@ -114,32 +124,23 @@ export default function DisputesPage() {
 
   const fetchData = async () => {
     try {
-      setLoading(true)
+      // Buscar disputas usando o hook
+      const disputesData = await getUserDisputes()
+      setDisputes(disputesData)
+
+      // Buscar escrows manualmente (não temos hook para isso ainda)
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       const token = localStorage.getItem('authToken')
       
-      if (!token) {
-        console.log('Nenhum token encontrado, pulando busca de dados de disputes')
-        return
-      }
-
-      const [disputesRes, escrowsRes] = await Promise.all([
-        fetch(`${apiUrl}/api/escrow/disputes/`, {
-          headers: { 'Authorization': `Token ${token}` }
-        }),
-        fetch(`${apiUrl}/api/escrow/transactions/`, {
+      if (token) {
+        const escrowsRes = await fetch(`${apiUrl}/api/escrow/transactions/`, {
           headers: { 'Authorization': `Token ${token}` }
         })
-      ])
 
-      if (disputesRes.ok) {
-        const disputesData = await disputesRes.json()
-        setDisputes(disputesData.disputes || [])
-      }
-
-      if (escrowsRes.ok) {
-        const escrowsData = await escrowsRes.json()
-        setEscrows(escrowsData.escrows || [])
+        if (escrowsRes.ok) {
+          const escrowsData = await escrowsRes.json()
+          setEscrows(escrowsData.escrows || [])
+        }
       }
 
       // ✅ OTIMIZAÇÃO: Marcar timestamp da última busca
@@ -150,8 +151,7 @@ export default function DisputesPage() {
     } catch (error) {
       console.error('Erro ao carregar dados:', error)
       setError('Erro ao carregar dados')
-    } finally {
-      setLoading(false)
+      toast.error('Erro ao carregar disputas')
     }
   }
 
@@ -186,49 +186,34 @@ export default function DisputesPage() {
       setError('')
       setSuccess('')
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const token = localStorage.getItem('authToken')
-      
-      if (!token) {
-        console.log('Nenhum token encontrado, pulando busca de dados de disputes')
-        return
+      // Usar o hook para criar disputa
+      const disputeData = {
+        escrow_transaction: createFormData.escrow_transaction,
+        dispute_type: createFormData.dispute_type,
+        description: createFormData.description,
+        evidence: createFormData.evidence,
+        disputed_amount: parseFloat(createFormData.disputed_amount)
       }
 
-      const response = await fetch(`${apiUrl}/api/escrow/disputes/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
-        },
-        body: JSON.stringify({
-          escrow_transaction: createFormData.escrow_transaction,
-          dispute_type: createFormData.dispute_type,
-          description: createFormData.description,
-          disputed_amount: parseFloat(createFormData.disputed_amount),
-          evidence: createFormData.evidence
-        })
+      await createDispute(disputeData)
+
+      setSuccess('Disputa criada com sucesso!')
+      setCreateFormData({
+        escrow_transaction: '',
+        dispute_type: '',
+        description: '',
+        disputed_amount: '',
+        evidence: []
       })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        setSuccess('Disputa criada com sucesso!')
-        setCreateFormData({
-          escrow_transaction: '',
-          dispute_type: '',
-          description: '',
-          disputed_amount: '',
-          evidence: []
-        })
-        setShowCreateDialog(false)
-        fetchData()
-      } else {
-        setError(data.error || 'Erro ao criar disputa')
-      }
+      setShowCreateDialog(false)
+      fetchData()
+      toast.success('Disputa criada com sucesso!')
 
     } catch (error) {
       console.error('Erro ao criar disputa:', error)
-      setError('Erro ao criar disputa')
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao criar disputa'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setSubmitting(false)
     }
@@ -329,11 +314,11 @@ export default function DisputesPage() {
   }
 
   const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      'open': { label: 'Aberta', variant: 'destructive' as const, icon: AlertTriangle },
-      'under_review': { label: 'Em Análise', variant: 'secondary' as const, icon: Clock },
-      'resolved': { label: 'Resolvida', variant: 'default' as const, icon: CheckCircle },
-      'closed': { label: 'Fechada', variant: 'secondary' as const, icon: XCircle }
+    const statusConfig: Record<string, { label: string; variant: 'destructive' | 'secondary' | 'default'; icon: any }> = {
+      'open': { label: 'Aberta', variant: 'destructive', icon: AlertTriangle },
+      'under_review': { label: 'Em Análise', variant: 'secondary', icon: Clock },
+      'resolved': { label: 'Resolvida', variant: 'default', icon: CheckCircle },
+      'closed': { label: 'Fechada', variant: 'secondary', icon: XCircle }
     }
 
     const config = statusConfig[status] || { label: status, variant: 'secondary' as const, icon: Clock }
@@ -348,7 +333,7 @@ export default function DisputesPage() {
   }
 
   const getDisputeTypeLabel = (type: string) => {
-    const types = {
+    const types: Record<string, string> = {
       'product_not_received': 'Produto não recebido',
       'product_not_as_described': 'Produto não conforme descrição',
       'product_defective': 'Produto com defeito',
@@ -361,13 +346,27 @@ export default function DisputesPage() {
   }
 
   const getResolutionLabel = (resolution: string) => {
-    const resolutions = {
+    const resolutions: Record<string, string> = {
       'refund_buyer': 'Reembolsar Comprador',
       'release_seller': 'Liberar para Vendedor',
       'partial_refund': 'Reembolso Parcial',
       'no_action': 'Nenhuma Ação'
     }
     return resolutions[resolution] || resolution
+  }
+
+  // Mostrar erro do hook se houver
+  if (hookError) {
+    return (
+      <div className="container mx-auto p-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Erro ao carregar disputas: {hookError}
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
   }
 
   if (loading) {
@@ -422,7 +421,7 @@ export default function DisputesPage() {
                     <SelectContent>
                       {escrows.filter(e => e.status === 'locked').map((escrow) => (
                         <SelectItem key={escrow.id} value={escrow.id}>
-                          Pedido #{escrow.order_id.slice(-8)} - {formatCurrency(escrow.locked_amount, 'BRL')}
+                          Pedido #{escrow.order_id.slice(-8)} - {formatCurrency(escrow.locked_amount)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -525,7 +524,7 @@ export default function DisputesPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-bold">{formatCurrency(dispute.disputed_amount, 'BRL')}</p>
+                  <p className="text-lg font-bold">{formatCurrency(dispute.disputed_amount)}</p>
                   {getStatusBadge(dispute.status)}
                 </div>
               </div>

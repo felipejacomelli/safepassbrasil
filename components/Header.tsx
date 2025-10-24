@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { useAuth } from "@/contexts/auth-context"
-import NotificationBell from "./NotificationBell"
 import {
     User,
     ShoppingCart,
@@ -12,12 +12,29 @@ import {
     LogOut,
     UserCircle,
     Settings,
+    Bell,
 } from "lucide-react"
+
+// ✅ Lazy loading do NotificationBell para evitar hydration error
+const NotificationBell = dynamic(() => import("./NotificationBell"), {
+    ssr: false,
+    loading: () => (
+        <button className="p-2 border border-blue-500 rounded">
+            <Bell size={18} />
+        </button>
+    )
+})
 
 export default function Header() {
     const router = useRouter()
     const { isAuthenticated, logout, user } = useAuth()
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+    const [isMounted, setIsMounted] = useState(false)
+
+    // ✅ Evitar hydration error - só renderizar após montagem
+    useEffect(() => {
+        setIsMounted(true)
+    }, [])
 
     const handleAccountAccess = () => {
         router.push("/account")
@@ -32,6 +49,30 @@ export default function Header() {
     const handleAdminPanelAccess = () => {
         router.push("/admin")
         setIsUserMenuOpen(false)
+    }
+
+    // ✅ Evitar hydration error - renderizar skeleton simples
+    if (!isMounted) {
+        return (
+            <header className="sticky top-0 z-10 bg-black border-b border-zinc-800">
+                <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+                    <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+                        <div className="bg-blue-500 p-1.5 rounded">
+                            <div className="w-6 h-6 bg-black rounded" />
+                        </div>
+                        Safe Pass
+                    </Link>
+                    <nav className="flex items-center gap-4">
+                        <div className="p-2 border border-gray-600 rounded">
+                            <div className="w-4 h-4" />
+                        </div>
+                        <div className="p-2 border border-gray-600 rounded">
+                            <div className="w-4 h-4" />
+                        </div>
+                    </nav>
+                </div>
+            </header>
+        )
     }
 
     return (

@@ -1,6 +1,7 @@
 export { BalanceSection } from "./BalanceSection"
 export { WithdrawalForm } from "./WithdrawalForm"
 export { TicketCard } from "./TicketCard"
+export { DisputeModal } from "./DisputeModal"
 export { ErrorBoundary } from "./ErrorBoundary"
 export { LoadingSpinner } from "./LoadingSpinner"
 export { ErrorMessage } from "./ErrorMessage"

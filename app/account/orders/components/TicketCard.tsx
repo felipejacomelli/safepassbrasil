@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/utils/formatCurrency"
 import { PurchasedTicket, SaleTicket, TicketStatus } from "@/lib/types/orders"
-import { Share2, Download, Eye, Trash2, MapPin, Calendar, Clock, Tag, Send, CheckCircle } from "lucide-react"
+import { Share2, Download, Eye, Trash2, MapPin, Calendar, Clock, Tag, Send, CheckCircle, AlertTriangle } from "lucide-react"
 
 interface TicketCardProps {
   ticket: PurchasedTicket | SaleTicket
@@ -14,6 +14,7 @@ interface TicketCardProps {
   onDelete?: (ticketId: string) => void
   onMarkTransferred?: (ticketId: string) => void
   onConfirmReceipt?: (ticketId: string) => void
+  onOpenDispute?: (ticketData: { id: string; orderNumber: string; eventName: string; ticketType: string }) => void
 }
 
 export function TicketCard({ 
@@ -24,7 +25,8 @@ export function TicketCard({
   onView, 
   onDelete,
   onMarkTransferred,
-  onConfirmReceipt
+  onConfirmReceipt,
+  onOpenDispute
 }: TicketCardProps) {
   const getStatusColor = (status: TicketStatus) => {
     switch (status) {
@@ -204,6 +206,27 @@ export function TicketCard({
               >
                 <CheckCircle className="w-4 h-4 mr-1" />
                 Confirmar Recebimento
+              </Button>
+            )}
+
+            {/* Botão para abrir disputa/reclamação */}
+            {onOpenDispute && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onOpenDispute({
+                  id: ticket.id,
+                  orderNumber: 'order' in ticket && ticket.order 
+                    ? (typeof ticket.order === 'string' ? ticket.order : ticket.order.id)
+                    : ticket.id,
+                  eventName: ticket.event.name,
+                  ticketType: ticket.name
+                })}
+                className="border-orange-700 text-orange-400 hover:bg-orange-900 hover:bg-opacity-20"
+                aria-label={`Abrir disputa para o ingresso ${ticket.event.name}`}
+              >
+                <AlertTriangle className="w-4 h-4 mr-1" />
+                Abrir Disputa
               </Button>
             )}
           </>

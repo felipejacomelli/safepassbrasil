@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 
 interface Notification {
@@ -32,9 +32,21 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastFetch, setLastFetch] = useState<Date | null>(null)
+  
+  // Refs para controle de estado sem causar re-renders
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const lastFetchRef = useRef<number>(0)
+  const isFetchingRef = useRef<boolean>(false)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const fetchNotifications = useCallback(async (forceRefresh = false) => {
     if (!user || !isAuthenticated) return
+
+    // ✅ Controle de requests simultâneos
+    if (isFetchingRef.current) {
+      console.log('Request já em andamento, pulando...')
+      return
+    }
 
     const cacheKey = `notifications_${user.id}`
     const now = Date.now()
@@ -43,19 +55,34 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     if (!forceRefresh) {
       const cachedData = localStorage.getItem(cacheKey)
       if (cachedData) {
-        const { data: cached, timestamp } = JSON.parse(cachedData)
-        if (now - timestamp < cacheTimeout) {
-          setNotifications(cached.notifications || [])
-          setUnreadCount(cached.unread_count || 0)
-          setLastFetch(new Date(timestamp))
-          return
+        try {
+          const cached = JSON.parse(cachedData)
+          if (cached && cached.timestamp && now - cached.timestamp < cacheTimeout) {
+            setNotifications(cached.notifications || [])
+            setUnreadCount(cached.unread_count || 0)
+            setLastFetch(new Date(cached.timestamp))
+            return
+          }
+        } catch (parseError) {
+          console.error('Erro ao fazer parse do cache:', parseError)
+          // Remove cache inválido
+          localStorage.removeItem(cacheKey)
         }
       }
     }
 
     try {
+      isFetchingRef.current = true
       setLoading(true)
       setError(null)
+      
+      // ✅ Cancelar request anterior se existir
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+      
+      // ✅ Criar novo AbortController
+      abortControllerRef.current = new AbortController()
       
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       const token = localStorage.getItem('authToken')
@@ -68,10 +95,12 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       // ✅ Buscar notificações e contagem em paralelo
       const [notificationsRes, unreadRes] = await Promise.all([
         fetch(`${apiUrl}/api/escrow/notifications/?limit=${limit}`, {
-          headers: { 'Authorization': `Token ${token}` }
+          headers: { 'Authorization': `Token ${token}` },
+          signal: abortControllerRef.current.signal
         }),
         fetch(`${apiUrl}/api/escrow/notifications/unread-count/`, {
-          headers: { 'Authorization': `Token ${token}` }
+          headers: { 'Authorization': `Token ${token}` },
+          signal: abortControllerRef.current.signal
         })
       ])
 
@@ -89,6 +118,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       }
 
       setLastFetch(new Date())
+      lastFetchRef.current = now
 
       // ✅ Salvar no cache
       if (notificationsData || unreadData) {
@@ -101,12 +131,15 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       }
 
     } catch (err) {
-      console.error('Erro ao carregar notificações:', err)
-      setError('Erro ao carregar notificações')
+      if (err instanceof Error && err.name !== 'AbortError') {
+        console.error('Erro ao carregar notificações:', err)
+        setError('Erro ao carregar notificações')
+      }
     } finally {
       setLoading(false)
+      isFetchingRef.current = false
     }
-  }, [user, isAuthenticated, cacheTimeout, limit])
+  }, [user?.id, isAuthenticated, cacheTimeout, limit])
 
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
@@ -140,7 +173,7 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     } catch (error) {
       console.error('Erro ao marcar notificação como lida:', error)
     }
-  }, [user])
+  }, [user?.id])
 
   const markAllAsRead = useCallback(async () => {
     try {
@@ -170,28 +203,36 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     } catch (error) {
       console.error('Erro ao marcar todas as notificações como lidas:', error)
     }
-  }, [user])
+  }, [user?.id])
 
-  // ✅ Auto-refresh se habilitado
+  // ✅ Auto-refresh se habilitado - REFATORADO para evitar loop infinito
   useEffect(() => {
-    if (user && isAuthenticated && enableAutoRefresh) {
-      fetchNotifications()
-      
-      const interval = setInterval(() => {
-        // ✅ Só atualizar se há notificações não lidas ou passou mais tempo
-        const now = new Date()
-        const shouldFetch = !lastFetch || 
-          (now.getTime() - lastFetch.getTime() > refreshInterval) ||
-          unreadCount > 0
-        
-        if (shouldFetch) {
-          fetchNotifications()
-        }
-      }, refreshInterval)
-      
-      return () => clearInterval(interval)
+    if (!user || !isAuthenticated || !enableAutoRefresh) return
+
+    // ✅ Fetch inicial
+    fetchNotifications()
+
+    // ✅ Intervalo otimizado usando useRef
+    intervalRef.current = setInterval(() => {
+      const now = Date.now()
+      // Só buscar se passou tempo suficiente desde a última busca
+      if (now - lastFetchRef.current >= refreshInterval) {
+        fetchNotifications()
+        lastFetchRef.current = now
+      }
+    }, refreshInterval)
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+      // ✅ Cancelar requests pendentes ao desmontar
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
     }
-  }, [user, isAuthenticated, enableAutoRefresh, refreshInterval, fetchNotifications, lastFetch, unreadCount])
+  }, [user?.id, isAuthenticated, enableAutoRefresh, refreshInterval, fetchNotifications])
 
   // ✅ Função para invalidar cache
   const invalidateCache = useCallback(() => {
@@ -218,6 +259,3 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
     invalidateCache
   }
 }
-
-
-

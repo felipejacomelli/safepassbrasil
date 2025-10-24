@@ -45,6 +45,31 @@ export function validateImageFile(file: File): { valid: boolean; error?: string 
 }
 
 /**
+ * Valida se o arquivo é uma evidência válida para disputas (PDF, JPG, PNG)
+ */
+export function validateDisputeEvidenceFile(file: File): { valid: boolean; error?: string } {
+  // Verificar tipos permitidos
+  const allowedTypes = [
+    'application/pdf',
+    'image/jpeg', 
+    'image/jpg', 
+    'image/png'
+  ]
+  
+  if (!allowedTypes.includes(file.type)) {
+    return { valid: false, error: 'Tipo de arquivo não permitido. Use PDF, JPG ou PNG' }
+  }
+
+  // Verificar tamanho (máximo 5MB)
+  const maxSize = 5 * 1024 * 1024 // 5MB
+  if (file.size > maxSize) {
+    return { valid: false, error: 'Arquivo deve ter no máximo 5MB' }
+  }
+
+  return { valid: true }
+}
+
+/**
  * Processa upload de imagem usando Vercel Blob Storage
  */
 export async function uploadImage(file: File): Promise<UploadResult> {
@@ -130,4 +155,54 @@ export function compressImage(file: File, maxWidth = 1200, quality = 0.8): Promi
 
     img.src = URL.createObjectURL(file)
   })
+}
+
+/**
+ * Upload de evidências para disputas (PDF, JPG, PNG)
+ */
+export async function uploadDisputeEvidence(file: File): Promise<UploadResult> {
+  try {
+    // Validar arquivo
+    const validation = validateDisputeEvidenceFile(file)
+    if (!validation.valid) {
+      return { success: false, error: validation.error }
+    }
+
+    // Criar FormData para envio
+    const formData = new FormData()
+    formData.append('file', file)
+
+    // Obter token de autenticação
+    const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null
+    if (!token) {
+      return { success: false, error: 'Token de autenticação não encontrado' }
+    }
+
+    // Fazer upload para o endpoint do backend
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    const response = await fetch(`${apiUrl}/api/escrow/disputes/upload-evidence/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Token ${token}`,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      return { 
+        success: false, 
+        error: errorData.error || `Erro no upload: ${response.status}` 
+      }
+    }
+
+    const data = await response.json()
+    return { success: true, url: data.file_url }
+    
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Erro desconhecido no upload' 
+    }
+  }
 }

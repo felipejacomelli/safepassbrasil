@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import Header from "@/components/Header"
-import { AccountSidebar } from "@/components/account-sidebar"
+import { AccountSidebar } from "@/components/AccountSidebar"
 import { useOrders } from "@/hooks/use-orders"
 import { useTickets } from "@/hooks/use-tickets"
 import { useBalance } from "@/hooks/use-balance"
@@ -11,10 +11,11 @@ import { uploadImage } from "@/lib/upload"
 import { 
   BalanceSection, 
   WithdrawalForm, 
-  TicketCard, 
   ErrorBoundary, 
   LoadingSpinner, 
-  ErrorMessage 
+  ErrorMessage,
+  DisputeModal,
+  TicketCard
 } from "./components"
 import { ShareTicketModal } from "@/components/ShareTicketModal"
 import { TabType, SalesTabType, StatusFilter } from "@/types/orders"
@@ -51,6 +52,15 @@ export default function OrdersPage() {
   const [transferModalOpen, setTransferModalOpen] = useState(false)
   const [transferAction, setTransferAction] = useState<'mark_transferred' | 'confirm_receipt'>('mark_transferred')
   const [selectedTicket, setSelectedTicket] = useState<any>(null)
+
+  // Estados para o modal de disputa
+  const [disputeModalOpen, setDisputeModalOpen] = useState(false)
+  const [disputeTicketData, setDisputeTicketData] = useState<{
+    id: string
+    orderNumber: string
+    eventName: string
+    ticketType: string
+  } | undefined>(undefined)
 
   // Filtros memoizados
   const filteredPurchasedTickets = useMemo(() => {
@@ -105,6 +115,17 @@ export default function OrdersPage() {
   const handleDeleteTicket = useCallback((ticketId: string) => {
     console.log('Delete ticket:', ticketId)
     // TODO: Implementar lógica de exclusão
+  }, [])
+
+  // Handler para abrir disputa
+  const handleOpenDispute = useCallback((ticketData: {
+    id: string
+    orderNumber: string
+    eventName: string
+    ticketType: string
+  }) => {
+    setDisputeTicketData(ticketData)
+    setDisputeModalOpen(true)
   }, [])
 
   const handleRetry = useCallback(() => {
@@ -376,14 +397,18 @@ export default function OrdersPage() {
     <ErrorBoundary>
       <div className="min-h-screen bg-black">
         <Header />
-        <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row gap-8">
-            <AccountSidebar 
-              balance={balance?.available} 
-              pendingBalance={balance?.pending} 
-            />
-            
-            <div className="flex-1">
+            {/* Sidebar */}
+            <div className="md:w-1/4">
+              <AccountSidebar 
+                balance={balance?.available} 
+                pendingBalance={balance?.pending} 
+              />
+            </div>
+
+            {/* Main Content */}
+            <div className="md:w-3/4">
               <div className="mb-8">
                 <h1 className="text-3xl font-bold text-white mb-2">Meus Pedidos</h1>
                 <p className="text-gray-400">Gerencie seus ingressos comprados e vendidos</p>
@@ -451,6 +476,7 @@ export default function OrdersPage() {
                         onDownload={(ticketId) => console.log('Download:', ticketId)}
                         onView={(ticketId) => console.log('View:', ticketId)}
                         onConfirmReceipt={handleConfirmReceipt}
+                        onOpenDispute={handleOpenDispute}
                       />
                     ))}
                     {filteredPurchasedTickets.length === 0 && (
@@ -545,6 +571,16 @@ export default function OrdersPage() {
             price: selectedTicket?.price || ''
           }}
           onConfirm={handleTransferConfirm}
+        />
+
+        {/* Modal de Disputa/Reclamação */}
+        <DisputeModal
+          isOpen={disputeModalOpen}
+          onClose={() => {
+            setDisputeModalOpen(false)
+            setDisputeTicketData(undefined)
+          }}
+          ticketData={disputeTicketData}
         />
       </div>
     </ErrorBoundary>
