@@ -21,20 +21,25 @@ import {
     Ticket,
     Calendar,
 } from "lucide-react"
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+} from "@/components/ui/carousel"
 
 export default function Page() {
     const router = useRouter()
     const { isAuthenticated, logout, user } = useAuth()
     const { events, categories, locations, isLoading, error } = useData()
     const [searchQuery, setSearchQuery] = useState("")
-    const [page, setPage] = useState(1)
     const [locationsPage, setLocationsPage] = useState(1)
     const [selectedState, setSelectedState] = useState<string | null>(null)
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
     const [isSellModalOpen, setIsSellModalOpen] = useState(false)
     const [isLoadingRedirect, setIsLoadingRedirect] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
-    const pageSize = 4
     const locationsPageSize = 8
 
     const handleLogout = () => {
@@ -70,18 +75,11 @@ export default function Page() {
         })
         : events
 
-    // Paginação manual só sobre os eventos filtrados
-    const totalPages = Math.ceil(filteredEvents.length / pageSize) || 1
-    const paginatedEvents = filteredEvents.slice((page - 1) * pageSize, page * pageSize)
     
     // Paginação para locais
     const totalLocationsPages = Math.ceil(locations.length / locationsPageSize) || 1
     const paginatedLocations = locations.slice((locationsPage - 1) * locationsPageSize, locationsPage * locationsPageSize)
 
-    // Resetar página quando o filtro mudar
-    useEffect(() => {
-        setPage(1)
-    }, [selectedState])
 
     // Função para selecionar/deselecionar estado
     const handleStateSelect = (state: string) => {
@@ -252,7 +250,7 @@ export default function Page() {
                             <div className="text-center py-8" role="alert">
                                 <p className="text-destructive">Erro ao carregar eventos.</p>
                             </div>
-                        ) : paginatedEvents.length === 0 ? (
+                        ) : filteredEvents.length === 0 ? (
                             <div className="text-center py-8">
                                 <p>
                                     {selectedState 
@@ -262,35 +260,25 @@ export default function Page() {
                                 </p>
                             </div>
                         ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                            {paginatedEvents.map((event: any) => (
-                                <EventCard key={event.id} event={event} />
-                            ))}
-                        </div>
+                        <Carousel
+                            opts={{
+                                align: "start",
+                                loop: true,
+                            }}
+                            className="w-full"
+                        >
+                            <CarouselContent className="-ml-2 md:-ml-4">
+                                {filteredEvents.map((event: any) => (
+                                    <CarouselItem key={event.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
+                                        <EventCard event={event} />
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            <CarouselPrevious />
+                            <CarouselNext />
+                        </Carousel>
                     )}
 
-                    {/* Paginação */}
-                    {totalPages > 1 && (
-                        <div className="flex justify-center items-center gap-4 mt-6">
-                            <button
-                                onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                                disabled={page === 1}
-                                className="p-2 border rounded disabled:opacity-50"
-                            >
-                                <ChevronLeft size={18} />
-                            </button>
-                            <span>
-                Página {page} de {totalPages}
-              </span>
-                            <button
-                                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                                disabled={page === totalPages}
-                                className="p-2 border rounded disabled:opacity-50"
-                            >
-                                <ChevronRight size={18} />
-                            </button>
-                        </div>
-                    )}
                 </div>
             </section>
 
@@ -358,70 +346,81 @@ export default function Page() {
                             <p>Nenhum evento encontrado.</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                            {events
-                                .sort((a: any, b: any) => {
-                                    // Ordenar por número de ingressos vendidos (assumindo que existe uma propriedade tickets_sold)
-                                    const ticketsSoldA = a.tickets_sold || 0
-                                    const ticketsSoldB = b.tickets_sold || 0
-                                    return ticketsSoldB - ticketsSoldA
-                                })
-                                .slice(0, 8)
-                                .map((event: any) => (
-                                    <article
-                                        key={event.id}
-                                        className="bg-card rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition cursor-pointer"
-                                        onClick={() => {
-                                            if (event.occurrences && event.occurrences.length > 0) {
-                                                const firstOccurrence = event.occurrences[0]
-                                                const cityDate = `${firstOccurrence.city}-${new Date(firstOccurrence.start_at).toISOString().split('T')[0]}`
-                                                router.push(`/event/${event.slug}/${cityDate}`)
-                                            }
-                                        }}
-                                    >
-                                        <div className="relative">
-                                            <Image
-                                                src={event.image || "/placeholder.jpg"}
-                                                alt={event.name}
-                                                width={300}
-                                                height={128}
-                                                className="w-full h-32 object-cover"
-                                            />
-                                            <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
-                                                {event.occurrences && event.occurrences.length > 0 && (
-                                                    <>
-                                                        {new Date(event.occurrences[0].start_at).toLocaleDateString('pt-BR', {
-                                                            day: '2-digit',
-                                                            month: '2-digit'
-                                                        })}
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="p-3">
-                                            <h3 className="font-semibold text-card-foreground text-sm mb-1 line-clamp-2">
-                                                {event.name}
-                                            </h3>
-                                            <div className="flex items-center gap-1 text-muted-foreground text-xs mb-2">
-                                                <MapPin size={12} />
-                                                <span>
-                                                    {event.occurrences && event.occurrences.length > 0 && (
-                                                        `${event.occurrences[0].city}, ${event.occurrences[0].uf}`
-                                                    )}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-1 text-primary text-xs">
-                                                <Ticket size={12} className="mr-1" />
-                                                <span>
-                                                    {event.total_available_tickets !== undefined 
-                                                        ? `${event.total_available_tickets} ingressos` 
-                                                        : "Ingressos esgotados"}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </article>
-                                ))}
-                        </div>
+                        <Carousel
+                            opts={{
+                                align: "start",
+                                loop: true,
+                            }}
+                            className="w-full"
+                        >
+                            <CarouselContent className="-ml-2 md:-ml-4">
+                                {events
+                                    .sort((a: any, b: any) => {
+                                        // Ordenar por número de ingressos vendidos (assumindo que existe uma propriedade tickets_sold)
+                                        const ticketsSoldA = a.tickets_sold || 0
+                                        const ticketsSoldB = b.tickets_sold || 0
+                                        return ticketsSoldB - ticketsSoldA
+                                    })
+                                    .slice(0, 8)
+                                    .map((event: any) => (
+                                        <CarouselItem key={event.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
+                                            <article
+                                                className="bg-card rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition cursor-pointer"
+                                                onClick={() => {
+                                                    if (event.occurrences && event.occurrences.length > 0) {
+                                                        const firstOccurrence = event.occurrences[0]
+                                                        const cityDate = `${firstOccurrence.city}-${new Date(firstOccurrence.start_at).toISOString().split('T')[0]}`
+                                                        router.push(`/event/${event.slug}/${cityDate}`)
+                                                    }
+                                                }}
+                                            >
+                                                <div className="relative">
+                                                    <Image
+                                                        src={event.image || "/placeholder.jpg"}
+                                                        alt={event.name}
+                                                        width={300}
+                                                        height={128}
+                                                        className="w-full h-32 object-cover"
+                                                    />
+                                                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
+                                                        {event.occurrences && event.occurrences.length > 0 && (
+                                                            <>
+                                                                {new Date(event.occurrences[0].start_at).toLocaleDateString('pt-BR', {
+                                                                    day: '2-digit',
+                                                                    month: '2-digit'
+                                                                })}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="p-3">
+                                                    <h3 className="font-semibold text-card-foreground text-sm mb-1 line-clamp-2">
+                                                        {event.name}
+                                                    </h3>
+                                                    <div className="flex items-center gap-1 text-muted-foreground text-xs mb-2">
+                                                        <MapPin size={12} />
+                                                        <span>
+                                                            {event.occurrences && event.occurrences.length > 0 && (
+                                                                `${event.occurrences[0].city}, ${event.occurrences[0].uf}`
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1 text-primary text-xs">
+                                                        <Ticket size={12} className="mr-1" />
+                                                        <span>
+                                                            {event.total_available_tickets !== undefined 
+                                                                ? `${event.total_available_tickets} ingressos` 
+                                                                : "Ingressos esgotados"}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </article>
+                                        </CarouselItem>
+                                    ))}
+                            </CarouselContent>
+                            <CarouselPrevious />
+                            <CarouselNext />
+                        </Carousel>
                     )}
                 </div>
             </section>
