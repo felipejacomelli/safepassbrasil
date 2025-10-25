@@ -20,6 +20,7 @@ import {
     UserCircle,
     Ticket,
     Calendar,
+    MessageCircle,
 } from "lucide-react"
 import {
     Carousel,
@@ -632,42 +633,36 @@ export default function Page() {
             <section className="py-16 bg-card">
                 <div className="max-w-6xl mx-auto px-4">
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl font-bold text-foreground mb-4">Como funciona</h2>
-                        <p className="text-muted-foreground">Compre e venda ingressos online de um jeito mais seguro</p>
+                        <h2 className="text-3xl font-bold text-foreground mb-4">Como Funciona a Revenda Segura</h2>
+                        <p className="text-muted-foreground">Compre e venda com segurança.</p>
                     </div>
                     
                     <div className="grid md:grid-cols-3 gap-8">
-                        {/* Passo 1 */}
+                        {/* Como Vender */}
                         <div className="text-center">
                             <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <svg className="w-10 h-10 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
+                                <Plus className="w-10 h-10 text-foreground" />
                             </div>
-                            <h3 className="text-xl font-semibold text-foreground mb-3">Encontre seu evento</h3>
-                            <p className="text-muted-foreground">Busque por eventos, categorias ou localização e encontre a experiência que você procura</p>
+                            <h3 className="text-xl font-semibold text-foreground mb-3">Como Vender</h3>
+                            <p className="text-muted-foreground">Anuncie seu ingresso, defina o preço e aguarde um comprador interessado</p>
                         </div>
 
-                        {/* Passo 2 */}
+                        {/* Como Comprar */}
                         <div className="text-center">
                             <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <svg className="w-10 h-10 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                </svg>
+                                <ShoppingCart className="w-10 h-10 text-foreground" />
                             </div>
-                            <h3 className="text-xl font-semibold text-foreground mb-3">Compre com segurança</h3>
-                            <p className="text-muted-foreground">Realize o pagamento de forma segura e receba seu ingresso digital na entrada do evento</p>
+                            <h3 className="text-xl font-semibold text-foreground mb-3">Como Comprar</h3>
+                            <p className="text-muted-foreground">Busque eventos, pague com segurança e receba seu ingresso digital</p>
                         </div>
 
-                        {/* Passo 3 */}
+                        {/* Suporte */}
                         <div className="text-center">
                             <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <svg className="w-10 h-10 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                                <MessageCircle className="w-10 h-10 text-foreground" />
                             </div>
-                            <h3 className="text-xl font-semibold text-foreground mb-3">Aproveite o evento</h3>
-                            <p className="text-muted-foreground">Apresente seu ingresso digital na entrada do evento e aproveite</p>
+                            <h3 className="text-xl font-semibold text-foreground mb-3">Suporte</h3>
+                            <p className="text-muted-foreground">Não encontrou o evento? Entre em contato conosco para obter ajuda</p>
                         </div>
                     </div>
                 </div>
