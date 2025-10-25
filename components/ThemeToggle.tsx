@@ -50,7 +50,7 @@ export function ThemeToggle() {
         <Button 
           variant="ghost" 
           size="icon" 
-          className="rounded-full hover:bg-accent hover:text-accent-foreground transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          className="rounded-full hover:bg-accent hover:text-accent-foreground transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2 shadow-sm dark:shadow-none border border-transparent dark:border-border/50 dark:hover:border-primary/30"
           aria-label={`Alternar tema - ${getThemeLabel()}`}
         >
           {getIcon()}
@@ -59,7 +59,7 @@ export function ThemeToggle() {
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="w-40"
+        className="w-40 shadow-lg dark:shadow-xl dark:shadow-black/20 backdrop-blur-sm dark:backdrop-blur-md"
         role="menu"
         aria-label="Opções de tema"
       >

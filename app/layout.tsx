@@ -5,6 +5,7 @@ import "./globals.css"
 import { AuthProvider } from "@/contexts/auth-context"
 import { DataProvider } from "@/contexts/data-context"
 import { ThemeProvider } from "@/components/theme-provider"
+import WhatsAppFloat from "@/components/WhatsAppFloat"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -24,7 +25,10 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <DataProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              {children}
+              <WhatsAppFloat />
+            </AuthProvider>
           </DataProvider>
         </ThemeProvider>
       </body>

@@ -80,7 +80,7 @@ export default function Header() {
         <header className="sticky top-0 z-10 bg-background border-b border-border">
             <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
                 <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-                    <div className="bg-blue-500 p-1.5 rounded">
+                    <div className="bg-blue-500 dark:bg-blue-600 p-1.5 rounded shadow-sm dark:shadow-blue-500/20">
                         <div className="w-6 h-6 bg-background rounded" />
                     </div>
                     Safe Pass
@@ -93,7 +93,7 @@ export default function Header() {
                             <div className="relative">
                             <button
                                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                className="flex items-center gap-2 border border-blue-500 px-3 py-1.5 rounded text-sm font-semibold hover:bg-blue-500/10 transition-colors"
+                                className="flex items-center gap-2 border border-blue-500 dark:border-blue-400 px-3 py-1.5 rounded text-sm font-semibold hover:bg-blue-500/10 dark:hover:bg-blue-400/10 transition-colors shadow-sm dark:shadow-blue-500/10"
                             >
                                 <UserCircle size={18} />
                                 <span>{user?.name || 'Usuário'}</span>
@@ -101,7 +101,7 @@ export default function Header() {
                             </button>
                             
                             {isUserMenuOpen && (
-                                <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-lg shadow-lg z-50">
+                                <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-lg shadow-lg dark:shadow-xl dark:shadow-black/20 z-50 backdrop-blur-sm dark:backdrop-blur-md">
                                     <div className="py-2">
                                         <button
                                             onClick={handleAccountAccess}
@@ -155,15 +155,15 @@ export default function Header() {
                         <>
                             <button
                                 onClick={() => router.push("/login")}
-                                className="p-2 border border-blue-500 rounded"
+                                className="p-2 border border-blue-500 dark:border-blue-400 rounded hover:bg-blue-500/10 dark:hover:bg-blue-400/10 transition-colors shadow-sm dark:shadow-blue-500/10"
                             >
-                                <User size={18} />
+                                <User size={18} className="text-blue-500 dark:text-blue-400" />
                             </button>
                             <button
                                 onClick={() => router.push("/cart")}
-                                className="p-2 border border-blue-500 rounded"
+                                className="p-2 border border-blue-500 dark:border-blue-400 rounded hover:bg-blue-500/10 dark:hover:bg-blue-400/10 transition-colors shadow-sm dark:shadow-blue-500/10"
                             >
-                                <ShoppingCart size={18} />
+                                <ShoppingCart size={18} className="text-blue-500 dark:text-blue-400" />
                             </button>
                         </>
                     )}

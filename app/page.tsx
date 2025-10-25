@@ -671,7 +671,7 @@ export default function Page() {
             {/* Rodapé */}
             <footer className="bg-card py-12">
                 <div className="max-w-6xl mx-auto px-4">
-                    <div className="grid md:grid-cols-4 gap-8">
+                    <div className="grid md:grid-cols-5 gap-8">
                         {/* Sobre */}
                         <div>
                             <h3 className="text-foreground font-semibold mb-4">Sobre</h3>
@@ -694,6 +694,17 @@ export default function Page() {
                                 <li><a href="#" className="text-muted-foreground hover:text-foreground text-sm">Como Funciona</a></li>
                                 <li><a href="#" className="text-muted-foreground hover:text-foreground text-sm">Termos de Uso</a></li>
                                 <li><a href="#" className="text-muted-foreground hover:text-foreground text-sm">Política de Privacidade</a></li>
+                            </ul>
+                        </div>
+
+                        {/* FAQ e Suporte */}
+                        <div>
+                            <h3 className="text-foreground font-semibold mb-4">FAQ e Suporte</h3>
+                            <ul className="space-y-2">
+                                <li><a href="/faq" className="text-muted-foreground hover:text-foreground text-sm">Perguntas Frequentes</a></li>
+                                <li><a href="/faq#revenda" className="text-muted-foreground hover:text-foreground text-sm">Revenda de Ingressos</a></li>
+                                <li><a href="/faq#taxas" className="text-muted-foreground hover:text-foreground text-sm">Taxas e Pagamentos</a></li>
+                                <li><a href="/faq#suporte" className="text-muted-foreground hover:text-foreground text-sm">Problemas Técnicos</a></li>
                             </ul>
                         </div>
 
