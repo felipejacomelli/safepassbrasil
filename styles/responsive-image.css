@@ -1,0 +1,130 @@
+/* 
+ * Responsive Image Utilities
+ * Fallbacks e melhorias para compatibilidade com navegadores antigos
+ */
+
+/* Fallback para aspect-ratio em navegadores antigos */
+@supports not (aspect-ratio: 1) {
+  .responsive-image-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  .responsive-image-container::before {
+    content: '';
+    display: block;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  }
+  
+  .responsive-image-container.aspect-4-3::before {
+    padding-bottom: 75%; /* 4:3 aspect ratio */
+  }
+  
+  .responsive-image-container img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+/* Fallback para object-fit em navegadores muito antigos (IE) */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  .responsive-image-container img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+  }
+}
+
+/* Melhorias de performance para imagens */
+.responsive-image {
+  /* Otimização de renderização */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  
+  /* Prevenção de layout shift */
+  width: 100%;
+  height: auto;
+  
+  /* Suavização de transições */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estados de carregamento */
+.responsive-image[loading="lazy"] {
+  /* Placeholder enquanto carrega */
+  background-color: #27272A;
+  background-image: linear-gradient(45deg, #27272A 25%, transparent 25%), 
+                    linear-gradient(-45deg, #27272A 25%, transparent 25%), 
+                    linear-gradient(45deg, transparent 75%, #27272A 75%), 
+                    linear-gradient(-45deg, transparent 75%, #27272A 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+/* Acessibilidade - redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .responsive-image {
+    transition: none;
+  }
+  
+  .responsive-image:hover {
+    transform: none !important;
+  }
+}
+
+/* Alto contraste para acessibilidade */
+@media (prefers-contrast: high) {
+  .responsive-image-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid currentColor;
+    pointer-events: none;
+  }
+  
+  .responsive-image {
+    filter: contrast(1.2);
+  }
+}
+
+/* Modo escuro otimizado */
+@media (prefers-color-scheme: dark) {
+  .responsive-image {
+    filter: brightness(0.9);
+  }
+}
+
+/* Foco por teclado para acessibilidade */
+.responsive-image:focus {
+  outline: 3px solid #3B82F6;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* Melhorias para leitores de tela */
+.responsive-image[alt=""] {
+  /* Oculta imagens decorativas de leitores de tela */
+  speak: none;
+}
+
+/* Otimizações para impressão */
+@media print {
+  .responsive-image-container {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  .responsive-image {
+    max-width: 100% !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+}

@@ -407,20 +407,30 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
           {event.title}
         </h1>
 
-        {/* Compact Event Image */}
+        {/* Responsive Event Image */}
         <div
+          className="responsive-image-container"
           style={{
             position: "relative",
-            height: isDesktop ? "300px" : "200px",
+            width: "100%",
+            aspectRatio: isDesktop ? "16/9" : "4/3", // Proporção responsiva
             backgroundColor: "#27272A",
             borderRadius: "12px",
             marginBottom: "20px",
             overflow: "hidden",
+            // Fallback para navegadores antigos
+            paddingBottom: isDesktop ? "56.25%" : "75%", // 16:9 = 56.25%, 4:3 = 75%
           }}
         >
           <img
+            className="responsive-image"
             src={event.image || "/placeholder.svg"}
-            alt={event.title}
+            alt={`Imagem promocional do evento ${event.title}, realizado em ${event.date} na cidade de ${event.location}. Clique para ver detalhes do evento.`}
+            loading="lazy" // Performance: lazy loading
+            decoding="async" // Performance: decodificação assíncrona
+            sizes={isDesktop ? "(min-width: 768px) 800px, 100vw" : "100vw"} // Otimização de performance
+            role="img" // Acessibilidade: define explicitamente o papel da imagem
+            tabIndex={0} // Acessibilidade: permite navegação por teclado
             style={{
               position: "absolute",
               top: 0,
@@ -428,6 +438,47 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
               width: "100%",
               height: "100%",
               objectFit: "cover",
+              objectPosition: "center center", // Centraliza o foco da imagem
+              transition: "transform 0.3s ease", // Suave transição para hover
+              // Fallbacks para navegadores antigos
+              maxWidth: "100%",
+              display: "block",
+              // Acessibilidade: outline para foco por teclado
+              outline: "none",
+            }}
+            onMouseEnter={(e) => {
+              // Efeito hover sutil
+              (e.currentTarget as HTMLElement).style.transform = "scale(1.02)"
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.transform = "scale(1)"
+            }}
+            onFocus={(e) => {
+              // Acessibilidade: efeito visual para foco por teclado
+              (e.currentTarget as HTMLElement).style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.5)";
+            }}
+            onBlur={(e) => {
+              // Remove o efeito de foco
+              (e.currentTarget as HTMLElement).style.boxShadow = "none";
+            }}
+            onError={(e) => {
+              // Fallback para erro de carregamento
+              const target = e.currentTarget as HTMLImageElement;
+              target.src = "/placeholder.svg";
+              target.alt = "Imagem do evento não disponível. Verifique sua conexão ou tente novamente mais tarde.";
+            }}
+          />
+          
+          {/* Overlay sutil para melhor contraste do texto sobreposto (se houver) */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.1) 100%)",
+              pointerEvents: "none",
             }}
           />
         </div>
