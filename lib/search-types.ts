@@ -3,6 +3,7 @@ export interface SearchFilters {
   category: string
   location: string
   date?: string
+  dateFilter?: 'today' | 'weekend'
 }
 
 export interface SearchResult {

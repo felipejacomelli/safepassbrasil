@@ -63,6 +63,50 @@ export function useSearchResults(filters: SearchFilters) {
         if (!hasExactMatch && !hasPartialMatch) return false
       }
       
+      // Date filter
+      if (filters.dateFilter) {
+        const today = new Date()
+        const todayStr = today.toISOString().split('T')[0]
+        
+        if (filters.dateFilter === 'today') {
+          // Filtrar eventos que ocorrem hoje
+          if (event.occurrences && event.occurrences.length > 0) {
+            const hasTodayEvent = event.occurrences.some((occ: any) => {
+              const eventDate = new Date(occ.start_at).toISOString().split('T')[0]
+              return eventDate === todayStr
+            })
+            if (!hasTodayEvent) return false
+          } else {
+            // Se não tem occurrences, verificar se a data do evento é hoje
+            const eventDate = new Date(event.date || event.start_at || '').toISOString().split('T')[0]
+            if (eventDate !== todayStr) return false
+          }
+        } else if (filters.dateFilter === 'weekend') {
+          // Filtrar eventos que ocorrem no próximo final de semana
+          const currentDay = today.getDay() // 0 = domingo, 6 = sábado
+          const daysUntilWeekend = currentDay === 0 ? 6 : 6 - currentDay // dias até o próximo sábado
+          const saturday = new Date(today)
+          saturday.setDate(today.getDate() + daysUntilWeekend)
+          const sunday = new Date(saturday)
+          sunday.setDate(saturday.getDate() + 1)
+          
+          const saturdayStr = saturday.toISOString().split('T')[0]
+          const sundayStr = sunday.toISOString().split('T')[0]
+          
+          if (event.occurrences && event.occurrences.length > 0) {
+            const hasWeekendEvent = event.occurrences.some((occ: any) => {
+              const eventDate = new Date(occ.start_at).toISOString().split('T')[0]
+              return eventDate === saturdayStr || eventDate === sundayStr
+            })
+            if (!hasWeekendEvent) return false
+          } else {
+            // Se não tem occurrences, verificar se a data do evento é no final de semana
+            const eventDate = new Date(event.date || event.start_at || '').toISOString().split('T')[0]
+            if (eventDate !== saturdayStr && eventDate !== sundayStr) return false
+          }
+        }
+      }
+      
       return true
     })
 

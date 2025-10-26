@@ -11,6 +11,7 @@ export function useSearchFilters(): SearchFilters {
     query: searchParams.get('q') || '',
     category: searchParams.get('category') || '',
     location: searchParams.get('location') || '',
-    date: searchParams.get('date') || undefined
+    date: searchParams.get('date') || undefined,
+    dateFilter: (searchParams.get('dateFilter') as 'today' | 'weekend') || undefined
   }), [searchParams])
 }

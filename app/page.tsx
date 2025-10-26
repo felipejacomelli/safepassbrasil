@@ -7,6 +7,7 @@ import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { useData } from "@/contexts/data-context"
 import Header from "@/components/Header"
+import { DateFilterTabs } from "@/components/DateFilterTabs"
 import {
     MapPin,
     User,
@@ -173,7 +174,7 @@ export default function Page() {
             {/* Main Content */}
             <main role="main">
                 {/* Hero Section */}
-                <section className="max-w-6xl mx-auto px-4 py-12 text-center" aria-labelledby="hero-title">
+                <section className="max-w-6xl mx-auto px-4 py-12 pb-24 md:pb-32 text-center" aria-labelledby="hero-title">
                     <h1 id="hero-title" className="text-4xl font-bold mb-4">
                         COMPRA E VENDA DE INGRESSOS COM SEGURANÇA
                     </h1>
@@ -224,8 +225,17 @@ export default function Page() {
                     </div>
                 </section>
 
+                {/* Date Filter Tabs - Floating card 50/50 overlap */}
+                <div className="relative z-20 -mb-16">
+                    <div className="max-w-6xl mx-auto px-4">
+                        <div className="relative flex justify-center -translate-y-1/2">
+                            <DateFilterTabs />
+                        </div>
+                    </div>
+                </div>
+
                 {/* Events Section */}
-                <section className="bg-muted py-12 px-4" aria-labelledby="events-title">
+                <section className="bg-muted py-12 pt-24 md:pt-34 px-4" aria-labelledby="events-title">
                     <div className="max-w-6xl mx-auto">
                         <div className="flex items-center justify-between mb-6">
                             <h2 id="events-title" className="text-2xl font-bold">
@@ -879,15 +889,7 @@ export function EventCard({ event }: { event: any }) {
                 </div>
             </div>
             
-            {/* Botão Venda seu ingresso */}
-            {/* <div className="px-4 pb-4">
-                <button
-                    onClick={handleSellClick}
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-black font-semibold py-2 px-4 rounded transition-colors"
-                >
-                    Venda seu ingresso
-                </button>
-            </div> */}
+
         </div>
     )
 }
