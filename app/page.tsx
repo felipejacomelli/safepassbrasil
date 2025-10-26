@@ -294,39 +294,65 @@ export default function Page() {
             </section>
 
             {/* Categorias */}
-            <section className="bg-card py-12 px-4 border-t border-border">
+            <section className="bg-card py-12 px-4 border-t border-border" aria-labelledby="categories-title">
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="text-2xl font-bold mb-6">Eventos por categoria</h2>
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 id="categories-title" className="text-2xl font-bold">Eventos por categoria</h2>
+                        <button
+                            onClick={() => router.push("/search")}
+                            className="text-primary hover:text-primary/80 font-medium text-sm transition-colors"
+                        >
+                            Todas as Categorias
+                        </button>
+                    </div>
+                    
                     {categories.length === 0 ? (
-                        <p>Nenhuma categoria encontrada.</p>
-                    ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                            {categories.map((cat: any) => (
-                                <button
-                                    key={cat.id}
-                                    onClick={() =>
-                                        router.push(`/search?category=${encodeURIComponent(cat.slug)}`)
-                                    }
-                                    className="bg-accent rounded overflow-hidden hover:shadow-lg hover:scale-105 transition"
-                                >
-                                    {cat.image && (
-                                        <Image
-                                            src={cat.image}
-                                            alt={cat.name}
-                                            width={300}
-                                            height={128}
-                                            className="w-full h-32 object-cover"
-                                        />
-                                    )}
-                                    <div className="p-3 text-left">
-                                        <span className="font-semibold">{cat.name}</span>
-                                        <span className="block text-sm text-muted-foreground">
-                {cat.event_count} eventos
-              </span>
-                                    </div>
-                                </button>
-                            ))}
+                        <div className="text-center py-8">
+                            <p>Nenhuma categoria encontrada.</p>
                         </div>
+                    ) : (
+                        <Carousel
+                            opts={{
+                                align: "start",
+                                loop: true,
+                            }}
+                            className="w-full"
+                        >
+                            <CarouselContent className="-ml-2 md:-ml-4">
+                                {categories.map((cat: any) => (
+                                    <CarouselItem key={cat.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
+                                        <article
+                                            className="bg-accent rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+                                            onClick={() =>
+                                                router.push(`/search?category=${encodeURIComponent(cat.slug)}`)
+                                            }
+                                        >
+                                            <div className="relative">
+                                                {cat.image && (
+                                                    <Image
+                                                        src={cat.image}
+                                                        alt={cat.name}
+                                                        width={300}
+                                                        height={128}
+                                                        className="w-full h-32 object-cover"
+                                                    />
+                                                )}
+                                            </div>
+                                            <div className="p-3">
+                                                <h3 className="font-semibold text-card-foreground text-sm mb-1 line-clamp-2">
+                                                    {cat.name}
+                                                </h3>
+                                                <div className="flex items-center gap-1 text-blue-500 text-xs">
+                                                    <span>{cat.event_count} eventos</span>
+                                                </div>
+                                            </div>
+                                        </article>
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            <CarouselPrevious />
+                            <CarouselNext />
+                        </Carousel>
                     )}
                 </div>
             </section>
@@ -416,8 +442,8 @@ export default function Page() {
                                                             )}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center gap-1 text-primary text-xs">
-                                                        <Ticket size={12} className="mr-1" />
+                                                    <div className="flex items-center gap-1 text-blue-500 text-xs">
+                                                        <Ticket size={12} className="mr-1 text-blue-500" />
                                                         <span>
                                                             {event.total_available_tickets !== undefined 
                                                                 ? `${event.total_available_tickets} ingressos` 
@@ -879,7 +905,7 @@ export function EventCard({ event }: { event: any }) {
                         <span>{getEventLocations(event)}</span>
                     </div>
                     <div className="flex items-center text-lg font-bold text-blue-500 mb-3">
-                        <Ticket size={16} className="mr-2" />
+                        <Ticket size={16} className="mr-2 text-blue-500" />
                         <span>
                             {event.total_available_tickets !== undefined 
                                 ? `${event.total_available_tickets}` 
