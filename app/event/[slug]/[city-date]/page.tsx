@@ -2,8 +2,9 @@
 
 import { useEffect, useState, use } from "react"
 import { useAuth } from "@/contexts/auth-context"
-import { Calendar, Clock, MapPin, Users, Ticket, User, ShoppingCart, Info, Camera, Plus, Minus, ChevronRight } from "lucide-react"
+import { Calendar, Clock, MapPin, Users, Ticket, Info, Camera, Plus, Minus, ChevronRight, ShoppingCart } from "lucide-react"
 import { eventsApi, occurrencesApi, ApiEventWithOccurrences, ApiOccurrenceWithTickets, ApiTicketType } from "@/lib/api"
+import Header from "@/components/Header"
 
 // Interfaces atualizadas para usar os dados reais da API
 interface TicketType {
@@ -45,7 +46,7 @@ interface CartTicket {
   id: string
   eventId: string
   eventName: string
-  ticketType: string
+  ticketTypeName: string
   price: number
   quantity: number
   date: string
@@ -119,7 +120,6 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
   const [ticketQuantities, setTicketQuantities] = useState<TicketQuantities>({})
 
   const { user, isAuthenticated, logout } = useAuth()
-  const [showUserMenu, setShowUserMenu] = useState<boolean>(false)
 
   useEffect(() => {
     // Set desktop state after client mount to avoid hydration mismatch
@@ -193,19 +193,7 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
     fetchEventAndOccurrence();
   }, [slug, cityDate])
 
-  const handleLogout = () => {
-    logout()
-    setShowUserMenu(false)
-    window.location.href = "/"
-  }
 
-  const handleUserClick = () => {
-    window.location.href = "/login"
-  }
-
-  const handleCartClick = () => {
-    window.location.href = "/cart"
-  }
 
   const updateTicketQuantity = (ticketId: string, newQuantity: number) => {
     if (newQuantity < 1) return
@@ -231,7 +219,7 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
       id: Math.random().toString(36).substr(2, 9),
       eventId: event.id.toString(),
       eventName: event.title,
-      ticketType: ticketType.name,
+      ticketTypeName: ticketType.name,
       price: ticketType.price,
       quantity: quantity,
       date: event.date,
@@ -346,300 +334,8 @@ export default function EventPage({ params }: { params: Promise<{ slug: string, 
         flexDirection: "column",
       }}
     >
-      {/* Header/Navigation */}
-      <header
-        style={{
-          padding: "16px",
-          borderBottom: "1px solid #333",
-          position: "sticky",
-          top: 0,
-          backgroundColor: "black",
-          zIndex: 10,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            maxWidth: "1200px",
-            margin: "0 auto",
-            width: "100%",
-          }}
-        >
-          {/* Logo */}
-          <a
-            href="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              textDecoration: "none",
-            }}
-          >
-            <div
-              style={{
-                backgroundColor: "#3B82F6",
-                padding: "6px",
-                borderRadius: "4px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <div
-                style={{
-                  width: "24px",
-                  height: "24px",
-                  backgroundColor: "black",
-                  borderRadius: "4px",
-                }}
-              />
-            </div>
-            <span
-              style={{
-                color: "white",
-                fontSize: "20px",
-                fontWeight: "bold",
-              }}
-            >
-              reticket
-            </span>
-          </a>
-
-          {/* Navigation Links */}
-          <nav
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-            }}
-          >
-            {isDesktop && (
-              <>
-                {/*<a*/}
-                {/*  href="/#como-funciona"*/}
-                {/*  style={{*/}
-                {/*    color: "white",*/}
-                {/*    textDecoration: "none",*/}
-                {/*    fontSize: "14px",*/}
-                {/*  }}*/}
-                {/*>*/}
-                {/*  Como Funciona*/}
-                {/*</a>*/}
-                <a
-                  href="#"
-                  style={{
-                    color: "white",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                  }}
-                >
-                  WhatsApp
-                </a>
-              </>
-            )}
-
-            {isAuthenticated && user ? (
-              <div style={{ position: "relative" }}>
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  style={{
-                    backgroundColor: "transparent",
-                    border: "1px solid #3B82F6",
-                    color: "white",
-                    padding: "8px 16px",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  <User size={16} />
-                  {user.name.split(" ")[0]}
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    style={{
-                      transform: showUserMenu ? "rotate(180deg)" : "rotate(0deg)",
-                    }}
-                  >
-                    <path
-                      d="M6 9L12 15L18 9"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-
-                {showUserMenu && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "100%",
-                      right: 0,
-                      marginTop: "8px",
-                      backgroundColor: "#18181B",
-                      border: "1px solid #3F3F46",
-                      borderRadius: "8px",
-                      padding: "8px 0",
-                      minWidth: "200px",
-                      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
-                      zIndex: 50,
-                    }}
-                  >
-                    <div
-                      style={{
-                        padding: "12px 16px",
-                        borderBottom: "1px solid #3F3F46",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      <p style={{ fontWeight: "600", marginBottom: "4px" }}>{user.name}</p>
-                      <p style={{ fontSize: "14px", color: "#A1A1AA" }}>{user.email}</p>
-                    </div>
-
-                    <a
-                      href="/account"
-                      style={{
-                        display: "block",
-                        padding: "12px 16px",
-                        color: "white",
-                        textDecoration: "none",
-                        fontSize: "14px",
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLElement).style.backgroundColor = "#27272A"
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
-                      }}
-                    >
-                      Minha Conta
-                    </a>
-
-                    <a
-                      href="/account/orders"
-                      style={{
-                        display: "block",
-                        padding: "12px 16px",
-                        color: "white",
-                        textDecoration: "none",
-                        fontSize: "14px",
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLElement).style.backgroundColor = "#27272A"
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
-                      }}
-                    >
-                      Meus Pedidos
-                    </a>
-
-                    {user.isAdmin && (
-                      <a
-                        href="/admin"
-                        style={{
-                          display: "block",
-                          padding: "12px 16px",
-                          color: "#3B82F6",
-                          textDecoration: "none",
-                          fontSize: "14px",
-                        }}
-                        onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLElement).style.backgroundColor = "#27272A"
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
-                        }}
-                      >
-                        Painel Admin
-                      </a>
-                    )}
-
-                    <div
-                      style={{
-                        borderTop: "1px solid #3F3F46",
-                        marginTop: "8px",
-                        paddingTop: "8px",
-                      }}
-                    >
-                      <button
-                        onClick={handleLogout}
-                        style={{
-                          display: "block",
-                          width: "100%",
-                          padding: "12px 16px",
-                          backgroundColor: "transparent",
-                          border: "none",
-                          color: "#EF4444",
-                          textAlign: "left",
-                          fontSize: "14px",
-                          cursor: "pointer",
-                        }}
-                        onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLElement).style.backgroundColor = "#27272A"
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLElement).style.backgroundColor = "transparent"
-                        }}
-                      >
-                        Sair
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <button
-                  style={{
-                    backgroundColor: "transparent",
-                    border: "1px solid #3B82F6",
-                    color: "white",
-                    padding: "8px",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                  onClick={handleUserClick}
-                  title="Login"
-                >
-                  <User size={20} />
-                </button>
-                <button
-                  style={{
-                    backgroundColor: "transparent",
-                    border: "1px solid #3B82F6",
-                    color: "white",
-                    padding: "8px",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                  onClick={handleCartClick}
-                  title="Carrinho"
-                >
-                  <ShoppingCart size={20} />
-                </button>
-              </div>
-            )}
-          </nav>
-        </div>
-      </header>
+      {/* Header */}
+      <Header />
 
       {/* Event Details */}
       <main
