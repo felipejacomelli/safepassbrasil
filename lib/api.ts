@@ -791,7 +791,7 @@ export interface AsaasConfig {
 }
 
 export interface AsaasPaymentRequest {
-  billing_type: 'PIX' | 'CREDIT_CARD' | 'BOLETO' | 'DEBIT_CARD' | 'TRANSFER';  // ✅ Todos os métodos
+  billing_type: 'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'TRANSFER';  // ✅ Métodos disponíveis
   value: number;
   description: string;
   customer_name: string;
@@ -815,7 +815,7 @@ export interface CheckoutRequest {
   occurrence_id: string
   ticket_type_id: string
   quantity: number
-  payment_method: 'PIX' | 'CREDIT_CARD' | 'BOLETO' | 'DEBIT_CARD' | 'TRANSFER'
+  payment_method: 'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'TRANSFER'
   credit_card?: {
     holderName: string
     number: string

@@ -16,9 +16,9 @@ interface CartItem {
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { CreditCard, Landmark, Banknote, QrCode, ShieldCheck, ChevronRight, AlertCircle } from "lucide-react"
+import { CreditCard, Landmark, QrCode, ShieldCheck, ChevronRight, AlertCircle } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { checkoutApi, CheckoutRequest } from "@/lib/api"
 import { PAYMENT_METHODS, PaymentMethodType, PAYMENT_METHOD_LABELS } from "@/lib/constants"
@@ -27,6 +27,7 @@ export default function CheckoutPage() {
   const [isDesktop, setIsDesktop] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user } = useAuth()
 
   // Payment method state
@@ -38,6 +39,7 @@ export default function CheckoutPage() {
   const [installments, setInstallments] = useState("1")
   const [isProcessing, setIsProcessing] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [boletoRemovedMessage, setBoletoRemovedMessage] = useState<string>("")
   // Removido useAsaas - agora usa integração direta
 
   // Buyer information
@@ -65,6 +67,19 @@ export default function CheckoutPage() {
   // Load cart from localStorage after hydration
   useEffect(() => {
     setIsMounted(true)
+    
+    // Check for boleto removal message
+    const errorParam = searchParams.get('error')
+    const messageParam = searchParams.get('message')
+    
+    if (errorParam === 'boleto_removed' && messageParam) {
+      setBoletoRemovedMessage(messageParam)
+      // Remove parameters from URL after showing message
+      const url = new URL(window.location.href)
+      url.searchParams.delete('error')
+      url.searchParams.delete('message')
+      window.history.replaceState({}, '', url.toString())
+    }
     
     try {
       const savedCart = localStorage.getItem("cart")
@@ -247,11 +262,6 @@ export default function CheckoutPage() {
           expiryYear: '20' + expiryYear,
           ccv: cardCvv
         }
-      } else if (paymentMethod === PAYMENT_METHODS.BOLETO) {
-        // Data de vencimento: 3 dias a partir de hoje
-        const dueDate = new Date()
-        dueDate.setDate(dueDate.getDate() + 3)
-        checkoutData.due_date = dueDate.toISOString().split('T')[0]
       }
 
       // ✅ Chamar API de checkout
@@ -264,8 +274,6 @@ export default function CheckoutPage() {
         // Redirecionar conforme método
         if (paymentMethod === PAYMENT_METHODS.PIX) {
           router.push(`/checkout/pix?order_id=${response.order_id}`)
-        } else if (paymentMethod === PAYMENT_METHODS.BOLETO) {
-          router.push(`/checkout/boleto?order_id=${response.order_id}`)
         } else {
           router.push(`/checkout/success?order_id=${response.order_id}`)
         }
@@ -431,6 +439,19 @@ export default function CheckoutPage() {
               <span className="text-primary">Pagamento</span>
             </div>
 
+            {/* Boleto Removed Warning */}
+            {boletoRemovedMessage && (
+              <div className="bg-yellow-900/20 border border-yellow-600 rounded-lg p-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+                  <div>
+                    <p className="text-yellow-200 font-medium">Método de Pagamento Removido</p>
+                    <p className="text-yellow-300 text-sm mt-1">{boletoRemovedMessage}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit}>
               {/* Payment Methods */}
               <div className="bg-card rounded-lg p-6 mb-6">
@@ -462,15 +483,6 @@ export default function CheckoutPage() {
                   >
                     <CreditCard className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.DEBIT_CARD ? "text-primary" : "text-muted-foreground"}`} />
                     <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.DEBIT_CARD ? "text-primary" : "text-muted-foreground"}`}>Débito</span>
-                  </div>
-
-                  {/* Boleto */}
-                  <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.BOLETO ? "border-primary bg-blue-900 bg-opacity-20" : "border-border bg-accent hover:border-zinc-600"}`}
-                    onClick={() => setPaymentMethod(PAYMENT_METHODS.BOLETO)}
-                  >
-                    <Banknote className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.BOLETO ? "text-primary" : "text-muted-foreground"}`} />
-                    <span className={`text-sm text-center ${paymentMethod === PAYMENT_METHODS.BOLETO ? "text-primary" : "text-muted-foreground"}`}>Boleto</span>
                   </div>
 
                   {/* Transferência */}
@@ -621,24 +633,6 @@ export default function CheckoutPage() {
                     <Button variant="outline" className="bg-transparent border-zinc-600 text-foreground hover:bg-zinc-700">
                       Copiar Código PIX
                     </Button>
-                  </div>
-                )}
-
-                {/* Boleto Payment */}
-                {paymentMethod === PAYMENT_METHODS.BOLETO && (
-                  <div className="p-6 bg-accent rounded-lg">
-                    <p className="text-muted-foreground mb-4">
-                      Ao finalizar a compra, você receberá o boleto para pagamento. O prazo de compensação é de até 3
-                      dias úteis.
-                    </p>
-                    <div className="flex items-center justify-between p-3 bg-zinc-700 rounded-lg mb-4">
-                      <span className="text-foreground">Valor do Boleto:</span>
-                      <span className="text-primary font-bold">R$ {total.toFixed(2).replace(".", ",")}</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-zinc-700 rounded-lg">
-                      <span className="text-foreground">Vencimento:</span>
-                      <span className="text-foreground">3 dias após a emissão</span>
-                    </div>
                   </div>
                 )}
 

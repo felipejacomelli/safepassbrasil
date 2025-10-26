@@ -141,8 +141,6 @@ export default function AdminOrdersPage() {
         return "Cartão de Débito"
       case 3:
         return "PIX"
-      case 4:
-        return "Boleto"
       default:
         return "Não especificado"
     }

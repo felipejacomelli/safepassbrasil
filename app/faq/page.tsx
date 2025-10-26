@@ -64,7 +64,7 @@ export default function FAQPage() {
         },
         {
           question: "Quais formas de pagamento são aceitas?",
-          answer: "Aceitamos cartões de crédito (Visa, Mastercard, Elo), cartões de débito, PIX e boleto bancário. Todos os pagamentos são processados com segurança."
+          answer: "Aceitamos cartões de crédito (Visa, Mastercard, Elo), cartões de débito e PIX. Todos os pagamentos são processados com segurança."
         },
         {
           question: "Posso parcelar minha compra?",

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CreditCard, QrCode, FileText, Loader2, AlertCircle, CheckCircle } from "lucide-react"
+import { CreditCard, QrCode, Loader2, AlertCircle, CheckCircle } from "lucide-react"
 import { formatCurrency } from "@/utils/formatCurrency"
 import { paymentClient } from "@/lib/payment-api-client"
 import { PaymentErrorHandler } from "@/lib/payment-error-handler"
@@ -93,7 +93,6 @@ export function AsaasCheckout({
   const [paymentResult, setPaymentResult] = useState<any>(null)
   const [qrCodeData, setQrCodeData] = useState<string>("")
   const [pixCode, setPixCode] = useState<string>("")
-  const [boletoUrl, setBoletoUrl] = useState<string>("")
 
   // Carregar métodos de pagamento disponíveis
   useEffect(() => {
@@ -249,11 +248,6 @@ export function AsaasCheckout({
         paymentData.installment_count = selectedInstallments
         
         console.log('💳 Dados do cartão:', paymentData.credit_card)
-      } else if (paymentMethod === "BOLETO") {
-        const dueDate = new Date()
-        dueDate.setDate(dueDate.getDate() + 7)
-        paymentData.due_date = dueDate.toISOString().split('T')[0]
-        console.log('📄 Data de vencimento do boleto:', paymentData.due_date)
       }
 
       console.log('📦 Dados finais do pagamento:', paymentData)
@@ -276,8 +270,6 @@ export function AsaasCheckout({
         if (paymentMethod === "PIX") {
           setQrCodeData(result.qr_code || "")
           setPixCode(result.pix_code || "")
-        } else if (paymentMethod === "BOLETO") {
-          setBoletoUrl(result.bank_slip_url || "")
         }
         
         // ✅ Para links compartilhados, aceitar o link após pagamento aprovado
@@ -441,35 +433,6 @@ export function AsaasCheckout({
     )
   }
 
-  if (paymentResult && paymentMethod === "BOLETO" && boletoUrl) {
-    return (
-      <Card className="w-full max-w-md mx-auto bg-zinc-900 border-zinc-700">
-        <CardHeader className="text-center">
-          <FileText className="w-12 h-12 mx-auto text-primary mb-2" />
-          <CardTitle className="text-white">Boleto Bancário</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-center">
-            <p className="text-gray-300 mb-4">
-              Seu boleto foi gerado com sucesso
-            </p>
-            <Button
-              onClick={() => window.open(boletoUrl, '_blank')}
-              className="w-full bg-primary text-black hover:bg-primary/90"
-            >
-              Visualizar Boleto
-            </Button>
-          </div>
-          <div className="text-center text-sm text-gray-400">
-            <p>Valor: {formatCurrency(amount)}</p>
-            <p>Vencimento: 7 dias</p>
-            <p>O pagamento será confirmado em até 2 dias úteis após o pagamento</p>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
   if (paymentResult && paymentMethod === "CREDIT_CARD") {
     return (
       <Card className="w-full max-w-md mx-auto bg-zinc-900 border-zinc-700">
@@ -548,15 +511,12 @@ export function AsaasCheckout({
 
         {/* Seleção do Método de Pagamento */}
         <Tabs value={paymentMethod} onValueChange={setPaymentMethod} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-zinc-800">
+          <TabsList className="grid w-full grid-cols-2 bg-zinc-800">
             <TabsTrigger value="PIX" className="data-[state=active]:bg-primary data-[state=active]:text-black">
               PIX
             </TabsTrigger>
             <TabsTrigger value="CREDIT_CARD" className="data-[state=active]:bg-primary data-[state=active]:text-black">
               Cartão
-            </TabsTrigger>
-            <TabsTrigger value="BOLETO" className="data-[state=active]:bg-primary data-[state=active]:text-black">
-              Boleto
             </TabsTrigger>
           </TabsList>
 
@@ -681,18 +641,6 @@ export function AsaasCheckout({
                   </Select>
                 </div>
               )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="BOLETO" className="space-y-4">
-            <div className="text-center py-4">
-              <FileText className="w-16 h-16 mx-auto text-primary mb-2" />
-              <p className="text-gray-300">
-                Boleto Bancário
-              </p>
-              <p className="text-sm text-gray-400">
-                Vencimento em 7 dias
-              </p>
             </div>
           </TabsContent>
         </Tabs>

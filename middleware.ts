@@ -4,6 +4,15 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
+  // Redirecionar tentativas de acesso a rotas de boleto (removido em 26/10/2025)
+  if (pathname.includes('/checkout/boleto') || pathname.includes('/boleto')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/checkout'
+    url.searchParams.set('error', 'boleto_removed')
+    url.searchParams.set('message', 'O método de pagamento boleto foi removido. Por favor, escolha outro método.')
+    return NextResponse.redirect(url)
+  }
+  
   // Verificação específica para rotas de admin
   if (pathname.startsWith('/admin')) {
     const cookieToken = request.cookies.get('authToken')?.value
@@ -54,5 +63,13 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/account/:path*', '/login', '/sell/:path*', '/event/:path*/sell']
+  matcher: [
+    '/admin/:path*', 
+    '/account/:path*', 
+    '/login', 
+    '/sell/:path*', 
+    '/event/:path*/sell',
+    '/checkout/boleto/:path*',
+    '/boleto/:path*'
+  ]
 }
