@@ -919,3 +919,4 @@ export function EventCard({ event }: { event: any }) {
         </div>
     )
 }
+
