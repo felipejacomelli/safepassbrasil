@@ -30,6 +30,11 @@ import {
     CarouselNext,
     CarouselPrevious,
 } from "@/components/ui/carousel"
+import {
+    MobileCarousel,
+    MobileCarouselContent,
+    MobileCarouselItem,
+} from "@/components/ui/mobile-carousel"
 
 export default function Page() {
     const router = useRouter()
@@ -271,23 +276,41 @@ export default function Page() {
                                 </p>
                             </div>
                         ) : (
-                        <Carousel
-                            opts={{
-                                align: "start",
-                                loop: true,
-                            }}
-                            className="w-full"
-                        >
-                            <CarouselContent className="-ml-2 md:-ml-4">
-                                {filteredEvents.map((event: any) => (
-                                    <CarouselItem key={event.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
-                                        <EventCard event={event} />
-                                    </CarouselItem>
-                                ))}
-                            </CarouselContent>
-                            <CarouselPrevious />
-                            <CarouselNext />
-                        </Carousel>
+                        <>
+                            {/* Mobile Carousel */}
+                            <div className="block md:hidden">
+                                <MobileCarousel>
+                                    <MobileCarouselContent>
+                                        {filteredEvents.map((event: any) => (
+                                            <MobileCarouselItem key={event.id}>
+                                                <EventCard event={event} />
+                                            </MobileCarouselItem>
+                                        ))}
+                                    </MobileCarouselContent>
+                                </MobileCarousel>
+                            </div>
+
+                            {/* Desktop/Tablet Carousel */}
+                            <div className="hidden md:block">
+                                <Carousel
+                                    opts={{
+                                        align: "start",
+                                        loop: true,
+                                    }}
+                                    className="w-full"
+                                >
+                                    <CarouselContent className="-ml-2 md:-ml-4">
+                                        {filteredEvents.map((event: any) => (
+                                            <CarouselItem key={event.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
+                                                <EventCard event={event} />
+                                            </CarouselItem>
+                                        ))}
+                                    </CarouselContent>
+                                    <CarouselPrevious />
+                                    <CarouselNext />
+                                </Carousel>
+                            </div>
+                        </>
                     )}
 
                 </div>
@@ -311,48 +334,91 @@ export default function Page() {
                             <p>Nenhuma categoria encontrada.</p>
                         </div>
                     ) : (
-                        <Carousel
-                            opts={{
-                                align: "start",
-                                loop: true,
-                            }}
-                            className="w-full"
-                        >
-                            <CarouselContent className="-ml-2 md:-ml-4">
-                                {categories.map((cat: any) => (
-                                    <CarouselItem key={cat.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
-                                        <article
-                                            className="bg-accent rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
-                                            onClick={() =>
-                                                router.push(`/search?category=${encodeURIComponent(cat.slug)}`)
-                                            }
-                                        >
-                                            <div className="relative">
-                                                {cat.image && (
-                                                    <Image
-                                                        src={cat.image}
-                                                        alt={cat.name}
-                                                        width={300}
-                                                        height={128}
-                                                        className="w-full h-32 object-cover"
-                                                    />
-                                                )}
-                                            </div>
-                                            <div className="p-3">
-                                                <h3 className="font-semibold text-card-foreground text-sm mb-1 line-clamp-2">
-                                                    {cat.name}
-                                                </h3>
-                                                <div className="flex items-center gap-1 text-blue-500 text-xs">
-                                                    <span>{cat.event_count} eventos</span>
-                                                </div>
-                                            </div>
-                                        </article>
-                                    </CarouselItem>
-                                ))}
-                            </CarouselContent>
-                            <CarouselPrevious />
-                            <CarouselNext />
-                        </Carousel>
+                        <>
+                            {/* Mobile Carousel */}
+                            <div className="block sm:hidden">
+                                <MobileCarousel>
+                                    <MobileCarouselContent>
+                                        {categories.map((cat: any) => (
+                                            <MobileCarouselItem key={cat.id}>
+                                                <article
+                                                    className="bg-accent rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer h-full"
+                                                    onClick={() =>
+                                                        router.push(`/search?category=${encodeURIComponent(cat.slug)}`)
+                                                    }
+                                                >
+                                                    <div className="relative">
+                                                        {cat.image && (
+                                                            <Image
+                                                                src={cat.image}
+                                                                alt={cat.name}
+                                                                width={300}
+                                                                height={128}
+                                                                className="w-full h-32 object-cover"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                    <div className="p-3">
+                                                        <h3 className="font-semibold text-card-foreground text-sm mb-1 line-clamp-2">
+                                                            {cat.name}
+                                                        </h3>
+                                                        <div className="flex items-center gap-1 text-blue-500 text-xs">
+                                                            <span>{cat.event_count} eventos</span>
+                                                        </div>
+                                                    </div>
+                                                </article>
+                                            </MobileCarouselItem>
+                                        ))}
+                                    </MobileCarouselContent>
+                                </MobileCarousel>
+                            </div>
+
+                            {/* Desktop/Tablet Carousel */}
+                            <div className="hidden sm:block">
+                                <Carousel
+                                    opts={{
+                                        align: "start",
+                                        loop: true,
+                                    }}
+                                    className="w-full"
+                                >
+                                    <CarouselContent className="-ml-2 md:-ml-4">
+                                        {categories.map((cat: any) => (
+                                            <CarouselItem key={cat.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
+                                                <article
+                                                    className="bg-accent rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+                                                    onClick={() =>
+                                                        router.push(`/search?category=${encodeURIComponent(cat.slug)}`)
+                                                    }
+                                                >
+                                                    <div className="relative">
+                                                        {cat.image && (
+                                                            <Image
+                                                                src={cat.image}
+                                                                alt={cat.name}
+                                                                width={300}
+                                                                height={128}
+                                                                className="w-full h-32 object-cover"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                    <div className="p-3">
+                                                        <h3 className="font-semibold text-card-foreground text-sm mb-1 line-clamp-2">
+                                                            {cat.name}
+                                                        </h3>
+                                                        <div className="flex items-center gap-1 text-blue-500 text-xs">
+                                                            <span>{cat.event_count} eventos</span>
+                                                        </div>
+                                                    </div>
+                                                </article>
+                                            </CarouselItem>
+                                        ))}
+                                    </CarouselContent>
+                                    <CarouselPrevious />
+                                    <CarouselNext />
+                                </Carousel>
+                            </div>
+                        </>
                     )}
                 </div>
             </section>
@@ -383,81 +449,157 @@ export default function Page() {
                             <p>Nenhum evento encontrado.</p>
                         </div>
                     ) : (
-                        <Carousel
-                            opts={{
-                                align: "start",
-                                loop: true,
-                            }}
-                            className="w-full"
-                        >
-                            <CarouselContent className="-ml-2 md:-ml-4">
-                                {events
-                                    .sort((a: any, b: any) => {
-                                        // Ordenar por número de ingressos vendidos (assumindo que existe uma propriedade tickets_sold)
-                                        const ticketsSoldA = a.tickets_sold || 0
-                                        const ticketsSoldB = b.tickets_sold || 0
-                                        return ticketsSoldB - ticketsSoldA
-                                    })
-                                    .slice(0, 8)
-                                    .map((event: any) => (
-                                        <CarouselItem key={event.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
-                                            <article
-                                                className="bg-card rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition cursor-pointer"
-                                                onClick={() => {
-                                                    if (event.occurrences && event.occurrences.length > 0) {
-                                                        const firstOccurrence = event.occurrences[0]
-                                                        const cityDate = `${firstOccurrence.city}-${new Date(firstOccurrence.start_at).toISOString().split('T')[0]}`
-                                                        router.push(`/event/${event.slug}/${cityDate}`)
-                                                    }
-                                                }}
-                                            >
-                                                <div className="relative">
-                                                    <Image
-                                                        src={event.image || "/placeholder.jpg"}
-                                                        alt={event.name}
-                                                        width={300}
-                                                        height={128}
-                                                        className="w-full h-32 object-cover"
-                                                    />
-                                                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
-                                                        {event.occurrences && event.occurrences.length > 0 && (
-                                                            <>
-                                                                {new Date(event.occurrences[0].start_at).toLocaleDateString('pt-BR', {
-                                                                    day: '2-digit',
-                                                                    month: '2-digit'
-                                                                })}
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div className="p-3">
-                                                    <h3 className="font-semibold text-card-foreground text-sm mb-1 line-clamp-2">
-                                                        {event.name}
-                                                    </h3>
-                                                    <div className="flex items-center gap-1 text-muted-foreground text-xs mb-2">
-                                                        <MapPin size={12} />
-                                                        <span>
-                                                            {event.occurrences && event.occurrences.length > 0 && (
-                                                                `${event.occurrences[0].city}, ${event.occurrences[0].uf}`
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1 text-blue-500 text-xs">
-                                                        <Ticket size={12} className="mr-1 text-blue-500" />
-                                                        <span>
-                                                            {event.total_available_tickets !== undefined 
-                                                                ? `${event.total_available_tickets} ingressos` 
-                                                                : "Ingressos esgotados"}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </article>
-                                        </CarouselItem>
-                                    ))}
-                            </CarouselContent>
-                            <CarouselPrevious />
-                            <CarouselNext />
-                        </Carousel>
+                        <>
+                            {/* Mobile Carousel */}
+                            <div className="block sm:hidden">
+                                <MobileCarousel>
+                                    <MobileCarouselContent>
+                                        {events
+                                            .sort((a: any, b: any) => {
+                                                // Ordenar por número de ingressos vendidos (assumindo que existe uma propriedade tickets_sold)
+                                                const ticketsSoldA = a.tickets_sold || 0
+                                                const ticketsSoldB = b.tickets_sold || 0
+                                                return ticketsSoldB - ticketsSoldA
+                                            })
+                                            .slice(0, 8)
+                                            .map((event: any) => (
+                                                <MobileCarouselItem key={event.id}>
+                                                    <article
+                                                        className="bg-card rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition cursor-pointer h-full"
+                                                        onClick={() => {
+                                                            if (event.occurrences && event.occurrences.length > 0) {
+                                                                const firstOccurrence = event.occurrences[0]
+                                                                const cityDate = `${firstOccurrence.city}-${new Date(firstOccurrence.start_at).toISOString().split('T')[0]}`
+                                                                router.push(`/event/${event.slug}/${cityDate}`)
+                                                            }
+                                                        }}
+                                                    >
+                                                        <div className="relative">
+                                                            <Image
+                                                                src={event.image || "/placeholder.jpg"}
+                                                                alt={event.name}
+                                                                width={300}
+                                                                height={128}
+                                                                className="w-full h-32 object-cover"
+                                                            />
+                                                            <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
+                                                                {event.occurrences && event.occurrences.length > 0 && (
+                                                                    <>
+                                                                        {new Date(event.occurrences[0].start_at).toLocaleDateString('pt-BR', {
+                                                                            day: '2-digit',
+                                                                            month: '2-digit'
+                                                                        })}
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="p-3">
+                                                            <h3 className="font-semibold text-card-foreground text-sm mb-1 line-clamp-2">
+                                                                {event.name}
+                                                            </h3>
+                                                            <div className="flex items-center gap-1 text-muted-foreground text-xs mb-2">
+                                                                <MapPin size={12} />
+                                                                <span>
+                                                                    {event.occurrences && event.occurrences.length > 0 && (
+                                                                        `${event.occurrences[0].city}, ${event.occurrences[0].uf}`
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1 text-blue-500 text-xs">
+                                                                <Ticket size={12} className="mr-1 text-blue-500" />
+                                                                <span>
+                                                                    {event.total_available_tickets !== undefined 
+                                                                        ? `${event.total_available_tickets} ingressos` 
+                                                                        : "Ingressos esgotados"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </article>
+                                                </MobileCarouselItem>
+                                            ))}
+                                    </MobileCarouselContent>
+                                </MobileCarousel>
+                            </div>
+
+                            {/* Desktop/Tablet Carousel */}
+                            <div className="hidden sm:block">
+                                <Carousel
+                                    opts={{
+                                        align: "start",
+                                        loop: true,
+                                    }}
+                                    className="w-full"
+                                >
+                                    <CarouselContent className="-ml-2 md:-ml-4">
+                                        {events
+                                            .sort((a: any, b: any) => {
+                                                // Ordenar por número de ingressos vendidos (assumindo que existe uma propriedade tickets_sold)
+                                                const ticketsSoldA = a.tickets_sold || 0
+                                                const ticketsSoldB = b.tickets_sold || 0
+                                                return ticketsSoldB - ticketsSoldA
+                                            })
+                                            .slice(0, 8)
+                                            .map((event: any) => (
+                                                <CarouselItem key={event.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
+                                                    <article
+                                                        className="bg-card rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition cursor-pointer"
+                                                        onClick={() => {
+                                                            if (event.occurrences && event.occurrences.length > 0) {
+                                                                const firstOccurrence = event.occurrences[0]
+                                                                const cityDate = `${firstOccurrence.city}-${new Date(firstOccurrence.start_at).toISOString().split('T')[0]}`
+                                                                router.push(`/event/${event.slug}/${cityDate}`)
+                                                            }
+                                                        }}
+                                                    >
+                                                        <div className="relative">
+                                                            <Image
+                                                                src={event.image || "/placeholder.jpg"}
+                                                                alt={event.name}
+                                                                width={300}
+                                                                height={128}
+                                                                className="w-full h-32 object-cover"
+                                                            />
+                                                            <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
+                                                                {event.occurrences && event.occurrences.length > 0 && (
+                                                                    <>
+                                                                        {new Date(event.occurrences[0].start_at).toLocaleDateString('pt-BR', {
+                                                                            day: '2-digit',
+                                                                            month: '2-digit'
+                                                                        })}
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="p-3">
+                                                            <h3 className="font-semibold text-card-foreground text-sm mb-1 line-clamp-2">
+                                                                {event.name}
+                                                            </h3>
+                                                            <div className="flex items-center gap-1 text-muted-foreground text-xs mb-2">
+                                                                <MapPin size={12} />
+                                                                <span>
+                                                                    {event.occurrences && event.occurrences.length > 0 && (
+                                                                        `${event.occurrences[0].city}, ${event.occurrences[0].uf}`
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1 text-blue-500 text-xs">
+                                                                <Ticket size={12} className="mr-1 text-blue-500" />
+                                                                <span>
+                                                                    {event.total_available_tickets !== undefined 
+                                                                        ? `${event.total_available_tickets} ingressos` 
+                                                                        : "Ingressos esgotados"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </article>
+                                                </CarouselItem>
+                                            ))}
+                                    </CarouselContent>
+                                    <CarouselPrevious />
+                                    <CarouselNext />
+                                </Carousel>
+                            </div>
+                        </>
                     )}
                 </div>
             </section>

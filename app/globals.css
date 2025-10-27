@@ -2,172 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
-
 @layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-  }
-
   :root {
-    /* Core Colors - Light Theme */
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    
-    /* Primary Brand Colors - Blue Theme */
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 98%;
-    
-    /* Secondary Colors */
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    
-    /* Status Colors */
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 98%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 98%;
-    
-    /* Interactive Elements */
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 217 91% 60%;
-    
-    /* Chart Colors */
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    
-    /* Layout */
-    --radius: 0.5rem;
-    
-    /* Sidebar */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-    
-    /* Typography */
-    --font-size-xs: 0.75rem;
-    --font-size-sm: 0.875rem;
-    --font-size-base: 1rem;
-    --font-size-lg: 1.125rem;
-    --font-size-xl: 1.25rem;
-    --font-size-2xl: 1.5rem;
-    --font-size-3xl: 1.875rem;
-    --font-size-4xl: 2.25rem;
-    
-    /* Spacing */
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 1.5rem;
-    --spacing-xl: 2rem;
-    --spacing-2xl: 3rem;
-    
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   }
-  
+
   .dark {
-    /* Core Colors - Enhanced Dark Theme with WCAG AA Compliance */
-    --background: 222 84% 4.9%; /* Deep navy blue background */
-    --foreground: 210 40% 98%; /* High contrast white with slight blue tint */
-    --card: 222 84% 5.9%; /* Slightly lighter than background for depth */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-    --popover: 222 84% 4.9%;
+    --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    
-    /* Primary Brand Colors - Enhanced Blue Theme */
-    --primary: 217 91% 65%; /* Brighter blue for better contrast */
-    --primary-foreground: 222 84% 4.9%; /* Dark background for contrast */
-    
-    /* Secondary Colors - Improved Contrast */
-    --secondary: 215 27.9% 16.9%; /* Warmer secondary with better contrast */
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%; /* Enhanced muted text contrast */
-    --accent: 216 34% 17%; /* Distinct accent color */
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-    
-    /* Status Colors - WCAG Compliant */
-    --destructive: 0 84% 60%; /* Brighter red for better visibility */
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --success: 142 76% 45%; /* Enhanced green with proper contrast */
-    --success-foreground: 210 40% 98%;
-    --warning: 38 92% 55%; /* Slightly brighter orange */
-    --warning-foreground: 222 84% 4.9%;
-    
-    /* Interactive Elements - Enhanced Visibility */
-    --border: 215 27.9% 20%; /* More visible borders */
-    --input: 215 27.9% 18%; /* Distinct input background */
-    --ring: 217 91% 65%; /* Focus ring matching primary */
-    
-    /* Chart Colors - Dark Theme Optimized */
-    --chart-1: 217 91% 65%; /* Primary blue */
-    --chart-2: 142 76% 50%; /* Success green */
-    --chart-3: 38 92% 60%; /* Warning orange */
-    --chart-4: 280 100% 70%; /* Purple */
-    --chart-5: 340 82% 65%; /* Pink */
-    
-    /* Sidebar - Enhanced Dark Design */
-    --sidebar-background: 222 84% 3.9%; /* Darker than main background */
-    --sidebar-foreground: 210 40% 95%;
-    --sidebar-primary: 217 91% 65%;
-    --sidebar-primary-foreground: 222 84% 4.9%;
-    --sidebar-accent: 215 27.9% 16.9%;
-    --sidebar-accent-foreground: 210 40% 95%;
-    --sidebar-border: 215 27.9% 18%;
-    --sidebar-ring: 217 91% 65%;
-    
-    /* Enhanced Shadows for Dark Theme */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.6);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.7), 0 10px 10px -5px rgb(0 0 0 / 0.4);
-    
-    /* Additional Dark Theme Variables */
-    --surface: 215 27.9% 12%; /* Surface elements like hover states */
-    --surface-foreground: 210 40% 90%;
-    --overlay: 222 84% 4.9% / 0.8; /* Modal overlays */
-    --glass: 215 27.9% 16.9% / 0.7; /* Glass morphism effects */
-    
-    /* Text Hierarchy - WCAG Compliant */
-    --text-primary: 210 40% 98%; /* Highest contrast for headings */
-    --text-secondary: 217.9 10.6% 78%; /* Secondary text with 7:1 contrast */
-    --text-muted: 217.9 10.6% 64.9%; /* Muted text with 4.5:1 contrast */
-    --text-disabled: 217.9 10.6% 45%; /* Disabled text */
-    
-    /* Interactive States */
-    --hover: 215 27.9% 20%; /* Hover state background */
-    --active: 215 27.9% 22%; /* Active state background */
-    --focus: 217 91% 65% / 0.2; /* Focus state background */
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
@@ -175,191 +63,107 @@
   * {
     @apply border-border;
   }
-  
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-
-  /* Smooth transitions for theme changes */
-  * {
-    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-                border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-                color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  /* Focus styles for accessibility */
-  :focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
-  }
-  
-  /* Improved button focus styles */
-  button:focus-visible,
-  [role="button"]:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
-  }
-  
-  /* High contrast mode support */
-  @media (prefers-contrast: high) {
-    :root {
-      --border: 240 5.9% 70%;
-      --ring: 240 5.9% 10%;
-    }
-    
-    .dark {
-      --background: 222 84% 2%; /* Even darker background for high contrast */
-      --foreground: 0 0% 100%; /* Pure white text */
-      --border: 215 27.9% 35%; /* Much more visible borders */
-      --ring: 217 91% 70%; /* Brighter focus ring */
-      --primary: 217 91% 70%; /* Enhanced primary color */
-      --text-primary: 0 0% 100%; /* Pure white for maximum contrast */
-      --text-secondary: 217.9 10.6% 85%; /* Higher contrast secondary text */
-      --text-muted: 217.9 10.6% 70%; /* Higher contrast muted text */
-    }
-  }
-  
-  /* Reduced motion support */
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
   }
 }
 
-/* Custom utility classes for enhanced dark theme */
+/* Estilos customizados para o carrossel mobile */
 @layer utilities {
-  .shadow-custom-sm {
-    box-shadow: var(--shadow-sm);
+  /* Ocultar scrollbar mantendo funcionalidade */
+  .scrollbar-none {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
   }
   
-  .shadow-custom-md {
-    box-shadow: var(--shadow-md);
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+  }
+
+  /* Melhorar scroll em dispositivos touch */
+  .touch-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Snap points para alinhamento preciso */
+  .snap-x {
+    scroll-snap-type: x mandatory;
   }
   
-  .shadow-custom-lg {
-    box-shadow: var(--shadow-lg);
+  .snap-start {
+    scroll-snap-align: start;
   }
-  
-  .shadow-custom-xl {
-    box-shadow: var(--shadow-xl);
-  }
-  
-  /* Glass morphism utilities */
-  .glass-effect {
-    background: hsl(var(--glass));
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
-  
-  /* Surface utilities for layered design */
-  .surface {
-    background: hsl(var(--surface));
-    color: hsl(var(--surface-foreground));
-  }
-  
-  /* Text hierarchy utilities */
-  .text-primary {
-    color: hsl(var(--text-primary));
-  }
-  
-  .text-secondary {
-    color: hsl(var(--text-secondary));
-  }
-  
-  .text-muted {
-    color: hsl(var(--text-muted));
-  }
-  
-  .text-disabled {
-    color: hsl(var(--text-disabled));
-  }
-  
-  /* Interactive state utilities */
-  .hover-surface:hover {
-    background: hsl(var(--hover));
-  }
-  
-  .active-surface:active {
-    background: hsl(var(--active));
-  }
-  
-  .focus-surface:focus {
-    background: hsl(var(--focus));
-  }
-  
-  /* Enhanced button styles for dark theme */
-  .btn-primary-dark {
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    border: 1px solid hsl(var(--primary));
-    transition: all 0.2s ease-in-out;
-  }
-  
-  .btn-primary-dark:hover {
-    background: hsl(var(--primary) / 0.9);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-  }
-  
-  .btn-secondary-dark {
-    background: hsl(var(--secondary));
-    color: hsl(var(--secondary-foreground));
-    border: 1px solid hsl(var(--border));
-    transition: all 0.2s ease-in-out;
-  }
-  
-  .btn-secondary-dark:hover {
-    background: hsl(var(--hover));
-    border-color: hsl(var(--primary) / 0.5);
-  }
-  
-  /* Enhanced card styles */
-  .card-dark {
-    background: hsl(var(--card));
-    border: 1px solid hsl(var(--border));
-    border-radius: calc(var(--radius) + 2px);
-    box-shadow: var(--shadow-md);
-    transition: all 0.3s ease-in-out;
-  }
-  
-  .card-dark:hover {
-    border-color: hsl(var(--primary) / 0.3);
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
-  }
-  
-  /* Enhanced input styles */
-  .input-dark {
-    background: hsl(var(--input));
-    border: 1px solid hsl(var(--border));
-    color: hsl(var(--foreground));
-    border-radius: var(--radius);
-    transition: all 0.2s ease-in-out;
-  }
-  
-  .input-dark:focus {
-    border-color: hsl(var(--ring));
-    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
-    outline: none;
-  }
-  
-  .input-dark::placeholder {
-    color: hsl(var(--text-muted));
+
+  /* Transições suaves para responsividade */
+  .transition-layout {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+/* Estilos específicos para o carrossel mobile */
+@media (max-width: 640px) {
+  .mobile-carousel-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .mobile-carousel-item {
+    width: 85vw;
+    max-width: 320px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+  
+  .mobile-carousel-content {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    gap: 1rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .mobile-carousel-content::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-/* Hide scrollbar for IE, Edge and Firefox */
-.scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+/* Garantir que os cards mantenham altura consistente */
+.event-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.event-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Melhorar acessibilidade com foco visível */
+.mobile-carousel-content:focus {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Animações suaves para transições de breakpoint */
+@media (min-width: 640px) {
+  .desktop-carousel {
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  }
+}
+
+@media (max-width: 639px) {
+  .mobile-carousel {
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  }
 }
