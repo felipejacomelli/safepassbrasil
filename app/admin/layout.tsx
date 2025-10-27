@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleLogout = async () => {
     await logout()
-    router.push('/login')
+    router.push('/') // Redireciona para a home após logout
   }
 
   const navigation = [

@@ -51,7 +51,7 @@ export default function Page() {
 
     const handleLogout = () => {
         logout()
-        router.push("/account") // Redireciona para a página de conta após logout
+        router.push("/") // Redireciona para a home após logout
     }
 
     const handleAccountAccess = () => {

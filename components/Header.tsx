@@ -45,6 +45,7 @@ export default function Header() {
     const handleLogoutFromDropdown = () => {
         logout()
         setIsUserMenuOpen(false)
+        router.push("/") // Redireciona para a home após logout
     }
 
     const handleAdminPanelAccess = () => {

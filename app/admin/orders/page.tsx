@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/auth-context"
 import { formatCurrency } from "@/utils/formatCurrency"
 import { adminApi, AdminOrder } from "@/lib/api"
+import router from "next/router"
 
 interface Order {
   id: string
@@ -46,6 +47,7 @@ export default function AdminOrdersPage() {
   const handleLogout = () => {
     logout()
     setShowUserMenu(false)
+    router.push("/") // Redireciona para a home após logout
   }
 
   // Load orders from API
