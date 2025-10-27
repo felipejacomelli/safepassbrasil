@@ -42,33 +42,33 @@ export const PriceConfiguration = memo(({ price, onChange, platformFeeRate }: Pr
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="price" className="text-white font-medium">
+      <Label htmlFor="price" className="text-foreground font-medium">
         Preço unitário de cada ingresso
       </Label>
       <div className="relative">
-        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 text-sm font-medium">R$</span>
+        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">R$</span>
         <Input
           id="price"
           type="text"
           value={inputValue}
           onChange={handlePriceChange}
           placeholder="0,00"
-          className="pl-8 bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 rounded"
+          className="pl-8 bg-background border-input text-foreground placeholder:text-muted-foreground rounded"
           aria-label="Preço do ingresso"
           inputMode="decimal"
         />
       </div>
       
       {price > 0 && (
-        <Card className="bg-green-950/20 border-green-500/30 rounded">
+        <Card className="bg-green-50 border-green-200 rounded">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <DollarSign className="w-5 h-5 text-green-400 flex-shrink-0" />
+              <DollarSign className="w-5 h-5 text-green-600 flex-shrink-0" />
               <div className="flex-1">
-                <div className="text-sm text-zinc-400 mb-1">
+                <div className="text-sm text-muted-foreground mb-1">
                   Você receberá:
                 </div>
-                <div className="text-lg font-bold text-green-400">
+                <div className="text-lg font-bold text-green-600">
                   R$ {formattedSellerReceives}
                 </div>
               </div>

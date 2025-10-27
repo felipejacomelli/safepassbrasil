@@ -33,7 +33,7 @@ export const QuantitySelector = memo(({
 
   return (
     <div className="space-y-2">
-      <Label className="text-white font-medium">
+      <Label className="text-foreground font-medium">
         Quantidade
       </Label>
       
@@ -44,13 +44,13 @@ export const QuantitySelector = memo(({
           size="icon"
           onClick={handleDecrement}
           disabled={disabled || value <= 1}
-          className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed rounded"
+          className="bg-background border-input text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed rounded"
           aria-label="Diminuir quantidade"
         >
           <Minus className="w-4 h-4" />
         </Button>
         
-        <div className="bg-zinc-800 border border-zinc-700 text-white px-4 py-2 font-bold min-w-[60px] text-center rounded">
+        <div className="bg-background border border-input text-foreground px-4 py-2 font-bold min-w-[60px] text-center rounded">
           {value}
         </div>
         
@@ -60,16 +60,16 @@ export const QuantitySelector = memo(({
           size="icon"
           onClick={handleIncrement}
           disabled={disabled || value >= maxQuantity}
-          className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed rounded"
+          className="bg-background border-input text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed rounded"
           aria-label="Aumentar quantidade"
         >
           <Plus className="w-4 h-4" />
         </Button>
       </div>
       
-      <Alert className="bg-yellow-950/20 border-yellow-500/30 rounded">
-        <AlertCircle className="w-4 h-4 text-yellow-400" />
-        <AlertDescription className="text-yellow-400 text-sm">
+      <Alert className="bg-yellow-50 border-yellow-200 rounded">
+        <AlertCircle className="w-4 h-4 text-yellow-600" />
+        <AlertDescription className="text-yellow-700 text-sm">
           Se você tiver mais de um ingresso para venda, eles serão vendidos separadamente. 
           Você receberá o pagamento após a validação de cada ingresso.
         </AlertDescription>

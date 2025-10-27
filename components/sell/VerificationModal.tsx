@@ -138,42 +138,42 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
   const renderStep1 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <User className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-white mb-2">
+        <User className="h-12 w-12 text-primary mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           Confirme seus dados cadastrais
         </h3>
-        <p className="text-zinc-400 text-sm">
+        <p className="text-muted-foreground text-sm">
           Verifique se suas informações estão corretas antes de prosseguir
         </p>
       </div>
 
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white text-base">Dados Pessoais</CardTitle>
+          <CardTitle className="text-foreground text-base">Dados Pessoais</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label className="text-zinc-300">Nome Completo</Label>
-              <div className="mt-1 p-3 bg-zinc-800 rounded-md text-white">
+              <Label className="text-muted-foreground">Nome Completo</Label>
+              <div className="mt-1 p-3 bg-muted rounded-md text-foreground">
                 {userData.name}
               </div>
             </div>
             <div>
-              <Label className="text-zinc-300">CPF</Label>
-              <div className="mt-1 p-3 bg-zinc-800 rounded-md text-white">
+              <Label className="text-muted-foreground">CPF</Label>
+              <div className="mt-1 p-3 bg-muted rounded-md text-foreground">
                 {userData.cpf}
               </div>
             </div>
             <div>
-              <Label className="text-zinc-300">E-mail</Label>
-              <div className="mt-1 p-3 bg-zinc-800 rounded-md text-white">
+              <Label className="text-muted-foreground">E-mail</Label>
+              <div className="mt-1 p-3 bg-muted rounded-md text-foreground">
                 {userData.email}
               </div>
             </div>
             <div>
-              <Label className="text-zinc-300">Telefone</Label>
-              <div className="mt-1 p-3 bg-zinc-800 rounded-md text-white">
+              <Label className="text-muted-foreground">Telefone</Label>
+              <div className="mt-1 p-3 bg-muted rounded-md text-foreground">
                 {userData.phone}
               </div>
             </div>
@@ -181,9 +181,9 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
         </CardContent>
       </Card>
 
-      <Alert className="bg-blue-950 border-blue-800">
-        <AlertCircle className="h-4 w-4 text-blue-400" />
-        <AlertDescription className="text-blue-200">
+      <Alert className="bg-blue-50 border-blue-200">
+        <AlertCircle className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-700">
           Se algum dado estiver incorreto, você pode atualizá-lo em sua conta antes de continuar.
         </AlertDescription>
       </Alert>
@@ -193,19 +193,19 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
   const renderStep2 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <FileImage className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-white mb-2">
+        <FileImage className="h-12 w-12 text-primary mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           Envie seu documento de identificação
         </h3>
-        <p className="text-zinc-400 text-sm">
+        <p className="text-muted-foreground text-sm">
           Faça upload da frente e verso do seu RG, CNH ou Passaporte
         </p>
       </div>
 
       {errors.documents && (
-        <Alert className="bg-red-950 border-red-800">
-          <AlertCircle className="h-4 w-4 text-red-400" />
-          <AlertDescription className="text-red-200">
+        <Alert className="bg-red-50 border-red-200">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-700">
             {errors.documents}
           </AlertDescription>
         </Alert>
@@ -213,9 +213,9 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Frente do documento */}
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-white text-base flex items-center gap-2">
+            <CardTitle className="text-foreground text-base flex items-center gap-2">
               <Upload className="h-4 w-4" />
               Frente do Documento
             </CardTitle>
@@ -234,11 +234,11 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
             
             {verificationData.documentFront ? (
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-green-400">
+                <div className="flex items-center gap-2 text-green-600">
                   <CheckCircle className="h-4 w-4" />
                   <span className="text-sm">Arquivo enviado</span>
                 </div>
-                <p className="text-xs text-zinc-400">
+                <p className="text-xs text-muted-foreground">
                   {verificationData.documentFront.name}
                 </p>
                 <Button
@@ -254,25 +254,25 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
               <Button
                 variant="outline"
                 onClick={() => documentFrontRef.current?.click()}
-                className="w-full h-24 border-dashed border-zinc-600 hover:border-zinc-500"
+                className="w-full h-24 border-dashed border-border hover:border-primary"
               >
                 <div className="text-center">
-                  <Upload className="h-6 w-6 mx-auto mb-2 text-zinc-400" />
-                  <span className="text-sm text-zinc-400">Clique para enviar</span>
+                  <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Clique para enviar</span>
                 </div>
               </Button>
             )}
             
             {errors.documentFront && (
-              <p className="text-red-400 text-xs mt-2">{errors.documentFront}</p>
+              <p className="text-red-600 text-xs mt-2">{errors.documentFront}</p>
             )}
           </CardContent>
         </Card>
 
         {/* Verso do documento */}
-        <Card className="bg-zinc-900 border-zinc-800">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-white text-base flex items-center gap-2">
+            <CardTitle className="text-foreground text-base flex items-center gap-2">
               <Upload className="h-4 w-4" />
               Verso do Documento
             </CardTitle>
@@ -291,11 +291,11 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
             
             {verificationData.documentBack ? (
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-green-400">
+                <div className="flex items-center gap-2 text-green-600">
                   <CheckCircle className="h-4 w-4" />
                   <span className="text-sm">Arquivo enviado</span>
                 </div>
-                <p className="text-xs text-zinc-400">
+                <p className="text-xs text-muted-foreground">
                   {verificationData.documentBack.name}
                 </p>
                 <Button
@@ -311,25 +311,25 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
               <Button
                 variant="outline"
                 onClick={() => documentBackRef.current?.click()}
-                className="w-full h-24 border-dashed border-zinc-600 hover:border-zinc-500"
+                className="w-full h-24 border-dashed border-border hover:border-primary"
               >
                 <div className="text-center">
-                  <Upload className="h-6 w-6 mx-auto mb-2 text-zinc-400" />
-                  <span className="text-sm text-zinc-400">Clique para enviar</span>
+                  <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Clique para enviar</span>
                 </div>
               </Button>
             )}
             
             {errors.documentBack && (
-              <p className="text-red-400 text-xs mt-2">{errors.documentBack}</p>
+              <p className="text-red-600 text-xs mt-2">{errors.documentBack}</p>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <Alert className="bg-yellow-950 border-yellow-800">
-        <AlertCircle className="h-4 w-4 text-yellow-400" />
-        <AlertDescription className="text-yellow-200">
+      <Alert className="bg-yellow-50 border-yellow-200">
+        <AlertCircle className="h-4 w-4 text-yellow-600" />
+        <AlertDescription className="text-yellow-700">
           Certifique-se de que as imagens estejam nítidas e todos os dados sejam legíveis.
         </AlertDescription>
       </Alert>
@@ -339,27 +339,27 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
   const renderStep3 = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <Camera className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-white mb-2">
+        <Camera className="h-12 w-12 text-primary mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           Envie uma selfie para validação
         </h3>
-        <p className="text-zinc-400 text-sm">
+        <p className="text-muted-foreground text-sm">
           Tire uma foto do seu rosto para confirmar sua identidade
         </p>
       </div>
 
       {errors.selfie && (
-        <Alert className="bg-red-950 border-red-800">
-          <AlertCircle className="h-4 w-4 text-red-400" />
-          <AlertDescription className="text-red-200">
+        <Alert className="bg-red-50 border-red-200">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-700">
             {errors.selfie}
           </AlertDescription>
         </Alert>
       )}
 
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white text-base flex items-center gap-2">
+          <CardTitle className="text-foreground text-base flex items-center gap-2">
             <Camera className="h-4 w-4" />
             Selfie para Verificação
           </CardTitle>
@@ -379,11 +379,11 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
           
           {verificationData.selfie ? (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-green-400">
+              <div className="flex items-center gap-2 text-green-600">
                 <CheckCircle className="h-4 w-4" />
                 <span className="text-sm">Selfie enviada com sucesso</span>
               </div>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-muted-foreground">
                 {verificationData.selfie.name}
               </p>
               <Button
@@ -399,20 +399,20 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
             <Button
               variant="outline"
               onClick={() => selfieRef.current?.click()}
-              className="w-full h-32 border-dashed border-zinc-600 hover:border-zinc-500"
+              className="w-full h-32 border-dashed border-border hover:border-primary"
             >
               <div className="text-center">
-                <Camera className="h-8 w-8 mx-auto mb-2 text-zinc-400" />
-                <span className="text-sm text-zinc-400">Tirar selfie</span>
+                <Camera className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Tirar selfie</span>
               </div>
             </Button>
           )}
         </CardContent>
       </Card>
 
-      <Alert className="bg-blue-950 border-blue-800">
-        <AlertCircle className="h-4 w-4 text-blue-400" />
-        <AlertDescription className="text-blue-200">
+      <Alert className="bg-blue-50 border-blue-200">
+        <AlertCircle className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-700">
           <strong>Dicas para uma boa selfie:</strong>
           <ul className="mt-2 space-y-1 text-sm">
             <li>• Mantenha o rosto bem iluminado</li>
@@ -445,10 +445,10 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                       step === currentStep
-                        ? "bg-blue-600 text-white"
+                        ? "bg-primary text-primary-foreground"
                         : step < currentStep
                         ? "bg-green-600 text-white"
-                        : "bg-zinc-700 text-zinc-400"
+                        : "bg-muted text-muted-foreground"
                     }`}
                   >
                     {step < currentStep ? (
@@ -460,7 +460,7 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
                   {step < 3 && (
                     <div
                       className={`w-8 h-0.5 mx-2 ${
-                        step < currentStep ? "bg-green-600" : "bg-zinc-700"
+                        step < currentStep ? "bg-green-600" : "bg-muted"
                       }`}
                     />
                   )}
@@ -478,9 +478,9 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
         </div>
 
         {errors.general && (
-          <Alert className="bg-red-950 border-red-800 mt-4">
-            <AlertCircle className="h-4 w-4 text-red-400" />
-            <AlertDescription className="text-red-200">
+          <Alert className="bg-red-50 border-red-200 mt-4">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-700">
               {errors.general}
             </AlertDescription>
           </Alert>
@@ -508,7 +508,7 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
           <Button
             onClick={currentStep === 3 ? handleComplete : handleNext}
             disabled={isSubmitting}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-primary hover:bg-primary/90"
           >
             {isSubmitting ? (
               <>

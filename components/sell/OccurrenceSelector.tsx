@@ -15,23 +15,23 @@ interface OccurrenceSelectorProps {
 export const OccurrenceSelector = memo(({ occurrences, value, onChange, disabled = false }: OccurrenceSelectorProps) => {
   return (
     <div className="space-y-2">
-      <Label htmlFor="occurrence" className="text-white font-medium">
+      <Label htmlFor="occurrence" className="text-foreground font-medium">
         Data e Local do Evento
       </Label>
       <Select value={value} onValueChange={onChange} disabled={disabled}>
         <SelectTrigger 
           id="occurrence"
-          className="bg-zinc-800 border-zinc-700 text-white rounded"
+          className="bg-background border-input text-foreground rounded"
           aria-label="Selecionar data e local do evento"
         >
           <SelectValue placeholder="Selecione uma data e local" />
         </SelectTrigger>
-        <SelectContent className="bg-zinc-800 border-zinc-700">
+        <SelectContent className="bg-background border-border">
           {occurrences.map((occurrence) => (
             <SelectItem 
               key={occurrence.id} 
               value={occurrence.id}
-              className="text-white hover:bg-zinc-700 focus:bg-zinc-700"
+              className="text-foreground hover:bg-accent focus:bg-accent"
             >
               {new Date(occurrence.start_at).toLocaleDateString('pt-BR', {
                 day: '2-digit',

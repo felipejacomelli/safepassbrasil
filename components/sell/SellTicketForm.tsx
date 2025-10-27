@@ -138,15 +138,15 @@ export const SellTicketForm = memo(({
 
   if (success) {
     return (
-      <Card className="bg-zinc-900 border-zinc-800 rounded">
+      <Card className="bg-card border-border rounded">
         <CardContent className="p-6 text-center">
-          <div className="w-16 h-16 bg-green-950/20 rounded flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-green-400" />
+          <div className="w-16 h-16 bg-green-50 rounded flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-4">
+          <h2 className="text-2xl font-bold text-foreground mb-4">
             {watchedQuantity > 1 ? "Ingressos publicados com sucesso!" : "Ingresso publicado com sucesso!"}
           </h2>
-          <p className="text-zinc-400 mb-6">
+          <p className="text-muted-foreground mb-6">
             {watchedQuantity > 1 
               ? `Seus ${watchedQuantity} ingressos para ${event?.name || "este evento"} foram publicados individualmente e já estão disponíveis para compradores.`
               : `Seu ingresso para ${event?.name || "este evento"} foi publicado e já está disponível para compradores.`
@@ -155,29 +155,29 @@ export const SellTicketForm = memo(({
           
           {/* Link Compartilhado */}
           {shareLink && (
-            <div className="mb-6 p-4 bg-zinc-800 rounded-lg border border-zinc-700">
+            <div className="mb-6 p-4 bg-muted rounded-lg border border-border">
               <div className="flex items-center gap-2 mb-3">
-                <Share2 className="w-5 h-5 text-blue-400" />
-                <h3 className="text-white font-medium">Link para Compartilhar</h3>
+                <Share2 className="w-5 h-5 text-primary" />
+                <h3 className="text-foreground font-medium">Link para Compartilhar</h3>
               </div>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   value={shareLink}
                   readOnly
-                  className="flex-1 bg-zinc-900 border border-zinc-600 text-white text-sm px-3 py-2 rounded"
+                  className="flex-1 bg-background border border-input text-foreground text-sm px-3 py-2 rounded"
                 />
                 <Button
                   onClick={() => copyToClipboard(shareLink)}
                   variant="outline"
                   size="sm"
-                  className="border-zinc-600 text-zinc-300 hover:bg-zinc-700"
+                  className="border-border text-muted-foreground hover:bg-accent"
                 >
                   <Copy className="w-4 h-4 mr-1" />
                   {linkCopied ? "Copiado!" : "Copiar"}
                 </Button>
               </div>
-              <p className="text-zinc-500 text-xs mt-2">
+              <p className="text-muted-foreground text-xs mt-2">
                 Compartilhe este link para que outras pessoas possam ver e comprar seu ingresso.
               </p>
             </div>
@@ -185,7 +185,7 @@ export const SellTicketForm = memo(({
           
           <Button 
             onClick={() => window.location.href = `/event/${event?.slug}`}
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded"
           >
             Voltar para o evento
           </Button>
@@ -197,9 +197,9 @@ export const SellTicketForm = memo(({
   return (
     <>
       <form onSubmit={handleSubmit(handleFormSubmit, handleFormError)} className="space-y-6">
-      <Card className="bg-zinc-900 border-zinc-800 rounded">
+      <Card className="bg-card border-border rounded">
         <CardHeader>
-          <CardTitle className="text-white">Detalhes do Ingresso</CardTitle>
+          <CardTitle className="text-foreground">Detalhes do Ingresso</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Occurrence Selection */}
@@ -233,21 +233,21 @@ export const SellTicketForm = memo(({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-white font-medium">
+            <Label htmlFor="description" className="text-foreground font-medium">
               Descrição (opcional)
             </Label>
             <Textarea
               id="description"
               {...register("description")}
               placeholder="Adicione informações relevantes sobre o ingresso (setor, fileira, assento, etc.)"
-              className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 min-h-[120px] rounded"
+              className="bg-background border-input text-foreground placeholder:text-muted-foreground min-h-[120px] rounded"
             />
           </div>
         </CardContent>
       </Card>
 
       {/* Terms and Conditions */}
-      <Card className="bg-zinc-900 border-zinc-800 rounded">
+      <Card className="bg-card border-border rounded">
         <CardContent className="p-6">
           <div className="flex items-start gap-3">
             <input
@@ -259,12 +259,12 @@ export const SellTicketForm = memo(({
             />
             <Label 
               htmlFor="terms"
-              className="text-zinc-300 text-sm leading-relaxed cursor-pointer"
+              className="text-muted-foreground text-sm leading-relaxed cursor-pointer"
             >
               Eu confirmo que sou o proprietário legítimo deste ingresso e concordo com os{" "}
               <a
                 href="#"
-                className="text-blue-400 hover:text-blue-300 underline"
+                className="text-primary hover:text-primary/80 underline"
                 onClick={(e) => e.preventDefault()}
               >
                 Termos e Condições
@@ -272,7 +272,7 @@ export const SellTicketForm = memo(({
               e{" "}
               <a
                 href="#"
-                className="text-blue-400 hover:text-blue-300 underline"
+                className="text-primary hover:text-primary/80 underline"
                 onClick={(e) => e.preventDefault()}
               >
                 Política de Privacidade
@@ -285,9 +285,9 @@ export const SellTicketForm = memo(({
 
       {/* Error Message */}
       {error && (
-        <Alert className="bg-red-950/20 border-red-500/30 rounded">
-          <AlertCircle className="w-4 h-4 text-red-400" />
-          <AlertDescription className="text-red-400">
+        <Alert className="bg-red-50 border-red-200 rounded">
+          <AlertCircle className="w-4 h-4 text-red-600" />
+          <AlertDescription className="text-red-600">
             {error}
           </AlertDescription>
         </Alert>
@@ -297,7 +297,7 @@ export const SellTicketForm = memo(({
       <Button
         type="submit"
         disabled={isSubmitting || !watchedTerms}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed rounded"
+        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed rounded"
         onClick={() => {
           console.log('=== BUTTON CLICKED ===')
           console.log('isSubmitting:', isSubmitting)

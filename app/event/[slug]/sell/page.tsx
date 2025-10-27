@@ -86,19 +86,19 @@ const SellTicketPageClient = memo(({ params }: { params: Promise<{ slug: string 
       {/* Main Content */}
       <main className="p-6 max-w-7xl mx-auto w-full">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 mb-6 text-zinc-400 text-sm">
-          <a href="/" className="text-zinc-400 hover:text-foreground transition-colors">
+        <nav className="flex items-center gap-2 mb-6 text-muted-foreground text-sm">
+          <a href="/" className="text-muted-foreground hover:text-foreground transition-colors">
             Início
           </a>
           <span>›</span>
           <a 
             href={`/event/${event?.slug || resolvedParams.slug}`}
-            className="text-zinc-400 hover:text-foreground transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             {event?.name || "Carregando..."}
           </a>
           <span>›</span>
-          <span className="text-blue-400">Vender Ingressos</span>
+          <span className="text-primary">Vender Ingressos</span>
         </nav>
 
         <div className={`grid gap-8 ${isDesktop ? 'grid-cols-[1fr,1.5fr]' : 'grid-cols-1'}`}>
@@ -129,20 +129,20 @@ const SellTicketPageClient = memo(({ params }: { params: Promise<{ slug: string 
       </main>
 
       {/* Footer */}
-      <footer className="bg-card border-t border-zinc-800 p-8 mt-auto">
+      <footer className="bg-card border-t border-border p-8 mt-auto">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
             <h3 className="text-lg font-bold mb-3">Sobre</h3>
-            <p className="text-zinc-400 text-sm leading-relaxed mb-3">
+            <p className="text-muted-foreground text-sm leading-relaxed mb-3">
               Safe Pass é uma plataforma confiável para compra e venda de ingressos diretamente entre fãs.
             </p>
-            <p className="text-zinc-400 text-sm leading-relaxed">
+            <p className="text-muted-foreground text-sm leading-relaxed">
               Nossa missão é conectar pessoas, que desejam revender seus ingressos devido a imprevistos, com compradores
               que procuram as melhores ofertas de última hora.
             </p>
           </div>
 
-          <p className="text-zinc-500 text-xs text-center mt-6">
+          <p className="text-muted-foreground text-xs text-center mt-6">
             © 2023 Safe Pass. Todos os direitos reservados.
           </p>
         </div>

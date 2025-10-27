@@ -20,25 +20,25 @@ interface TicketTypeSelectorProps {
 export const TicketTypeSelector = memo(({ ticketTypes, value, onChange, disabled = false }: TicketTypeSelectorProps) => {
   return (
     <div className="space-y-2">
-      <Label htmlFor="ticket-type" className="text-white font-medium">
+      <Label htmlFor="ticket-type" className="text-foreground font-medium">
         Tipo de Ingresso
       </Label>
       <Select value={value} onValueChange={onChange} disabled={disabled}>
         <SelectTrigger 
           id="ticket-type"
-          className={`${disabled ? 'bg-zinc-900 text-zinc-500 cursor-not-allowed' : 'bg-zinc-800 text-white'} border-zinc-700 rounded`}
+          className={`${disabled ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-background text-foreground'} border-input rounded`}
           aria-label="Selecionar tipo de ingresso"
         >
           <SelectValue 
             placeholder={disabled ? "Primeiro selecione uma data e local" : "Selecione um tipo de ingresso"} 
           />
         </SelectTrigger>
-        <SelectContent className="bg-zinc-800 border-zinc-700">
+        <SelectContent className="bg-background border-border">
           {ticketTypes.map((ticketType) => (
             <SelectItem 
               key={ticketType.id} 
               value={ticketType.id}
-              className="text-white hover:bg-zinc-700 focus:bg-zinc-700"
+              className="text-foreground hover:bg-accent focus:bg-accent"
             >
               {ticketType.name} - R$ {Number(ticketType.price).toFixed(2)}
             </SelectItem>
