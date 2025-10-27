@@ -30,7 +30,7 @@ import { toast } from 'sonner'
 interface Dispute {
   id: string
   dispute_type: string
-  status: string
+  status: 'awaiting_seller_response' | 'under_review' | 'escalated' | 'resolved' | 'closed' | 'cancelled'
   disputed_amount: number
   created_at: string
   order_id: string
@@ -41,6 +41,8 @@ interface Dispute {
   resolution?: string
   resolution_notes?: string
   messages_count: number
+  seller_response_deadline?: string  // NOVO
+  escalated_at?: string  // NOVO
 }
 
 interface DisputeMessage {
@@ -315,10 +317,12 @@ export default function DisputesPage() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<string, { label: string; variant: 'destructive' | 'secondary' | 'default'; icon: any }> = {
-      'open': { label: 'Aberta', variant: 'destructive', icon: AlertTriangle },
+      'awaiting_seller_response': { label: 'Aguardando Vendedor', variant: 'destructive', icon: AlertTriangle },
       'under_review': { label: 'Em Análise', variant: 'secondary', icon: Clock },
+      'escalated': { label: 'Escalada', variant: 'destructive', icon: AlertTriangle },
       'resolved': { label: 'Resolvida', variant: 'default', icon: CheckCircle },
-      'closed': { label: 'Fechada', variant: 'secondary', icon: XCircle }
+      'closed': { label: 'Fechada', variant: 'secondary', icon: XCircle },
+      'cancelled': { label: 'Cancelada', variant: 'secondary', icon: XCircle }
     }
 
     const config = statusConfig[status] || { label: status, variant: 'secondary' as const, icon: Clock }
@@ -343,6 +347,57 @@ export default function DisputesPage() {
       'other': 'Outro'
     }
     return types[type] || type
+  }
+
+  const formatDeadline = (deadline: string) => {
+    const deadlineDate = new Date(deadline)
+    const now = new Date()
+    const diffMs = deadlineDate.getTime() - now.getTime()
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+    
+    if (diffMs <= 0) {
+      return 'Vencido'
+    } else if (diffHours > 0) {
+      return `${diffHours}h ${diffMinutes}m`
+    } else {
+      return `${diffMinutes}m`
+    }
+  }
+
+  const handleCancelDispute = async (disputeId: string) => {
+    if (!confirm('Tem certeza que deseja cancelar esta disputa?')) {
+      return
+    }
+    
+    try {
+      setSubmitting(true)
+      setError('')
+      
+      const response = await fetch(`/api/escrow/disputes/${disputeId}/cancel/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Token ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        toast.success('Disputa cancelada com sucesso!')
+        fetchData() // Recarregar lista
+      } else {
+        throw new Error(result.error || 'Erro ao cancelar disputa')
+      }
+    } catch (error) {
+      console.error('Erro ao cancelar disputa:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao cancelar disputa'
+      toast.error(errorMessage)
+      setError(errorMessage)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const getResolutionLabel = (resolution: string) => {
@@ -552,9 +607,19 @@ export default function DisputesPage() {
               )}
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <MessageSquare className="h-4 w-4" />
-                  <span>{dispute.messages_count} mensagens</span>
+                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                  <div className="flex items-center space-x-2">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>{dispute.messages_count} mensagens</span>
+                  </div>
+                  
+                  {/* Indicador de Prazo */}
+                  {dispute.seller_response_deadline && dispute.status === 'awaiting_seller_response' && (
+                    <div className="flex items-center space-x-2 text-orange-600">
+                      <Clock className="h-4 w-4" />
+                      <span>Prazo: {formatDeadline(dispute.seller_response_deadline)}</span>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex space-x-2">
@@ -571,7 +636,7 @@ export default function DisputesPage() {
                     Ver Mensagens
                   </Button>
                   
-                  {dispute.status === 'open' && !dispute.seller_response && (
+                  {dispute.status === 'awaiting_seller_response' && !dispute.seller_response && (
                     <Button 
                       size="sm" 
                       variant="outline"
@@ -582,6 +647,18 @@ export default function DisputesPage() {
                     >
                       <Send className="h-4 w-4 mr-1" />
                       Responder
+                    </Button>
+                  )}
+                  
+                  {/* Botão de Cancelamento */}
+                  {(dispute.status === 'awaiting_seller_response' || dispute.status === 'under_review') && (
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => handleCancelDispute(dispute.id)}
+                    >
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Cancelar
                     </Button>
                   )}
                 </div>

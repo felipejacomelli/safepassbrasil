@@ -15,7 +15,7 @@ export interface CreateDisputeData {
 export interface Dispute {
   id: string
   dispute_type: string
-  status: string
+  status: 'awaiting_seller_response' | 'under_review' | 'escalated' | 'resolved' | 'closed' | 'cancelled'
   disputed_amount: number
   created_at: string
   order_id: string
@@ -26,6 +26,8 @@ export interface Dispute {
   resolution?: string
   resolution_notes?: string
   messages_count: number
+  seller_response_deadline?: string  // NOVO
+  escalated_at?: string  // NOVO
 }
 
 export interface EscrowTransaction {
@@ -235,6 +237,28 @@ export function useDisputes() {
     }
   }, [getEscrowByOrderId, getUserDisputes])
 
+  // Cancelar disputa
+  const cancelDispute = useCallback(async (disputeId: string): Promise<void> => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const result = await makeAuthenticatedRequest(`/api/escrow/disputes/${disputeId}/cancel/`, {
+        method: 'POST',
+      })
+
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao cancelar disputa')
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao cancelar disputa'
+      setError(errorMessage)
+      throw new Error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }, [makeAuthenticatedRequest])
+
   return {
     loading,
     error,
@@ -244,5 +268,6 @@ export function useDisputes() {
     getUserDisputes,
     getDisputeById,
     validateTicketForDispute,
+    cancelDispute,  // NOVO
   }
 }
