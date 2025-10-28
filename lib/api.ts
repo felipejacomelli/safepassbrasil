@@ -2,9 +2,9 @@
 
 // ✅ CORREÇÃO: Forçar HTTP para evitar redirecionamento automático para HTTPS
 // ✅ CORREÇÃO: Respeitar protocolo configurado (HTTPS em produção, HTTP local)
-// ✅ TEMP: Hardcode para forçar produção a usar Render
+// ✅ ATUALIZADO: Backend agora hospedado no Google Cloud Platform (GCP)
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://reticket-backend.onrender.com'
+  ? 'https://safepass-back-38413960456.southamerica-east1.run.app'
   : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000');
 
 // ✅ TEMP: Log para debug
