@@ -1,6 +1,6 @@
-// Configuração da API para integração com o backend Django
+import { getAuthToken, clearAuthCookies } from '@/lib/secure-cookies'
 
-// ✅ CORREÇÃO: Forçar HTTP para evitar redirecionamento automático para HTTPS
+// Configuração da API para integração com o backend Django
 // ✅ CORREÇÃO: Respeitar protocolo configurado (HTTPS em produção, HTTP local)
 // ✅ ATUALIZADO: Backend agora hospedado no Google Cloud Platform (GCP)
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
@@ -155,14 +155,7 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}): P
     
     // Se não houver token no localStorage, tentar obter dos cookies
     if (!token) {
-      const cookies = document.cookie.split(';');
-      for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'authToken') {
-          token = decodeURIComponent(value);
-          break;
-        }
-      }
+      token = getAuthToken();
     }
   }
   
@@ -178,6 +171,25 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}): P
     ...options,
     headers,
   });
+
+  // ✅ MELHORIA: Tratamento automático de token expirado
+  if (response.status === 401 && token) {
+    // Token expirado - limpar dados de autenticação
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      
+      // Limpar cookies de autenticação usando função segura
+      clearAuthCookies();
+      
+      // Redirecionar para login se estiver em uma página protegida
+      if (window.location.pathname.startsWith('/dashboard') || 
+          window.location.pathname.startsWith('/admin') ||
+          window.location.pathname.startsWith('/account')) {
+        window.location.href = '/login';
+      }
+    }
+  }
 
   return response;
 };
