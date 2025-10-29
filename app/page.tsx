@@ -335,12 +335,12 @@ export default function Page() {
                         </div>
                     ) : (
                         <>
-                            {/* Mobile Carousel */}
-                            <div className="block sm:hidden">
+                            {/* Mobile Carousel - 3 categorias completas + 70% da próxima */}
+                            <div className="block lg:hidden">
                                 <MobileCarousel>
-                                    <MobileCarouselContent>
+                                    <MobileCarouselContent className="gap-2">
                                         {categories.map((cat: any) => (
-                                            <MobileCarouselItem key={cat.id}>
+                                            <MobileCarouselItem key={cat.id} className="basis-[calc(33.333%-0.5rem)] min-w-0">
                                                 <article
                                                     className="bg-accent rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer h-full"
                                                     onClick={() =>
@@ -373,20 +373,21 @@ export default function Page() {
                                 </MobileCarousel>
                             </div>
 
-                            {/* Desktop/Tablet Carousel */}
-                            <div className="hidden sm:block">
+                            {/* Desktop Carousel - 9 categorias completas + 30% da próxima */}
+                            <div className="hidden lg:block">
                                 <Carousel
                                     opts={{
                                         align: "start",
                                         loop: true,
+                                        slidesToScroll: 3,
                                     }}
                                     className="w-full"
                                 >
-                                    <CarouselContent className="-ml-2 md:-ml-4">
+                                    <CarouselContent className="-ml-2">
                                         {categories.map((cat: any) => (
-                                            <CarouselItem key={cat.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
+                                            <CarouselItem key={cat.id} className="pl-2 basis-[calc(11.111%-0.2rem)] min-w-0">
                                                 <article
-                                                    className="bg-accent rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+                                                    className="bg-accent rounded-lg overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer h-full"
                                                     onClick={() =>
                                                         router.push(`/search?category=${encodeURIComponent(cat.slug)}`)
                                                     }
