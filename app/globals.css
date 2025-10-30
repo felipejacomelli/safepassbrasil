@@ -109,7 +109,7 @@
   }
   
   .mobile-carousel-item {
-    width: 85vw;
+    width: 78vw;
     max-width: 320px;
     flex-shrink: 0;
     scroll-snap-align: start;

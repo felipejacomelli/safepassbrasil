@@ -103,8 +103,8 @@ const MobileCarouselItem = React.forwardRef<HTMLDivElement, MobileCarouselItemPr
           "[scroll-snap-align:start]",
           // Mobile: 85-90% da largura visível + flex-shrink-0 para não comprimir
           "flex-shrink-0",
-          // Mobile: largura que mostra ~85-90% do card + parte do próximo
-          "w-[85vw] max-w-[320px] sm:w-auto sm:max-w-none",
+          // Mobile: largura que mostra ~78% do card + parte do próximo
+          "w-[78vw] max-w-[320px] sm:w-auto sm:max-w-none",
           // Desktop/tablet: comportamento normal
           "sm:min-w-0 sm:shrink-0 sm:grow-0 sm:basis-full sm:basis-1/2 lg:sm:basis-1/4",
           className
