@@ -26,7 +26,7 @@ export function SearchResults({
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Buscando...</p>
         </div>
       </div>
@@ -80,7 +80,7 @@ export function SearchResults({
               <Button 
                 asChild
                 variant="default"
-                className="dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white"
+                className="dark:bg-primary dark:hover:bg-primary/90 dark:text-primary-foreground"
               >
                 <a href="mailto:suporte@safepass.com.br">
                   Entrar em contato

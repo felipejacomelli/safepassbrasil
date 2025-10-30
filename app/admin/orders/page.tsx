@@ -251,7 +251,7 @@ export default function AdminOrdersPage() {
                     </a>
 
                     {user.isAdmin && (
-                      <a href="/admin" className="block px-3 py-2 text-blue-500 hover:bg-accent text-sm">
+                      <a href="/admin" className="block px-3 py-2 text-primary hover:bg-accent text-sm">
                         Painel Admin
                       </a>
                     )}
@@ -309,7 +309,7 @@ export default function AdminOrdersPage() {
                   <Filter className="w-4 h-4 mr-2" />
                   Filtros
                 </Button>
-                <Button className="bg-primary hover:bg-blue-600 text-black">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   <Download className="w-4 h-4 mr-2" />
                   Exportar
                 </Button>
@@ -426,7 +426,7 @@ export default function AdminOrdersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm" className="text-primary hover:text-blue-400">
+                          <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
                             <ExternalLink className="w-4 h-4" />
                           </Button>
                         </div>
@@ -448,8 +448,8 @@ export default function AdminOrdersPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-card rounded-lg p-6">
               <div className="flex items-center">
-                <div className="p-2 bg-blue-900 bg-opacity-20 rounded-lg">
-                  <UserIcon className="w-6 h-6 text-blue-500" />
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <UserIcon className="w-6 h-6 text-primary" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-muted-foreground">Total de Pedidos</p>

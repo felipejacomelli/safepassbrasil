@@ -362,7 +362,7 @@ export default function Page() {
                                                         <h3 className="font-semibold text-card-foreground text-sm mb-1 line-clamp-2">
                                                             {cat.name}
                                                         </h3>
-                                                        <div className="flex items-center gap-1 text-blue-500 text-xs">
+                                                        <div className="flex items-center gap-1 text-primary text-xs">
                                                             <span>{cat.event_count} eventos</span>
                                                         </div>
                                                     </div>
@@ -407,7 +407,7 @@ export default function Page() {
                                                         <h3 className="font-semibold text-card-foreground text-sm mb-1 line-clamp-2">
                                                             {cat.name}
                                                         </h3>
-                                                        <div className="flex items-center gap-1 text-blue-500 text-xs">
+                                                        <div className="flex items-center gap-1 text-primary text-xs">
                                                             <span>{cat.event_count} eventos</span>
                                                         </div>
                                                     </div>
@@ -506,8 +506,8 @@ export default function Page() {
                                                                     )}
                                                                 </span>
                                                             </div>
-                                                            <div className="flex items-center gap-1 text-blue-500 text-xs">
-                                                                <Ticket size={12} className="mr-1 text-blue-500" />
+                                                            <div className="flex items-center gap-1 text-primary text-xs">
+                                                                <Ticket size={12} className="mr-1 text-primary" />
                                                                 <span>
                                                                     {event.total_available_tickets !== undefined 
                                                                         ? `${event.total_available_tickets} ingressos` 
@@ -583,8 +583,8 @@ export default function Page() {
                                                                     )}
                                                                 </span>
                                                             </div>
-                                                            <div className="flex items-center gap-1 text-blue-500 text-xs">
-                                                                <Ticket size={12} className="mr-1 text-blue-500" />
+                                                            <div className="flex items-center gap-1 text-primary text-xs">
+                                                                <Ticket size={12} className="mr-1 text-primary" />
                                                                 <span>
                                                                     {event.total_available_tickets !== undefined 
                                                                         ? `${event.total_available_tickets} ingressos` 
@@ -665,7 +665,7 @@ export default function Page() {
                         <div className="flex-1 overflow-y-auto min-h-0 p-6">
                             {isLoading ? (
                                 <div className="flex items-center justify-center py-8">
-                                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                                     <span className="ml-3 text-muted-foreground">Carregando eventos...</span>
                                 </div>
                             ) : error ? (
@@ -673,7 +673,7 @@ export default function Page() {
                                     <p className="text-red-500 mb-4">Erro ao carregar eventos.</p>
                                     <button
                                         onClick={() => window.location.reload()}
-                                        className="bg-blue-500 hover:bg-blue-600 text-black font-semibold py-2 px-4 rounded transition-colors"
+                                        className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 px-4 rounded transition-colors"
                                     >
                                         Tentar novamente
                                     </button>
@@ -695,7 +695,7 @@ export default function Page() {
                                             <p className="text-muted-foreground mb-2">Nenhum evento encontrado para "{searchTerm}"</p>
                                             <button
                                                 onClick={() => setSearchTerm('')}
-                                                className="text-blue-400 hover:text-blue-300 text-sm underline"
+                                                className="text-primary hover:text-primary/80 text-sm underline"
                                             >
                                                 Limpar busca
                                             </button>
@@ -705,7 +705,7 @@ export default function Page() {
                                             {searchTerm && (
                                                 <div className="mb-4 p-3 bg-accent/50 rounded-xl">
                                                     <p className="text-sm text-muted-foreground">
-                                                        Encontrados <span className="font-semibold text-blue-400">{filteredSellEvents.length}</span> eventos para "{searchTerm}"
+                                                        Encontrados <span className="font-semibold text-primary">{filteredSellEvents.length}</span> eventos para "{searchTerm}"
                                                     </p>
                                                 </div>
                                             )}
@@ -748,7 +748,7 @@ export default function Page() {
                                                     </span>
                                                 </div>
                                                 {event.occurrences && event.occurrences.length > 0 && (
-                                                    <div className="text-sm text-blue-400 mt-1 font-medium">
+                                                    <div className="text-sm text-primary mt-1 font-medium">
                                                         {event.occurrences.length === 1 
                                                             ? new Date(event.occurrences[0].start_at).toLocaleDateString('pt-BR', {
                                                                 day: '2-digit',
@@ -776,7 +776,7 @@ export default function Page() {
                                                 )}
                                             </div>
                                             <div className="flex-shrink-0">
-                                                <ChevronRight size={20} className="text-muted-foreground group-hover:text-blue-400 transition-colors" />
+                                                <ChevronRight size={20} className="text-muted-foreground group-hover:text-primary transition-colors" />
                                             </div>
                                         </button>
                                     ))}
@@ -789,7 +789,7 @@ export default function Page() {
                         {/* Footer da Modal */}
                         <div className="p-6 border-t border-border bg-accent/30 flex-shrink-0">
                             <div className="flex items-center justify-center gap-2 mb-3">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <div className="w-2 h-2 bg-primary rounded-full"></div>
                                 <p className="text-sm font-medium text-muted-foreground">
                                     Precisa de ajuda?
                                 </p>
@@ -798,7 +798,7 @@ export default function Page() {
                                 Caso não encontre o evento desejado, entre em contato com nosso suporte através do email{' '}
                                 <a 
                                     href="mailto:suporte@safepass.com" 
-                                    className="text-blue-400 hover:text-blue-300 underline transition-colors"
+                                    className="text-primary hover:text-primary/80 underline transition-colors"
                                 >
                                     suporte@safepass.com
                                 </a>
@@ -819,7 +819,7 @@ export default function Page() {
                     <div className="grid md:grid-cols-3 gap-8">
                         {/* Como Vender */}
                         <div className="text-center">
-                            <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
                                 <Plus className="w-10 h-10 text-foreground" />
                             </div>
                             <h3 className="text-xl font-semibold text-foreground mb-3">Como Vender</h3>
@@ -828,7 +828,7 @@ export default function Page() {
 
                         {/* Como Comprar */}
                         <div className="text-center">
-                            <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
                                 <ShoppingCart className="w-10 h-10 text-foreground" />
                             </div>
                             <h3 className="text-xl font-semibold text-foreground mb-3">Como Comprar</h3>
@@ -837,7 +837,7 @@ export default function Page() {
 
                         {/* Suporte */}
                         <div className="text-center">
-                            <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
                                 <MessageCircle className="w-10 h-10 text-foreground" />
                             </div>
                             <h3 className="text-xl font-semibold text-foreground mb-3">Suporte</h3>
@@ -1039,7 +1039,7 @@ export function EventCard({ event }: { event: any }) {
                 />
                 <div className="p-4">
                     <h3 className="font-semibold mb-2">{event.name}</h3>
-                    <div className="flex items-center text-sm text-blue-400 mb-2 font-medium">
+                    <div className="flex items-center text-sm text-primary mb-2 font-medium">
                         <Calendar className="w-4 h-4 mr-1" />
                         <span>{getEventDates(event)}</span>
                     </div>
@@ -1047,8 +1047,8 @@ export function EventCard({ event }: { event: any }) {
                         <MapPin className="w-4 h-4 mr-1" />
                         <span>{getEventLocations(event)}</span>
                     </div>
-                    <div className="flex items-center text-lg font-bold text-blue-500 mb-3">
-                        <Ticket size={16} className="mr-2 text-blue-500" />
+                    <div className="flex items-center text-lg font-bold text-primary mb-3">
+                        <Ticket size={16} className="mr-2 text-primary" />
                         <span>
                             {event.total_available_tickets !== undefined 
                                 ? `${event.total_available_tickets}` 

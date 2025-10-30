@@ -19,7 +19,7 @@ export default function Loading() {
           width: "40px",
           height: "40px",
           border: "4px solid rgba(255, 255, 255, 0.1)",
-          borderTopColor: "#3B82F6",
+          borderTopColor: "#01c5f7",
           borderRadius: "50%",
           marginBottom: "16px",
         }}

@@ -460,7 +460,7 @@ export default function CheckoutPage() {
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                   {/* PIX */}
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.PIX ? "border-primary bg-blue-900 bg-opacity-20" : "border-border bg-accent hover:border-zinc-600"}`}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.PIX ? "border-primary bg-primary/10" : "border-border bg-accent hover:border-zinc-600"}`}
                     onClick={() => setPaymentMethod(PAYMENT_METHODS.PIX)}
                   >
                     <QrCode className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.PIX ? "text-primary" : "text-muted-foreground"}`} />
@@ -469,7 +469,7 @@ export default function CheckoutPage() {
 
                   {/* Cartão de Crédito */}
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.CREDIT_CARD ? "border-primary bg-blue-900 bg-opacity-20" : "border-border bg-accent hover:border-zinc-600"}`}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.CREDIT_CARD ? "border-primary bg-primary/10" : "border-border bg-accent hover:border-zinc-600"}`}
                     onClick={() => setPaymentMethod(PAYMENT_METHODS.CREDIT_CARD)}
                   >
                     <CreditCard className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.CREDIT_CARD ? "text-primary" : "text-muted-foreground"}`} />
@@ -478,7 +478,7 @@ export default function CheckoutPage() {
 
                   {/* Cartão de Débito */}
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.DEBIT_CARD ? "border-primary bg-blue-900 bg-opacity-20" : "border-border bg-accent hover:border-zinc-600"}`}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.DEBIT_CARD ? "border-primary bg-primary/10" : "border-border bg-accent hover:border-zinc-600"}`}
                     onClick={() => setPaymentMethod(PAYMENT_METHODS.DEBIT_CARD)}
                   >
                     <CreditCard className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.DEBIT_CARD ? "text-primary" : "text-muted-foreground"}`} />
@@ -487,7 +487,7 @@ export default function CheckoutPage() {
 
                   {/* Transferência */}
                   <div
-                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.TRANSFER ? "border-primary bg-blue-900 bg-opacity-20" : "border-border bg-accent hover:border-zinc-600"}`}
+                    className={`flex flex-col items-center justify-center p-4 rounded-lg cursor-pointer border transition-all ${paymentMethod === PAYMENT_METHODS.TRANSFER ? "border-primary bg-primary/10" : "border-border bg-accent hover:border-zinc-600"}`}
                     onClick={() => setPaymentMethod(PAYMENT_METHODS.TRANSFER)}
                   >
                     <Landmark className={`w-8 h-8 mb-2 ${paymentMethod === PAYMENT_METHODS.TRANSFER ? "text-primary" : "text-muted-foreground"}`} />
@@ -813,7 +813,7 @@ export default function CheckoutPage() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full bg-primary hover:bg-blue-600 text-black py-4 text-lg font-bold"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg font-bold"
                 disabled={isProcessing}
               >
                 {isProcessing ? (
@@ -877,7 +877,7 @@ export default function CheckoutPage() {
               </div>
 
               {/* Security Info */}
-              <div className="bg-blue-900 bg-opacity-20 rounded-lg p-4 border border-primary">
+              <div className="bg-primary/10 rounded-lg p-4 border border-primary">
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
                   <div>

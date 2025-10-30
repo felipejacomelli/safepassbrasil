@@ -181,9 +181,9 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
         </CardContent>
       </Card>
 
-      <Alert className="bg-blue-50 border-blue-200">
-        <AlertCircle className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-700">
+      <Alert className="bg-primary/10 border-primary/20">
+        <AlertCircle className="h-4 w-4 text-primary" />
+        <AlertDescription className="text-primary">
           Se algum dado estiver incorreto, você pode atualizá-lo em sua conta antes de continuar.
         </AlertDescription>
       </Alert>
@@ -410,9 +410,9 @@ export function VerificationModal({ isOpen, onClose, onComplete }: VerificationM
         </CardContent>
       </Card>
 
-      <Alert className="bg-blue-50 border-blue-200">
-        <AlertCircle className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-700">
+      <Alert className="bg-primary/10 border-primary/20">
+        <AlertCircle className="h-4 w-4 text-primary" />
+        <AlertDescription className="text-primary">
           <strong>Dicas para uma boa selfie:</strong>
           <ul className="mt-2 space-y-1 text-sm">
             <li>• Mantenha o rosto bem iluminado</li>

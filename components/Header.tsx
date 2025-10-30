@@ -20,7 +20,7 @@ import {
 const NotificationBell = dynamic(() => import("./NotificationBell"), {
     ssr: false,
     loading: () => (
-        <button className="p-2 border border-blue-500 rounded">
+        <button className="p-2 border border-primary rounded">
             <Bell size={18} />
         </button>
     )
@@ -59,7 +59,7 @@ export default function Header() {
             <header className="sticky top-0 z-10 bg-background border-b border-border">
                 <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
                     <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-                        <div className="bg-blue-500 p-1.5 rounded">
+                        <div className="bg-primary p-1.5 rounded">
                             <div className="w-6 h-6 bg-background rounded" />
                         </div>
                         Safe Pass
@@ -81,7 +81,7 @@ export default function Header() {
         <header className="sticky top-0 z-10 bg-background border-b border-border">
             <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
                 <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-                    <div className="bg-blue-500 dark:bg-blue-600 p-1.5 rounded shadow-sm dark:shadow-blue-500/20">
+                    <div className="bg-primary dark:bg-primary p-1.5 rounded shadow-sm dark:shadow-primary/20">
                         <div className="w-6 h-6 bg-background rounded" />
                     </div>
                     Safe Pass
@@ -94,7 +94,7 @@ export default function Header() {
                             <div className="relative">
                             <button
                                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                className="flex items-center gap-2 border border-blue-500 dark:border-blue-400 px-3 py-1.5 rounded text-sm font-semibold hover:bg-blue-500/10 dark:hover:bg-blue-400/10 transition-colors shadow-sm dark:shadow-blue-500/10"
+                                className="flex items-center gap-2 border border-primary dark:border-primary px-3 py-1.5 rounded text-sm font-semibold hover:bg-primary/10 dark:hover:bg-primary/10 transition-colors shadow-sm dark:shadow-primary/10"
                             >
                                 <UserCircle size={18} />
                                 <span>{user?.name || 'Usuário'}</span>
@@ -156,15 +156,15 @@ export default function Header() {
                         <>
                             <button
                                 onClick={() => router.push("/login")}
-                                className="p-2 border border-blue-500 dark:border-blue-400 rounded hover:bg-blue-500/10 dark:hover:bg-blue-400/10 transition-colors shadow-sm dark:shadow-blue-500/10"
+                                className="p-2 border border-primary dark:border-primary rounded hover:bg-primary/10 dark:hover:bg-primary/10 transition-colors shadow-sm dark:shadow-primary/10"
                             >
-                                <User size={18} className="text-blue-500 dark:text-blue-400" />
+                                <User size={18} className="text-primary dark:text-primary" />
                             </button>
                             <button
                                 onClick={() => router.push("/cart")}
-                                className="p-2 border border-blue-500 dark:border-blue-400 rounded hover:bg-blue-500/10 dark:hover:bg-blue-400/10 transition-colors shadow-sm dark:shadow-blue-500/10"
+                                className="p-2 border border-primary dark:border-primary rounded hover:bg-primary/10 dark:hover:bg-primary/10 transition-colors shadow-sm dark:shadow-primary/10"
                             >
-                                <ShoppingCart size={18} className="text-blue-500 dark:text-blue-400" />
+                                <ShoppingCart size={18} className="text-primary dark:text-primary" />
                             </button>
                         </>
                     )}
