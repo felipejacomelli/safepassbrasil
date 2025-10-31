@@ -362,9 +362,6 @@ export default function Page() {
                                                         <h3 className="font-semibold text-card-foreground text-sm mb-1 line-clamp-2">
                                                             {cat.name}
                                                         </h3>
-                                                        <div className="flex items-center gap-1 text-primary text-xs">
-                                                            <span>{cat.event_count} eventos</span>
-                                                        </div>
                                                     </div>
                                                 </article>
                                             </MobileCarouselItem>
@@ -407,9 +404,6 @@ export default function Page() {
                                                         <h3 className="font-semibold text-card-foreground text-sm mb-1 line-clamp-2">
                                                             {cat.name}
                                                         </h3>
-                                                        <div className="flex items-center gap-1 text-primary text-xs">
-                                                            <span>{cat.event_count} eventos</span>
-                                                        </div>
                                                     </div>
                                                 </article>
                                             </CarouselItem>
@@ -1025,20 +1019,20 @@ export function EventCard({ event }: { event: any }) {
     }
 
     return (
-        <div className="bg-background rounded overflow-hidden shadow hover:scale-105 transition-transform">
+        <div className="bg-background rounded overflow-hidden shadow hover:scale-105 transition-transform h-[380px] flex flex-col">
             <div
                 onClick={handleCardClick}
-                className="cursor-pointer"
+                className="cursor-pointer flex flex-col h-full"
             >
                 <Image
                     src={event.image || "/placeholder.svg"}
                     alt={event.name}
                     width={400}
                     height={192}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-48 object-cover flex-shrink-0"
                 />
-                <div className="p-4">
-                    <h3 className="font-semibold mb-2">{event.name}</h3>
+                <div className="p-4 flex flex-col flex-grow">
+                    <h3 className="font-semibold mb-2 line-clamp-2">{event.name}</h3>
                     <div className="flex items-center text-sm text-primary mb-2 font-medium">
                         <Calendar className="w-4 h-4 mr-1" />
                         <span>{getEventDates(event)}</span>
@@ -1047,7 +1041,7 @@ export function EventCard({ event }: { event: any }) {
                         <MapPin className="w-4 h-4 mr-1" />
                         <span>{getEventLocations(event)}</span>
                     </div>
-                    <div className="flex items-center text-lg font-bold text-primary mb-3">
+                    <div className="flex items-center text-lg font-bold text-primary mt-auto">
                         <Ticket size={16} className="mr-2 text-primary" />
                         <span>
                             {event.total_available_tickets !== undefined 

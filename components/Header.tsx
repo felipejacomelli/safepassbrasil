@@ -94,11 +94,11 @@ export default function Header() {
                             <div className="relative">
                             <button
                                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                className="flex items-center gap-2 border border-primary dark:border-primary px-3 py-1.5 rounded text-sm font-semibold hover:bg-primary/10 dark:hover:bg-primary/10 transition-colors shadow-sm dark:shadow-primary/10"
+                                className="flex items-center gap-2 border border-primary dark:border-primary p-2 md:px-3 md:py-1.5 rounded text-sm font-semibold hover:bg-primary/10 dark:hover:bg-primary/10 transition-colors shadow-sm dark:shadow-primary/10"
                             >
                                 <UserCircle size={18} />
-                                <span>{user?.name || 'Usuário'}</span>
-                                <ChevronDown size={16} className={`transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                                <span className="hidden md:inline">{user?.name || 'Usuário'}</span>
+                                <ChevronDown size={16} className={`hidden md:block transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                             </button>
                             
                             {isUserMenuOpen && (

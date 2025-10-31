@@ -23,11 +23,11 @@ export function ThemeToggle() {
     return (
       <Button 
         variant="ghost" 
-        size="icon" 
-        className="rounded-full"
+        className="gap-2"
         aria-label="Alternar tema"
       >
         <Monitor className="h-5 w-5" />
+        <span>Tema do sistema</span>
       </Button>
     )
   }
@@ -49,12 +49,11 @@ export function ThemeToggle() {
       <DropdownMenuTrigger asChild>
         <Button 
           variant="ghost" 
-          size="icon" 
-          className="rounded-full hover:bg-accent hover:text-accent-foreground transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2 shadow-sm dark:shadow-none border border-transparent dark:border-border/50 dark:hover:border-primary/30"
+          className="gap-2 hover:bg-accent hover:text-accent-foreground transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2 shadow-sm dark:shadow-none border border-transparent dark:border-border/50 dark:hover:border-primary/30"
           aria-label={`Alternar tema - ${getThemeLabel()}`}
         >
           {getIcon()}
-          <span className="sr-only">{getThemeLabel()}</span>
+          <span>{getThemeLabel()}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
