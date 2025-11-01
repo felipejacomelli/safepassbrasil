@@ -206,9 +206,7 @@ export class PaymentApiClient {
 
 // Instância singleton com URL baseada no ambiente
 const getApiUrl = () => {
-  if (process.env.NODE_ENV === 'production') {
-    return 'https://reticket-backend.onrender.com'
-  }
+  // Usa NEXT_PUBLIC_API_URL em todos os ambientes
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 }
 

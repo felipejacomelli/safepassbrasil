@@ -36,7 +36,8 @@ const nextConfig = {
     }
     
     // Em produção, usar a URL configurada na variável de ambiente
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://reticket-backend.onrender.com'
+    // Se não estiver definida, usar localhost (vai falhar em produção, forçando configuração correta)
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
     return [
       {
         source: '/api/:path*',
